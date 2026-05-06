@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Mail, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -10,6 +10,14 @@ import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') ?? '/dashboard'
   const [email, setEmail] = useState('')
