@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 6.7%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 37 45% 49%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 37 45% 49%;
+    --accent-foreground: 0 0% 7%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 16%;
+    --input: 0 0% 13%;
+    --ring: 37 45% 49%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border box-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-[#111111] text-foreground font-montserrat antialiased;
+  }
+  ::selection {
+    background-color: rgba(184, 135, 70, 0.3);
+    color: #fff;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #111;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #B88746;
+  }
+}
+
+@layer utilities {
+  .bg-gold-gradient {
+    background: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%);
+  }
+  .text-gold-gradient {
+    background: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .border-gold-gradient {
+    border-image: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%) 1;
+  }
+}
+
+/* react-day-picker dark theme overrides */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: #B88746;
+  --rdp-background-color: rgba(184, 135, 70, 0.12);
+  --rdp-accent-color-dark: #B88746;
+  --rdp-background-color-dark: rgba(184, 135, 70, 0.12);
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 2px solid var(--rdp-accent-color);
+  color: #d4d4d4;
+  margin: 0;
+}
+.rdp-day_selected:not([disabled]),
+.rdp-day_selected:focus:not([disabled]),
+.rdp-day_selected:active:not([disabled]),
+.rdp-day_selected:hover:not([disabled]) {
+  background-color: #B88746;
+  color: #111111;
+}
+.rdp-day:hover:not([disabled]):not(.rdp-day_selected) {
+  background-color: rgba(184, 135, 70, 0.15);
+  color: #fff;
+}
+.rdp-caption_label {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  color: #fff;
+}
+.rdp-head_cell {
+  color: #B88746;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.rdp-nav_button {
+  color: #B88746;
+}
+.rdp-nav_button:hover {
+  background-color: rgba(184, 135, 70, 0.15);
+}
