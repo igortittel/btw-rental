@@ -35,7 +35,7 @@ export default function NewMaintenancePage() {
     ]).then(([{ data: veh }, { data: types }]) => {
       setVehicles((veh ?? []) as Vehicle[])
       const predefinedSet = new Set(MAINTENANCE_PREDEFINED as readonly string[])
-      const custom = [...new Set((types ?? []).map(r => r.type).filter(t => !predefinedSet.has(t)))]
+      const custom = Array.from(new Set((types ?? []).map(r => r.type).filter(t => !predefinedSet.has(t))))
       setSavedCustomTypes(custom)
     })
   }, [])
