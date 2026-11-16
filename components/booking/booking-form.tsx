@@ -21,7 +21,7 @@ type Props = { vehicles: BookingVehicle[]; locations: BookingLocation[]; config:
 type Field_ = keyof BookingFormState
 
 const STEP_OF_FIELD: Partial<Record<Field_ | 'form', number>> = {
-  vin: 1, pickupDate: 1, pickupTime: 1, returnDate: 1, returnTime: 1, pickupLocationId: 1, returnLocationId: 1, pickupCustom: 1, pickupAddress: 1, returnCustom: 1, returnAddress: 1, abroadTrip: 1, abroadCountries: 1,
+  vin: 1, pickupDate: 1, pickupTime: 1, returnDate: 1, returnTime: 1, pickupLocationId: 1, returnLocationId: 1, pickupCustom: 1, pickupAddress: 1, pickupOutsideCity: 1, returnCustom: 1, returnAddress: 1, returnOutsideCity: 1, abroadTrip: 1, abroadCountries: 1,
   termsConsent: 3, gdprConsent: 3, marketingConsent: 3, form: 3,
 }
 const TIMES = Array.from({ length: 48 }, (_, i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`)
@@ -82,7 +82,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
       individualFromDays: config.individualFromDays,
     })
   }, [vehicle, instants, values.extras, values.pickupCustom, values.returnCustom, pickupLocation, returnLocation, config])
-  const deliveryPending = values.pickupCustom || values.returnCustom
+  const deliveryOutside = (values.pickupCustom && values.pickupOutsideCity) || (values.returnCustom && values.returnOutsideCity)
+  const delivery = deliveryOutside ? ('outside' as const) : values.pickupCustom || values.returnCustom ? ('city' as const) : null
 
   // ── Validation per step (same schemas as the server) ──
   const validateStep = useCallback(
@@ -379,8 +380,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 <div className="grid gap-6 sm:grid-cols-2">
                   {(
                     [
-                      { field: 'pickupLocationId', custom: 'pickupCustom', address: 'pickupAddress', options: pickupOptions, location: pickupLocation, label: t('pickupLocation'), toggle: t('pickupCustom') },
-                      { field: 'returnLocationId', custom: 'returnCustom', address: 'returnAddress', options: returnOptions, location: returnLocation, label: t('returnLocation'), toggle: t('returnCustom') },
+                      { field: 'pickupLocationId', custom: 'pickupCustom', address: 'pickupAddress', outside: 'pickupOutsideCity', options: pickupOptions, location: pickupLocation, label: t('pickupLocation'), toggle: t('pickupCustom') },
+                      { field: 'returnLocationId', custom: 'returnCustom', address: 'returnAddress', outside: 'returnOutsideCity', options: returnOptions, location: returnLocation, label: t('returnLocation'), toggle: t('returnCustom') },
                     ] as const
                   ).map((place) => (
                     <div key={place.field} className="min-w-0">
@@ -409,10 +410,20 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                       <CheckField id={place.custom} checked={values[place.custom]} onChange={(checked) => set(place.custom, checked)}>
                         {place.toggle}
                       </CheckField>
+                      {values[place.custom] ? (
+                        <div className="mt-1 grid gap-2">
+                          {([false, true] as const).map((outside) => (
+                            <label key={String(outside)} className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-[15px] text-white transition-colors focus-within:ring-2 focus-within:ring-gold/40 ${values[place.outside] === outside ? 'border-gold bg-gold/10' : 'border-line hover:border-gold/60'}`}>
+                              <input type="radio" name={place.outside} checked={values[place.outside] === outside} onChange={() => set(place.outside, outside)} className="h-4 w-4 shrink-0 accent-gold" />
+                              {t(outside ? 'addressOutside' : 'addressInCity')}
+                            </label>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
-                {deliveryPending ? <p className="mt-2 rounded-lg border border-gold/60 bg-gold/10 px-4 py-3 text-sm leading-6 text-white">{t('deliveryNote', { address: locations.find((l) => l.isDefault)?.address ?? '' })}</p> : null}
+                {deliveryOutside ? <p className="mt-4 rounded-lg border border-gold/60 bg-gold/10 px-4 py-3 text-sm leading-6 text-white">{t('deliveryNote')}</p> : null}
                 <div className="mt-4 border-t border-line pt-3">
                   <CheckField id="abroadTrip" checked={values.abroadTrip} onChange={(checked) => set('abroadTrip', checked)}>
                     {t('abroad')}
@@ -623,8 +634,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
               </Card>
 
               <Card title={t('reviewPrice')}>
-                <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} deliveryPending={deliveryPending} />
-                {deliveryPending ? <p className="mt-3 text-sm leading-6 text-muted2">{t('deliveryNote', { address: locations.find((l) => l.isDefault)?.address ?? '' })}</p> : null}
+                <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} delivery={delivery} />
+                {deliveryOutside ? <p className="mt-3 text-sm leading-6 text-muted2">{t('deliveryNote')}</p> : null}
                 <dl className="mt-4 space-y-2 border-t border-line pt-4 text-[15px]">
                   <ReviewRow label={`${t('reviewPayment')} – ${t('rentalPayment').toLowerCase()}`} value={t(`methods.${values.rentalPaymentMethod}`)} />
                   <ReviewRow label={`${t('reviewPayment')} – ${t('depositPayment').toLowerCase()}`} value={t(`methods.${values.depositPaymentMethod}`)} />
@@ -680,7 +691,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
           ) : null}
         </form>
 
-        <PriceSummary vehicle={vehicle} price={price} pickupLabel={pickupLabel} returnLabel={returnLabel} pickupLocation={pickupLocation} returnLocation={returnLocation} deliveryPending={deliveryPending} />
+        <PriceSummary vehicle={vehicle} price={price} pickupLabel={pickupLabel} returnLabel={returnLabel} pickupLocation={pickupLocation} returnLocation={returnLocation} delivery={delivery} />
       </div>
     </div>
   )

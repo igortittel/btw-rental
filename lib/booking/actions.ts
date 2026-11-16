@@ -108,10 +108,12 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
   if (!settings.payment_methods.includes(data.depositPaymentMethod)) return fail({ depositPaymentMethod: 'required' })
 
   const { pickupAt, returnAt } = termInstants(data)!
-  // Own address: the vehicle is delivered / collected there. The standard location stays
-  // as the base; the fee depends on the distance and is added by staff before confirming.
+  // Own address: the vehicle is delivered / collected there (the standard location stays
+  // referenced as the base). Free within Bratislava; outside it the booking is handled
+  // manually – staff contact the customer and agree the conditions.
   const pickupAddress = data.pickupCustom ? data.pickupAddress : null
   const returnAddress = data.returnCustom ? data.returnAddress : null
+  const deliveryOutsideCity = (data.pickupCustom && data.pickupOutsideCity) || (data.returnCustom && data.returnOutsideCity)
   const price = calculatePrice({
     pickupAt,
     returnAt,
@@ -192,7 +194,7 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         return_location: { id: returnLocation.id, name: returnLocation.name, address: returnLocation.address },
         pickup_custom_address: pickupAddress,
         return_custom_address: returnAddress,
-        delivery_fee_pending: !!(pickupAddress || returnAddress),
+        delivery_outside_city: deliveryOutsideCity,
         min_driver_age: vehicle.minDriverAge,
         min_license_months: vehicle.minLicenseMonths,
       },
@@ -258,6 +260,7 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         returnLocation,
         pickupAddress,
         returnAddress,
+        deliveryOutsideCity,
         depositCents: vehicle.depositCents,
         kmLimitPerDay: vehicle.kmLimitPerDay,
         extraKmCents: vehicle.extraKmCents,

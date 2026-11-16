@@ -46,7 +46,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Rezervácia sa zapisuje cez RPC `create_booking`** (jedna transakcia, len service role).
 - **Nepotvrdené rezervácie sa verejne nezobrazujú** (klient si „čaká na potvrdenie“ v kalendári neželá); `/api/availability` vracia len obsadené intervaly.
 - **Kategórie v katalógu sú jednovýberové** (čipy); URL `?kategoria=a,b` sa stále číta, ale UI ju nevytvára.
-- **Pristavenie na vlastnú adresu:** adresa v `bookings.pickup_custom_address` / `return_custom_address`, štandardné miesto ostáva ako východisko. Poplatok sa nepočíta automaticky – určí ho BTW pred potvrdením (úprava ceny príde vo Fáze 6); automatický výpočet podľa km čaká na rozhodnutie klienta (mapová služba + sadzba).
+- **Pristavenie na vlastnú adresu:** adresa v `bookings.pickup_custom_address` / `return_custom_address`, štandardné miesto ostáva ako východisko. **V Bratislave bez poplatku; mimo Bratislavy ručné spracovanie** (BTW zákazníka kontaktuje) – rozhodnutie klienta, žiadny automatický výpočet podľa km. Príznak je v `price_snapshot.delivery_outside_city`.
 - **Rýchle zmeny stavu v admine** (`app/admin/rezervacie/actions.ts`, `NEXT_STATUSES`) sú hotové už vo Fáze 5; e-maily 3–6 a storno poplatok pri nich ešte nie sú.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 

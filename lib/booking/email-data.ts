@@ -20,8 +20,10 @@ const LABELS = {
     kmLimit: (km: number, price: string) => `${km} km / deň, nad limit ${price} / km`,
     abroadYes: 'áno',
     ownAddress: 'Pristavenie na adresu',
-    delivery: 'Pristavenie vozidla na adresu',
-    deliveryFee: 'podľa vzdialenosti',
+    delivery: 'Pristavenie v Bratislave',
+    deliveryFree: 'bezplatne',
+    deliveryOutside: 'Pristavenie mimo Bratislavy',
+    deliveryIndividual: 'dohodneme individuálne',
   },
   en: {
     rental: (days: number, rate: string) => `Rental ${days} × ${rate}`,
@@ -34,8 +36,10 @@ const LABELS = {
     kmLimit: (km: number, price: string) => `${km} km / day, ${price} per extra km`,
     abroadYes: 'yes',
     ownAddress: 'Delivery to address',
-    delivery: 'Delivery to your address',
-    deliveryFee: 'depends on distance',
+    delivery: 'Delivery within Bratislava',
+    deliveryFree: 'free of charge',
+    deliveryOutside: 'Delivery outside Bratislava',
+    deliveryIndividual: 'to be agreed individually',
   },
 }
 
@@ -52,6 +56,8 @@ export type BookingEmailInput = {
   /** Customer's own delivery / collection address, if requested. */
   pickupAddress?: string | null
   returnAddress?: string | null
+  /** An own address outside Bratislava: handled manually, staff contact the customer. */
+  deliveryOutsideCity?: boolean
   depositCents: number
   kmLimitPerDay: number
   extraKmCents: number
@@ -78,8 +84,9 @@ export function buildBookingEmailData(input: BookingEmailInput, locale: 'sk' | '
       amount: euro(line.totalCents),
     })),
   ]
-  const deliveryFeePending = !!(input.pickupAddress || input.returnAddress)
-  if (deliveryFeePending) lines.push({ label: l.delivery, amount: l.deliveryFee })
+  const hasDelivery = !!(input.pickupAddress || input.returnAddress)
+  const deliveryOutsideCity = hasDelivery && !!input.deliveryOutsideCity
+  if (hasDelivery) lines.push(deliveryOutsideCity ? { label: l.deliveryOutside, amount: l.deliveryIndividual } : { label: l.delivery, amount: l.deliveryFree })
   if (price.pickupSurchargeCents > 0) lines.push({ label: `${l.pickupSurcharge} – ${pick(input.pickupLocation.name, locale)}`, amount: euro(price.pickupSurchargeCents) })
   if (price.returnSurchargeCents > 0) lines.push({ label: `${l.returnSurcharge} – ${pick(input.returnLocation.name, locale)}`, amount: euro(price.returnSurchargeCents) })
 
@@ -95,7 +102,7 @@ export function buildBookingEmailData(input: BookingEmailInput, locale: 'sk' | '
     return: input.returnAddress
       ? { at: formatDateTime(input.returnAt, locale), place: l.ownAddress, address: input.returnAddress }
       : { at: formatDateTime(input.returnAt, locale), place: pick(input.returnLocation.name, locale), address: input.returnLocation.address },
-    deliveryFeePending,
+    deliveryOutsideCity,
     days: price.days,
     lines,
     total: price.totalCents === null ? null : euro(price.totalCents),

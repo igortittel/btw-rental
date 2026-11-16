@@ -12,8 +12,8 @@ export type BookingEmailData = {
   days: number
   /** Price lines in display order (rental, extras, location surcharges). */
   lines: { label: string; amount: string }[]
-  /** A delivery fee (own address) will be added by staff; the total does not include it yet. */
-  deliveryFeePending: boolean
+  /** Delivery / collection outside Bratislava was requested: staff contact the customer to agree the conditions. */
+  deliveryOutsideCity: boolean
   total: string | null
   net: string | null
   vat: string | null

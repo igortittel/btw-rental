@@ -27,11 +27,16 @@ export const termSchema = z
     returnTime: z.string().regex(TIME, { message: 'required' }),
     pickupLocationId: z.string().regex(UUID, { message: 'required' }),
     returnLocationId: z.string().regex(UUID, { message: 'required' }),
-    /** Delivery / collection at the customer's own address; the fee depends on the distance and is set by staff. */
+    /**
+     * Delivery / collection at the customer's own address. Within Bratislava it is free;
+     * anywhere else is arranged individually – staff contact the customer.
+     */
     pickupCustom: z.boolean(),
     pickupAddress: text(200),
+    pickupOutsideCity: z.boolean(),
     returnCustom: z.boolean(),
     returnAddress: text(200),
+    returnOutsideCity: z.boolean(),
     abroadTrip: z.boolean(),
     abroadCountries: text(300),
   })

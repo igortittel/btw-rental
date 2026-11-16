@@ -13,12 +13,12 @@ type Props = {
   returnLabel: string | null
   pickupLocation: BookingLocation | null
   returnLocation: BookingLocation | null
-  /** Own delivery / collection address: the fee is set by staff later. */
-  deliveryPending?: boolean
+  /** Own delivery / collection address: free within Bratislava, individual outside it. */
+  delivery?: 'city' | 'outside' | null
 }
 
 /** Price lines + totals; used in the sidebar, the mobile sheet and step 3. */
-export function PriceLines({ vehicle, price, pickupLocation, returnLocation, deliveryPending }: Pick<Props, 'vehicle' | 'price' | 'pickupLocation' | 'returnLocation' | 'deliveryPending'>) {
+export function PriceLines({ vehicle, price, pickupLocation, returnLocation, delivery }: Pick<Props, 'vehicle' | 'price' | 'pickupLocation' | 'returnLocation' | 'delivery'>) {
   const t = useTranslations('booking')
   const locale = useLocale()
   if (!price || !vehicle) return null
@@ -42,10 +42,10 @@ export function PriceLines({ vehicle, price, pickupLocation, returnLocation, del
             <dd className="shrink-0 text-white">{euro(line.totalCents)}</dd>
           </div>
         ))}
-        {deliveryPending ? (
+        {delivery ? (
           <div className={row}>
-            <dt className="text-muted2">{t('delivery')}</dt>
-            <dd className="shrink-0 text-right text-white">{t('deliveryFee')}</dd>
+            <dt className="text-muted2">{t(delivery === 'outside' ? 'deliveryOutside' : 'delivery')}</dt>
+            <dd className="shrink-0 text-right text-white">{t(delivery === 'outside' ? 'deliveryIndividual' : 'deliveryFree')}</dd>
           </div>
         ) : null}
         {price.pickupSurchargeCents > 0 && pickupLocation ? (
@@ -95,7 +95,7 @@ export function PriceLines({ vehicle, price, pickupLocation, returnLocation, del
   )
 }
 
-function SummaryBody({ vehicle, price, pickupLabel, returnLabel, pickupLocation, returnLocation, deliveryPending }: Props) {
+function SummaryBody({ vehicle, price, pickupLabel, returnLabel, pickupLocation, returnLocation, delivery }: Props) {
   const t = useTranslations('booking')
   const locale = useLocale()
   if (!vehicle) return <p className="text-[15px] text-muted2">{t('summaryEmpty')}</p>
@@ -126,7 +126,7 @@ function SummaryBody({ vehicle, price, pickupLabel, returnLabel, pickupLocation,
       ) : null}
       <div className="mt-4 border-t border-line pt-3">
         {price ? (
-          <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} deliveryPending={deliveryPending} />
+          <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} delivery={delivery} />
         ) : (
           <p className="text-[15px] text-muted2">
             {vehicle.priceFromCents !== null ? `${t('summaryFrom', { price: formatEuro(vehicle.priceFromCents, locale) })}. ` : ''}

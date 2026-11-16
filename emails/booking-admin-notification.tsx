@@ -24,7 +24,7 @@ export default function BookingAdminNotificationEmail({ booking, adminUrl, pendi
     pendingOverlaps > 0
       ? `Kolízia: na tento termín ${pendingOverlaps === 1 ? 'čaká ďalšia nepotvrdená rezervácia' : `čakajú ďalšie nepotvrdené rezervácie (${pendingOverlaps})`} toho istého vozidla.`
       : null,
-    booking.deliveryFeePending ? 'Zákazník žiada pristavenie na vlastnú adresu – treba určiť poplatok podľa vzdialenosti a doplniť ho do ceny.' : null,
+    booking.deliveryOutsideCity ? 'Zákazník žiada pristavenie mimo Bratislavy – treba ho kontaktovať a dohodnúť podmienky.' : null,
     isBlacklisted ? 'Zákazník je označený ako problémový (blacklist).' : null,
   ].filter((w): w is string => w !== null)
   const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`

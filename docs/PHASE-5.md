@@ -110,8 +110,10 @@ Testovacie rezervácie sa zatiaľ nedajú zrušiť z adminu (Fáza 6); pred spus
 - Po prechode na ďalší krok aj po odoslaní sa stránka posunie na začiatok.
 - Telefón: pre +421 a +420 presne 9 číslic (úvodná nula sa ignoruje), inde 6 – 12.
 - Kalendár vo formulári je tiež interaktívny a vyplní oba dátumy.
-- **Pristavenie na vlastnú adresu** (vyzdvihnutie aj odovzdanie zvlášť): zákazník zadá adresu, v cene sa zobrazí „Pristavenie na adresu – podľa vzdialenosti“ a upozornenie, že poplatok mu BTW oznámi pred potvrdením. Adresa sa ukladá do `bookings.pickup_custom_address` / `return_custom_address` (migrácia `20261117090000_custom_locations.sql`), je v oboch e-mailoch a v admine; notifikácia pre BTW na to upozorní.
-  - **Poplatok sa zatiaľ nepočíta automaticky.** Automatický výpočet podľa kilometrov potrebuje mapovú službu (API kľúč) a sadzbu za km – čaká na rozhodnutie klienta.
+- **Pristavenie na vlastnú adresu** (vyzdvihnutie aj odovzdanie zvlášť): zákazník zadá adresu a zvolí, či je v Bratislave.
+  - **V Bratislave je bez poplatku** – v cene je riadok „Pristavenie v Bratislave – bezplatne“.
+  - **Mimo Bratislavy sa rieši ručne** – v cene je „individuálne“, zákazník vidí, že ho BTW bude kontaktovať, a notifikácia aj admin na to upozornia. Do ceny sa nič nepripočíta.
+  - Adresa je v `bookings.pickup_custom_address` / `return_custom_address` (migrácia `20261117090000_custom_locations.sql`), príznak „mimo Bratislavy“ v `price_snapshot.delivery_outside_city`. Či je adresa v Bratislave, uvádza zákazník; BTW to pri potvrdení skontroluje.
 
 **Admin**
 - Nová navigácia: úzka horná lišta (Prehľad, Rezervácie, Vozidlá, ostatné pod „Viac“, účet v menu); na mobile spodná lišta so štyrmi tlačidlami.
@@ -119,4 +121,4 @@ Testovacie rezervácie sa zatiaľ nedajú zrušiť z adminu (Fáza 6); pred spus
 - Prehľad ukazuje, čo treba riešiť dnes: čakajúce na potvrdenie, vozidlá v prenájme, dnešné vyzdvihnutia a odovzdania.
 - Zmena stavu zatiaľ **neposiela e-mail zákazníkovi** (e-maily 3–6) a storno z adminu nepočíta storno poplatok – oboje je Fáza 6, rovnako ako úprava rezervácie a ceny.
 
-Testy: 90 unit testov, 19 SQL testov `create_booking`, prehliadač (desktop + iPhone) vrátane zmeny stavov na testovacej rezervácii, ktorú som potom zmazal spolu s testovacím účtom.
+Testy: 91 unit testov, 19 SQL testov `create_booking`, prehliadač (desktop + iPhone) vrátane zmeny stavov na testovacej rezervácii, ktorú som potom zmazal spolu s testovacím účtom.

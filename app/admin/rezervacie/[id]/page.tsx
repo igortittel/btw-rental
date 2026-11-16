@@ -17,7 +17,7 @@ type Customer = {
   is_company?: boolean; company_name?: string | null; ico?: string | null; dic?: string | null; ic_dph?: string | null
   billing_address?: { street?: string; city?: string; zip?: string; country?: string }
 }
-type Snapshot = Partial<PriceBreakdown> & { pickup_location?: { name: Name; address: string }; return_location?: { name: Name; address: string } }
+type Snapshot = Partial<PriceBreakdown> & { delivery_outside_city?: boolean } & { pickup_location?: { name: Name; address: string }; return_location?: { name: Name; address: string } }
 
 const CONSENT_LABELS: Record<string, string> = { terms: 'VOP', gdpr: 'Osobné údaje', marketing: 'Marketing', deposit: 'Depozit', km_limit: 'Limit km', license: 'Vodičský preukaz' }
 const EMAIL_LABELS: Record<string, string> = { booking_received: 'Rezervácia prijatá (zákazník)', booking_admin_new: 'Nová rezervácia (BTW)' }
@@ -67,9 +67,9 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
           </p>
           <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} />
         </div>
-        {booking.pickup_custom_address || booking.return_custom_address ? (
+        {snapshot.delivery_outside_city ? (
           <p className="rounded-xl border border-amber-400/60 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
-            Zákazník žiada pristavenie na vlastnú adresu. Poplatok podľa vzdialenosti zatiaľ nie je v cene – dohodnite ho so zákazníkom pred potvrdením.
+            Zákazník žiada pristavenie mimo Bratislavy. Kontaktujte ho a dohodnite podmienky pred potvrdením; prípadný poplatok zatiaľ nie je v cene.
           </p>
         ) : null}
         <Section title="Rezervácia">

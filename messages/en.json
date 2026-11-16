@@ -373,8 +373,12 @@
     "pickupCustom": "Deliver the vehicle to a different address",
     "returnCustom": "Return the vehicle at a different address",
     "addressPlaceholder": "Street, number, city",
-    "delivery": "Delivery to address",
-    "deliveryFee": "depends on distance",
-    "deliveryNote": "The fee for delivering or collecting the vehicle at your address depends on the distance from {address}. We will let you know the amount before confirming the booking; it is not included in the price shown yet."
+    "delivery": "Delivery within Bratislava",
+    "deliveryNote": "Delivery or collection outside Bratislava is arranged individually. After you send the booking we will contact you to agree the conditions; any fee is not included in the price shown yet.",
+    "addressInCity": "The address is in Bratislava – free of charge",
+    "addressOutside": "The address is outside Bratislava – arranged individually",
+    "deliveryFree": "free of charge",
+    "deliveryOutside": "Delivery outside Bratislava",
+    "deliveryIndividual": "individual"
   }
 }

@@ -88,26 +88,40 @@ describe('email 2 – staff notification', () => {
 })
 
 describe('delivery to the customer\'s own address', () => {
-  it('shows the address and that the fee is not in the total yet', async () => {
+  const build = async (deliveryOutsideCity: boolean) => {
     const { buildBookingEmailData } = await import('@/lib/booking/email-data')
-    const base = sampleBookingEmailData('sk')
     const { calculatePrice } = await import('@/lib/pricing')
+    const base = sampleBookingEmailData('sk')
     const pickupAt = new Date('2027-06-14T08:00:00Z')
     const returnAt = new Date('2027-06-16T08:00:00Z')
     const location = { name: { sk: 'Bratislava – Trenčianska 56/A' }, address: 'Trenčianska 56/A, 821 09 Bratislava' }
-    const booking = buildBookingEmailData({
+    return buildBookingEmailData({
       locale: 'sk', number: 'BTW-2027-0043', customer: base.customer, vehicleName: base.vehicleName, pickupAt, returnAt,
       price: calculatePrice({ pickupAt, returnAt, tiers: [{ minDays: 1, maxDays: 30, pricePerDayCents: 7900 }], extras: [], pickupSurchargeCents: 0, returnSurchargeCents: 0, vatRate: 23, toleranceMinutes: 59, individualFromDays: 31 }),
-      pickupLocation: location, returnLocation: location, pickupAddress: 'Letisko Schwechat, Viedeň', returnAddress: null,
+      pickupLocation: location, returnLocation: location, pickupAddress: 'Hlavná stanica', returnAddress: null, deliveryOutsideCity,
       depositCents: 100000, kmLimitPerDay: 300, extraKmCents: 62, rentalPaymentMethod: 'transfer', depositPaymentMethod: 'cash',
       note: null, abroadTrip: false, abroadCountries: null, company: DEFAULT_SETTINGS.company,
     })
-    expect(booking.deliveryFeePending).toBe(true)
+  }
+
+  it('is free within Bratislava and raises no warning', async () => {
+    const booking = await build(false)
+    expect(booking.deliveryOutsideCity).toBe(false)
     const customer = await renderBookingReceived({ booking, account: login, termsUrl })
-    expect(customer.html).toContain('Letisko Schwechat, Viedeň')
-    expect(customer.html).toContain('podľa vzdialenosti')
-    expect(customer.html).toContain('v uvedenej sume zatiaľ nie je')
+    expect(customer.html).toContain('Hlavná stanica')
+    expect(customer.html).toContain('Pristavenie v Bratislave')
+    expect(customer.html).toContain('bezplatne')
+    expect(customer.html).not.toContain('riešime individuálne')
     const staff = await renderBookingAdminNotification({ booking, adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: false })
-    expect(staff.html).toContain('pristavenie na vlastnú adresu')
+    expect(staff.html).not.toContain('mimo Bratislavy')
+  })
+
+  it('outside Bratislava is announced as individual and staff are told to get in touch', async () => {
+    const booking = await build(true)
+    const customer = await renderBookingReceived({ booking, account: login, termsUrl })
+    expect(customer.html).toContain('Pristavenie mimo Bratislavy')
+    expect(customer.html).toContain('Budeme vás kontaktovať')
+    const staff = await renderBookingAdminNotification({ booking, adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: false })
+    expect(staff.html).toContain('treba ho kontaktovať')
   })
 })

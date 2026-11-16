@@ -373,8 +373,12 @@
     "pickupCustom": "Chcem vozidlo pristaviť na inú adresu",
     "returnCustom": "Chcem vozidlo odovzdať na inej adrese",
     "addressPlaceholder": "Ulica, číslo, mesto",
-    "delivery": "Pristavenie na adresu",
-    "deliveryFee": "podľa vzdialenosti",
-    "deliveryNote": "Poplatok za pristavenie alebo prevzatie vozidla na vašej adrese závisí od vzdialenosti od {address}. Jeho výšku vám oznámime pred potvrdením rezervácie; v uvedenej cene zatiaľ nie je."
+    "delivery": "Pristavenie v Bratislave",
+    "deliveryNote": "Pristavenie alebo prevzatie vozidla mimo Bratislavy riešime individuálne. Po odoslaní rezervácie vás budeme kontaktovať a dohodneme podmienky; prípadný poplatok v uvedenej cene zatiaľ nie je.",
+    "addressInCity": "Adresa je v Bratislave – bez poplatku",
+    "addressOutside": "Adresa je mimo Bratislavy – dohodneme individuálne",
+    "deliveryFree": "bezplatne",
+    "deliveryOutside": "Pristavenie mimo Bratislavy",
+    "deliveryIndividual": "individuálne"
   }
 }

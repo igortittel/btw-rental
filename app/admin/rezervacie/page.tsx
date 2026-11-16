@@ -31,7 +31,7 @@ export default async function BookingsPage({ searchParams }: Props) {
   const supabase = await createClient()
   let request = supabase
     .from('bookings')
-    .select('id, number, status, pickup_at, return_at, days, total_cents, pickup_custom_address, return_custom_address, customer_snapshot, created_at, vehicles(name, license_plate)')
+    .select('id, number, status, pickup_at, return_at, days, total_cents, pickup_custom_address, return_custom_address, outside:price_snapshot->delivery_outside_city, customer_snapshot, created_at, vehicles(name, license_plate)')
     .order('pickup_at', { ascending: true })
     .limit(200)
   if (status) request = request.eq('status', status)
@@ -163,7 +163,7 @@ export default async function BookingsPage({ searchParams }: Props) {
               </p>
               <p className="mt-1 text-sm text-white">
                 <strong>{booking.total_cents !== null ? formatEuro(booking.total_cents) : 'Individuálna cena – doplniť'}</strong>
-                {delivery ? <span className="text-amber-200"> · pristavenie na adresu</span> : null}
+                {delivery ? booking.outside === true ? <span className="text-amber-200"> · pristavenie mimo BA – kontaktovať</span> : <span className="text-muted2"> · pristavenie v BA</span> : null}
               </p>
               <div className="mt-auto pt-4">
                 <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} />
