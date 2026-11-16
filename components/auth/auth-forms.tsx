@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { Turnstile } from '@/components/booking/turnstile'
 import { useFormAction } from '@/components/use-form-action'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
@@ -30,6 +32,13 @@ export function LoginForm({ next }: { next?: string }) {
   const t = useTranslations('auth')
   const locale = useLocale()
   const { state: state, onSubmit: action, pending: pending } = useFormAction(loginAction, initial)
+  // Optional Cloudflare Turnstile; a token is single-use, so ask for a new one after a failed attempt.
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  const [token, setToken] = useState<string | null>(null)
+  const [reset, setReset] = useState(0)
+  useEffect(() => {
+    if (state.error) setReset((n) => n + 1)
+  }, [state])
 
   return (
     <form onSubmit={action} className="space-y-5" noValidate>
@@ -48,8 +57,14 @@ export function LoginForm({ next }: { next?: string }) {
         </div>
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
+      {siteKey ? (
+        <>
+          <input type="hidden" name="turnstileToken" value={token ?? ''} />
+          <Turnstile siteKey={siteKey} locale={locale} resetKey={reset} onToken={setToken} />
+        </>
+      ) : null}
       <FormError code={state.error} />
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="w-full" disabled={pending || (!!siteKey && !token)}>
         {pending ? t('pending') : t('submitLogin')}
       </Button>
     </form>

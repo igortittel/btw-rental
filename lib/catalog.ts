@@ -63,7 +63,8 @@ export function createPublicClient() {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- JSON columns of the public views */
-async function loadCatalog(): Promise<Catalog> {
+/** Uncached read – used where stale prices must never be used (creating a booking). */
+export async function loadCatalog(): Promise<Catalog> {
   const supabase = createPublicClient()
   const [categories, vehicles, locations, settings] = await Promise.all([
     supabase.from('public_categories').select('*').order('sort_order'),

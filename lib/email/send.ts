@@ -11,6 +11,8 @@ export type EmailMessage = {
   locale?: string
   profileId?: string | null
   bookingId?: string | null
+  /** Defaults to the company address. */
+  replyTo?: string
 }
 
 export type EmailResult = { sent: boolean; reason?: 'not_configured' | 'provider_error' }
@@ -25,7 +27,6 @@ export function isEmailConfigured(): boolean {
 /**
  * Sends a transactional email through Resend and records it in `email_log`.
  * Never throws: callers decide what a failed email means for their flow.
- * (React Email templates and the Resend SDK arrive in Phase 5.)
  */
 export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
   const admin = createAdminClient()
@@ -54,7 +55,7 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: FROM,
-        reply_to: REPLY_TO,
+        reply_to: message.replyTo ?? REPLY_TO,
         to: [message.to],
         subject: message.subject,
         html: message.html,

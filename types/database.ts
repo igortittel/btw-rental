@@ -1813,6 +1813,7 @@ export type Database = {
           purpose: Database["public"]["Enums"]["auth_token_purpose"]
         }[]
       }
+      create_booking: { Args: { p: Json }; Returns: Json }
       is_vehicle_available: {
         Args: {
           p_exclude_booking_id?: string

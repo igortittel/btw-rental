@@ -9,6 +9,7 @@ import { safeNextPath } from '@/lib/auth/roles'
 import { consumeAuthToken, peekAuthToken } from '@/lib/auth/tokens'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { verifyTurnstile } from '@/lib/turnstile'
 
 export type AuthFormState = { error?: string; ok?: boolean }
 
@@ -38,6 +39,7 @@ export async function loginAction(_prev: AuthFormState, formData: FormData): Pro
     rateLimit(`login:email:${email.data}`, 8, 15 * 60),
   ])
   if (!ipOk || !emailOk) return { error: 'rate_limited' }
+  if (!(await verifyTurnstile(field(formData, 'turnstileToken'), ip))) return { error: 'captcha_failed' }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithPassword({ email: email.data, password })
