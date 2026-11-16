@@ -14,7 +14,7 @@ import { BOOKING_STATUS_LABELS, NEXT_STATUSES, type BookingStatus } from '@/lib/
 import { cancellationQuote } from '@/lib/cancellation'
 import { loadCatalog } from '@/lib/catalog'
 import { sendBookingReceived } from '@/lib/email/booking-emails'
-import { parseEuroToCents } from '@/lib/format'
+import { formatEuro, parseEuroToCents } from '@/lib/format'
 import { applyPriceOverride, calculatePrice } from '@/lib/pricing'
 import { getSettings } from '@/lib/settings'
 import { getSiteOrigin } from '@/lib/site-url'
@@ -89,7 +89,7 @@ export async function cancelBookingAction(_prev: ActionState, formData: FormData
       .eq('id', id)
     if (error) return { error: dbErrorMessage(error) }
     if (fee !== quote.feeCents) {
-      await supabase.from('booking_notes').insert({ booking_id: id, author_id: userId, body: `Storno poplatok upravený z ${(quote.feeCents / 100).toFixed(2)} € na ${(fee / 100).toFixed(2)} €. Dôvod: ${feeReason}` })
+      await supabase.from('booking_notes').insert({ booking_id: id, author_id: userId, body: `Storno poplatok upravený z ${formatEuro(quote.feeCents)} na ${formatEuro(fee)}. Dôvod: ${feeReason}` })
     }
 
     refresh(id)
