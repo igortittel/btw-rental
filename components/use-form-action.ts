@@ -12,7 +12,10 @@ export function useFormAction<S>(action: (prev: Awaited<S>, formData: FormData) 
   const [, startTransition] = useTransition()
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
+    // Include the button that was pressed: forms with several submit buttons (approve / reject)
+    // tell them apart by its name and value.
+    const submitter = (event.nativeEvent as SubmitEvent).submitter
+    const data = new FormData(event.currentTarget, submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement ? submitter : undefined)
     startTransition(() => dispatch(data))
   }
   return { state, pending, onSubmit }

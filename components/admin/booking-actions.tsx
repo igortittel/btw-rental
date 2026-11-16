@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { addBookingNoteAction, cancelBookingAction, changeBookingStatusAction } from '@/app/admin/rezervacie/actions'
+import { addBookingNoteAction, cancelBookingAction, changeBookingStatusAction, resolveBookingChangeAction } from '@/app/admin/rezervacie/actions'
 import { ActionForm, Feedback, SubmitButton, textareaClass } from '@/components/admin/ui'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +22,7 @@ export function BookingQuickActions({ id, number, status, cancelHref }: { id: st
   const options = NEXT_STATUSES[status]
   const cancellable = !!cancelHref && canTransition(status, 'cancelled')
   if (options.length === 0 && !cancellable) return null
+  const reviewHref = status === 'modified' && cancelHref ? cancelHref.replace(/#.*$/, '#uprava') : null
 
   return (
     <div>
@@ -47,10 +47,17 @@ export function BookingQuickActions({ id, number, status, cancelHref }: { id: st
             </button>
           </form>
         ))}
+        {/* Plain <a>: links with a #fragment must load the page so the browser scrolls to the section
+            (client-side navigation to a prefetched route with a hash does not complete). */}
+        {reviewHref ? (
+          <a href={reviewHref} className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold-hover">
+            Posúdiť úpravu
+          </a>
+        ) : null}
         {cancellable ? (
-          <Link href={cancelHref} className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-red-400/60 px-4 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10">
+          <a href={cancelHref} className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-red-400/60 px-4 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10">
             Zrušiť
-          </Link>
+          </a>
         ) : null}
       </div>
       <div className="mt-2 empty:hidden">
@@ -88,6 +95,29 @@ export function CancelBookingForm({ id, number, quote, hasPrice }: { id: string;
         Zrušiť rezerváciu
       </SubmitButton>
     </ActionForm>
+  )
+}
+
+/** Approve or reject a change requested by the customer. */
+export function ResolveChangeForm({ id, collision }: { id: string; collision: boolean }) {
+  const { state, pending, onSubmit } = useFormAction(resolveBookingChangeAction, {})
+  return (
+    <form onSubmit={onSubmit} className="space-y-3">
+      <input type="hidden" name="id" value={id} />
+      <div className="space-y-2">
+        <Label htmlFor="resolve-note">Správa pre zákazníka (pri zamietnutí povinná)</Label>
+        <textarea id="resolve-note" name="note" maxLength={500} className={textareaClass} />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" name="decision" value="approve" disabled={pending || collision} className="h-11 flex-1 rounded-lg bg-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-50">
+          Schváliť úpravu
+        </button>
+        <button type="submit" name="decision" value="reject" disabled={pending} className="h-11 flex-1 rounded-lg border border-red-400/60 px-4 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10 disabled:opacity-50">
+          Zamietnuť
+        </button>
+      </div>
+      <Feedback state={state} />
+    </form>
   )
 }
 

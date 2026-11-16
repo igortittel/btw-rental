@@ -1822,6 +1822,19 @@ export type Database = {
         }[]
       }
       create_booking: { Args: { p: Json }; Returns: Json }
+      cancel_my_booking: {
+        Args: { p_booking_id: string; p_reason?: string }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
+      }
+      customer_update_booking: {
+        Args: { p: Json; p_booking_id: string; p_customer_id: string }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
+      }
+      my_booking_plate: { Args: { p_booking_id: string }; Returns: string }
+      resolve_booking_change: {
+        Args: { p_approve: boolean; p_booking_id: string; p_note?: string }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
+      }
       staff_update_booking: {
         Args: { p: Json; p_booking_id: string }
         Returns: Database["public"]["Tables"]["bookings"]["Row"]
