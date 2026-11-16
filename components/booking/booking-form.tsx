@@ -168,7 +168,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
     const found = validateStep(1, values)
     if (hasErrors(found)) return showErrors(found)
     startChecking(async () => {
-      const result = await checkTermAction(values)
+      // A network or server failure must never leave the visitor without feedback.
+      const result = await checkTermAction(values).catch(() => ({ errors: { form: 'unknown' } as FieldErrors }))
       if (hasErrors(result.errors)) showErrors(result.errors)
       else goTo(2)
     })
@@ -183,7 +184,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
     if (hasErrors(found)) return showErrors(found)
     startSubmitting(async () => {
       // On success the action redirects to the thank-you page and never returns.
-      const result = await createBookingAction({ ...values, locale, website, startedAt: startedAt.current, turnstileToken })
+      const result = await createBookingAction({ ...values, locale, website, startedAt: startedAt.current, turnstileToken }).catch(() => ({ errors: { form: 'unknown' } as FieldErrors }))
       if (!result) return
       setTurnstileReset((n) => n + 1)
       const firstField = (Object.keys(result.errors) as (Field_ | 'form')[]).find((key) => result.errors[key])

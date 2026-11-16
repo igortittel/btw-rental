@@ -46,9 +46,15 @@ export function TextInput({ className, ...props }: ComponentProps<'input'>) {
   return <input {...props} className={cn(controlClass, className)} />
 }
 
-export function SelectInput({ className, children, ...props }: ComponentProps<'select'>) {
+const CHEVRON = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23B88746' stroke-width='2'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E")`
+
+export function SelectInput({ className, children, style, ...props }: ComponentProps<'select'>) {
   return (
-    <select {...props} className={cn(controlClass, 'appearance-none bg-[url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%20stroke=%27%23B88746%27%20stroke-width=%272%27%3E%3Cpath%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E")] bg-[length:12px_8px] bg-[right_0.9rem_center] bg-no-repeat pr-9', className)}>
+    <select
+      {...props}
+      className={cn(controlClass, 'appearance-none pr-9', className)}
+      style={{ backgroundImage: CHEVRON, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.9rem center', backgroundSize: '12px 8px', ...style }}
+    >
       {children}
     </select>
   )
