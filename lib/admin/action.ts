@@ -1,4 +1,5 @@
 import 'server-only'
+import { revalidateTag } from 'next/cache'
 import type { PostgrestError } from '@supabase/supabase-js'
 import type { StaffRole } from '@/lib/auth/roles'
 import { getStaff } from '@/lib/auth/session'
@@ -36,7 +37,10 @@ export async function staffAction(
   const staff = await getStaff(min)
   if (!staff) return { error: 'Na túto akciu nemáte oprávnenie.' }
   try {
-    return await run({ supabase: await createClient(), userId: staff.id, role: staff.role })
+    const result = await run({ supabase: await createClient(), userId: staff.id, role: staff.role })
+    // Anything an admin saves may be visible on the public site: refresh the cached catalogue.
+    if (result.ok) revalidateTag('catalog')
+    return result
   } catch (e) {
     // redirect() / notFound() work by throwing – let them through.
     if (e && typeof e === 'object' && 'digest' in e) throw e
