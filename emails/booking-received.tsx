@@ -30,6 +30,7 @@ const COPY = {
     net: 'Základ dane',
     vat: (rate: number) => `DPH ${rate} %`,
     individualPrice: 'Individuálna cena – pošleme vám ponuku',
+    deliveryNote: 'Poplatok za pristavenie vozidla na vašu adresu závisí od vzdialenosti. Jeho výšku vám oznámime pred potvrdením rezervácie; v uvedenej sume zatiaľ nie je.',
     deposit: 'Vratný depozit (nie je súčasťou ceny)',
     kmLimit: 'Limit kilometrov',
     payment: 'Spôsob platby',
@@ -72,6 +73,7 @@ const COPY = {
     net: 'Tax base',
     vat: (rate: number) => `VAT ${rate}%`,
     individualPrice: 'Individual price – we will send you an offer',
+    deliveryNote: 'The fee for delivering the vehicle to your address depends on the distance. We will let you know the amount before confirming the booking; it is not included in the total above yet.',
     deposit: 'Refundable deposit (not part of the price)',
     kmLimit: 'Mileage limit',
     payment: 'Payment method',
@@ -158,6 +160,7 @@ export default function BookingReceivedEmail({ booking, account, termsUrl }: Boo
           ]}
         />
       )}
+      {booking.deliveryFeePending ? <Text style={{ ...styles.small, marginTop: '12px' }}>{c.deliveryNote}</Text> : null}
 
       <Hr style={styles.rule} />
       <Text style={styles.h2}>{c.payment}</Text>

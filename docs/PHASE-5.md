@@ -87,3 +87,36 @@ Testovacie rezervácie sa zatiaľ nedajú zrušiť z adminu (Fáza 6); pred spus
 - `types/database.ts`: záznam funkcie `create_booking` je doplnený ručne v tvare, aký generuje Supabase.
 - Zoznam a detail rezervácií v admine sú zámerne len na čítanie; potvrdenie, úpravy, kalendár a e-maily 3–6 sú Fáza 6.
 - E-maily na heslo (reset, pozvánka) ostávajú v pôvodnej jednoduchej šablóne; do React Email ich prevediem spolu s e-mailom 13.
+
+## Úpravy po prvom testovaní klientom
+
+**Katalóg**
+- Čipy kategórií: aktívna je vždy len jedna (Všetky / Sedan / SUV…); každá vedie na vlastnú stránku.
+- Filtre sú zbalené pod „Filtre“ a otvoria sa na kliknutie (zostanú otvorené, kým je niektorý aktívny).
+- Vlastné šípky v rozbaľovacích poliach; dátumové pole otvorí kalendár po kliknutí kdekoľvek do poľa.
+- Karta vozidla má ikony pre palivo, prevodovku, počet miest a batožinu.
+
+**Detail vozidla**
+- Fotky interiéru vypĺňajú celý rámik; hlavná (vystrihnutá) fotka ostáva celá.
+- Parametre majú popisky „Typ pohonu“ a „Batožinový priestor“.
+- **Kalendár je interaktívny** a je hneď pod úvodom, nad výbavou: klik na deň vyzdvihnutia, klik na deň odovzdania → „Rezervovať tento termín“ prenesie termín do formulára. Obsadené dni sa nedajú vybrať a rozsah cez ne nejde.
+- Z kalendára zmizlo „čaká na potvrdenie“; nepotvrdené rezervácie sa verejne nezobrazujú (ani v API).
+- Cenník, príplatky, podmienky a storno sú štyri rovnaké karty v mriežke 2 × 2.
+- Tlačidlá „Rezervovať“ sú na mobile na celú šírku.
+
+**Formulár**
+- Dátumové polia sa na mobile zmestia do karty; vysvetľujúci odsek pod termínom je preč.
+- Tlačidlá sú na všetkých krokoch rovnako: na mobile na celú šírku pod sebou, hlavné hore.
+- Po prechode na ďalší krok aj po odoslaní sa stránka posunie na začiatok.
+- Telefón: pre +421 a +420 presne 9 číslic (úvodná nula sa ignoruje), inde 6 – 12.
+- Kalendár vo formulári je tiež interaktívny a vyplní oba dátumy.
+- **Pristavenie na vlastnú adresu** (vyzdvihnutie aj odovzdanie zvlášť): zákazník zadá adresu, v cene sa zobrazí „Pristavenie na adresu – podľa vzdialenosti“ a upozornenie, že poplatok mu BTW oznámi pred potvrdením. Adresa sa ukladá do `bookings.pickup_custom_address` / `return_custom_address` (migrácia `20261117090000_custom_locations.sql`), je v oboch e-mailoch a v admine; notifikácia pre BTW na to upozorní.
+  - **Poplatok sa zatiaľ nepočíta automaticky.** Automatický výpočet podľa kilometrov potrebuje mapovú službu (API kľúč) a sadzbu za km – čaká na rozhodnutie klienta.
+
+**Admin**
+- Nová navigácia: úzka horná lišta (Prehľad, Rezervácie, Vozidlá, ostatné pod „Viac“, účet v menu); na mobile spodná lišta so štyrmi tlačidlami.
+- **Rezervácie pre mobil:** záložky podľa stavu s počtami, filter podľa vozidla a dátumu, karty s tlačidlami **Potvrdiť / Zrušiť / Vydať vozidlo / Ukončiť**. Rovnaké tlačidlá sú v detaile. Pravidlá prechodov a ochranu pred dvojitou rezerváciou stráži databáza; kolízia pri potvrdení sa ohlási zrozumiteľne. Rezervácia bez ceny sa potvrdiť nedá.
+- Prehľad ukazuje, čo treba riešiť dnes: čakajúce na potvrdenie, vozidlá v prenájme, dnešné vyzdvihnutia a odovzdania.
+- Zmena stavu zatiaľ **neposiela e-mail zákazníkovi** (e-maily 3–6) a storno z adminu nepočíta storno poplatok – oboje je Fáza 6, rovnako ako úprava rezervácie a ceny.
+
+Testy: 90 unit testov, 19 SQL testov `create_booking`, prehliadač (desktop + iPhone) vrátane zmeny stavov na testovacej rezervácii, ktorú som potom zmazal spolu s testovacím účtom.

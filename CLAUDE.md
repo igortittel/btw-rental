@@ -44,6 +44,11 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Strop príplatku (`max_charge`) platí na jeden kus** za celý prenájom.
 - **Neprihlásený formulár neprepisuje profil existujúceho účtu**; údaje z formulára sú v `bookings.customer_snapshot`.
 - **Rezervácia sa zapisuje cez RPC `create_booking`** (jedna transakcia, len service role).
+- **Nepotvrdené rezervácie sa verejne nezobrazujú** (klient si „čaká na potvrdenie“ v kalendári neželá); `/api/availability` vracia len obsadené intervaly.
+- **Kategórie v katalógu sú jednovýberové** (čipy); URL `?kategoria=a,b` sa stále číta, ale UI ju nevytvára.
+- **Pristavenie na vlastnú adresu:** adresa v `bookings.pickup_custom_address` / `return_custom_address`, štandardné miesto ostáva ako východisko. Poplatok sa nepočíta automaticky – určí ho BTW pred potvrdením (úprava ceny príde vo Fáze 6); automatický výpočet podľa km čaká na rozhodnutie klienta (mapová služba + sadzba).
+- **Rýchle zmeny stavu v admine** (`app/admin/rezervacie/actions.ts`, `NEXT_STATUSES`) sú hotové už vo Fáze 5; e-maily 3–6 a storno poplatok pri nich ešte nie sú.
+- **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
 
@@ -96,6 +101,8 @@ npm run build
 - **Čas** ako `timestamptz`, zobrazenie a vstupy v `Europe/Bratislava` cez `lib/time.ts` (`zonedLocalToUtc`, `formatDateTime`).
 - **Nastavenia** cez `lib/settings.ts` (typovaná schéma + defaulty zo zadania).
 - **Admin akcie** cez `staffAction(minRole, …)` z `lib/admin/action.ts` – kontroluje rolu, používa session klienta (RLS + audit log) a po úspechu obnoví cache katalógu.
+- **Dátumové polia** cez `DateField` (`components/ui/date-field.tsx`) a selecty s `SELECT_CHEVRON_STYLE` – inak na iOS pretekajú a šípky sú mimo poľa.
+- **Krížové pravidlá formulára** (telefón podľa predvoľby, firma) sú v `customerRuleErrors()`; Zod `superRefine` beží až po platnosti všetkých polí, preto ju formulár volá aj priamo.
 - **Formuláre** cez `ActionForm` (`components/admin/ui.tsx`) alebo `useFormAction` – nesmú po chybe stratiť vyplnené údaje.
 - **Service role klient** (`lib/supabase/admin.ts`) len v serverovom kóde a až po kontrole oprávnení.
 - **URL vozidla** cez `lib/vehicle-url.ts`; vozidlo sa hľadá podľa VIN.

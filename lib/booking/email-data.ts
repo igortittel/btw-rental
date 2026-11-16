@@ -19,6 +19,9 @@ const LABELS = {
     payment: { transfer: 'bankový prevod', terminal: 'platobný terminál', cash: 'hotovosť' },
     kmLimit: (km: number, price: string) => `${km} km / deň, nad limit ${price} / km`,
     abroadYes: 'áno',
+    ownAddress: 'Pristavenie na adresu',
+    delivery: 'Pristavenie vozidla na adresu',
+    deliveryFee: 'podľa vzdialenosti',
   },
   en: {
     rental: (days: number, rate: string) => `Rental ${days} × ${rate}`,
@@ -30,6 +33,9 @@ const LABELS = {
     payment: { transfer: 'bank transfer', terminal: 'card terminal', cash: 'cash' },
     kmLimit: (km: number, price: string) => `${km} km / day, ${price} per extra km`,
     abroadYes: 'yes',
+    ownAddress: 'Delivery to address',
+    delivery: 'Delivery to your address',
+    deliveryFee: 'depends on distance',
   },
 }
 
@@ -43,6 +49,9 @@ export type BookingEmailInput = {
   returnAt: Date
   pickupLocation: { name: Localized; address: string }
   returnLocation: { name: Localized; address: string }
+  /** Customer's own delivery / collection address, if requested. */
+  pickupAddress?: string | null
+  returnAddress?: string | null
   depositCents: number
   kmLimitPerDay: number
   extraKmCents: number
@@ -69,6 +78,8 @@ export function buildBookingEmailData(input: BookingEmailInput, locale: 'sk' | '
       amount: euro(line.totalCents),
     })),
   ]
+  const deliveryFeePending = !!(input.pickupAddress || input.returnAddress)
+  if (deliveryFeePending) lines.push({ label: l.delivery, amount: l.deliveryFee })
   if (price.pickupSurchargeCents > 0) lines.push({ label: `${l.pickupSurcharge} – ${pick(input.pickupLocation.name, locale)}`, amount: euro(price.pickupSurchargeCents) })
   if (price.returnSurchargeCents > 0) lines.push({ label: `${l.returnSurcharge} – ${pick(input.returnLocation.name, locale)}`, amount: euro(price.returnSurchargeCents) })
 
@@ -78,8 +89,13 @@ export function buildBookingEmailData(input: BookingEmailInput, locale: 'sk' | '
     isIndividual: price.isIndividual,
     customer: input.customer,
     vehicleName: input.vehicleName,
-    pickup: { at: formatDateTime(input.pickupAt, locale), place: pick(input.pickupLocation.name, locale), address: input.pickupLocation.address },
-    return: { at: formatDateTime(input.returnAt, locale), place: pick(input.returnLocation.name, locale), address: input.returnLocation.address },
+    pickup: input.pickupAddress
+      ? { at: formatDateTime(input.pickupAt, locale), place: l.ownAddress, address: input.pickupAddress }
+      : { at: formatDateTime(input.pickupAt, locale), place: pick(input.pickupLocation.name, locale), address: input.pickupLocation.address },
+    return: input.returnAddress
+      ? { at: formatDateTime(input.returnAt, locale), place: l.ownAddress, address: input.returnAddress }
+      : { at: formatDateTime(input.returnAt, locale), place: pick(input.returnLocation.name, locale), address: input.returnLocation.address },
+    deliveryFeePending,
     days: price.days,
     lines,
     total: price.totalCents === null ? null : euro(price.totalCents),

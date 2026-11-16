@@ -7,9 +7,8 @@ const MAX_RANGE_MS = 100 * 24 * 3600_000
 
 /**
  * Occupied intervals of a vehicle for the public calendar:
- *   GET /api/availability?vin=…&from=ISO&to=ISO  ->  { ranges: [{ start, end, kind }] }
- * kind is "booked" (confirmed bookings incl. preparation time, manual blocks) or
- * "pending" (new bookings awaiting confirmation). No personal data, no reasons.
+ *   GET /api/availability?vin=…&from=ISO&to=ISO  ->  { ranges: [{ start, end }] }
+ * Confirmed bookings incl. preparation time and manual blocks. No personal data, no reasons.
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -31,7 +30,8 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: 'unavailable' }, { status: 503 })
 
   return NextResponse.json(
-    { ranges: (data ?? []).map((r) => ({ start: r.starts_at, end: r.ends_at, kind: r.kind })) },
+    // Unconfirmed bookings do not block the vehicle and are not shown publicly.
+    { ranges: (data ?? []).filter((r) => r.kind === 'booked').map((r) => ({ start: r.starts_at, end: r.ends_at })) },
     { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=30' } },
   )
 }

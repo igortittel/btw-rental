@@ -90,11 +90,16 @@ export default async function BookingPage({ params, searchParams }: Props) {
   const initial: BookingFormState = {
     vin: vehicles.some((v) => v.vin === vin) ? vin : vehicles.length === 1 ? vehicles[0].vin : '',
     pickupDate: datesOk ? query.od! : '',
-    pickupTime: '10:00',
+    // A one-day term from the catalogue filter gets a morning pick-up and an evening return.
+    pickupTime: datesOk && query.od === query.do ? '08:00' : '10:00',
     returnDate: datesOk ? query.do! : '',
-    returnTime: '10:00',
+    returnTime: datesOk && query.od === query.do ? '20:00' : '10:00',
     pickupLocationId: defaultFor('forPickup'),
     returnLocationId: defaultFor('forReturn'),
+    pickupCustom: false,
+    pickupAddress: '',
+    returnCustom: false,
+    returnAddress: '',
     abroadTrip: false,
     abroadCountries: '',
     firstName: '',

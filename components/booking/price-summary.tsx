@@ -13,10 +13,12 @@ type Props = {
   returnLabel: string | null
   pickupLocation: BookingLocation | null
   returnLocation: BookingLocation | null
+  /** Own delivery / collection address: the fee is set by staff later. */
+  deliveryPending?: boolean
 }
 
 /** Price lines + totals; used in the sidebar, the mobile sheet and step 3. */
-export function PriceLines({ vehicle, price, pickupLocation, returnLocation }: Pick<Props, 'vehicle' | 'price' | 'pickupLocation' | 'returnLocation'>) {
+export function PriceLines({ vehicle, price, pickupLocation, returnLocation, deliveryPending }: Pick<Props, 'vehicle' | 'price' | 'pickupLocation' | 'returnLocation' | 'deliveryPending'>) {
   const t = useTranslations('booking')
   const locale = useLocale()
   if (!price || !vehicle) return null
@@ -40,6 +42,12 @@ export function PriceLines({ vehicle, price, pickupLocation, returnLocation }: P
             <dd className="shrink-0 text-white">{euro(line.totalCents)}</dd>
           </div>
         ))}
+        {deliveryPending ? (
+          <div className={row}>
+            <dt className="text-muted2">{t('delivery')}</dt>
+            <dd className="shrink-0 text-right text-white">{t('deliveryFee')}</dd>
+          </div>
+        ) : null}
         {price.pickupSurchargeCents > 0 && pickupLocation ? (
           <div className={row}>
             <dt className="text-muted2">
@@ -87,7 +95,7 @@ export function PriceLines({ vehicle, price, pickupLocation, returnLocation }: P
   )
 }
 
-function SummaryBody({ vehicle, price, pickupLabel, returnLabel, pickupLocation, returnLocation }: Props) {
+function SummaryBody({ vehicle, price, pickupLabel, returnLabel, pickupLocation, returnLocation, deliveryPending }: Props) {
   const t = useTranslations('booking')
   const locale = useLocale()
   if (!vehicle) return <p className="text-[15px] text-muted2">{t('summaryEmpty')}</p>
@@ -118,7 +126,7 @@ function SummaryBody({ vehicle, price, pickupLabel, returnLabel, pickupLocation,
       ) : null}
       <div className="mt-4 border-t border-line pt-3">
         {price ? (
-          <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} />
+          <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} deliveryPending={deliveryPending} />
         ) : (
           <p className="text-[15px] text-muted2">
             {vehicle.priceFromCents !== null ? `${t('summaryFrom', { price: formatEuro(vehicle.priceFromCents, locale) })}. ` : ''}

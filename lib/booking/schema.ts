@@ -18,17 +18,30 @@ const paymentMethod = z.enum(['transfer', 'terminal', 'cash'], { message: 'requi
 export const PAYMENT_METHODS = ['transfer', 'terminal', 'cash'] as const
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
-export const termSchema = z.object({
-  vin: z.string().regex(/^[A-Z0-9]{5,20}$/, { message: 'vehicle_required' }),
-  pickupDate: z.string().regex(DATE, { message: 'required' }),
-  pickupTime: z.string().regex(TIME, { message: 'required' }),
-  returnDate: z.string().regex(DATE, { message: 'required' }),
-  returnTime: z.string().regex(TIME, { message: 'required' }),
-  pickupLocationId: z.string().regex(UUID, { message: 'required' }),
-  returnLocationId: z.string().regex(UUID, { message: 'required' }),
-  abroadTrip: z.boolean(),
-  abroadCountries: text(300),
-})
+export const termSchema = z
+  .object({
+    vin: z.string().regex(/^[A-Z0-9]{5,20}$/, { message: 'vehicle_required' }),
+    pickupDate: z.string().regex(DATE, { message: 'required' }),
+    pickupTime: z.string().regex(TIME, { message: 'required' }),
+    returnDate: z.string().regex(DATE, { message: 'required' }),
+    returnTime: z.string().regex(TIME, { message: 'required' }),
+    pickupLocationId: z.string().regex(UUID, { message: 'required' }),
+    returnLocationId: z.string().regex(UUID, { message: 'required' }),
+    /** Delivery / collection at the customer's own address; the fee depends on the distance and is set by staff. */
+    pickupCustom: z.boolean(),
+    pickupAddress: text(200),
+    returnCustom: z.boolean(),
+    returnAddress: text(200),
+    abroadTrip: z.boolean(),
+    abroadCountries: text(300),
+  })
+  .superRefine((value, ctx) => {
+    if (value.pickupCustom && value.pickupAddress.length < 5) ctx.addIssue({ code: 'custom', path: ['pickupAddress'], message: 'address_required' })
+    if (value.returnCustom && value.returnAddress.length < 5) ctx.addIssue({ code: 'custom', path: ['returnAddress'], message: 'address_required' })
+  })
+
+/** National number length (digits, without the leading zero) for dial codes where it is fixed. */
+export const PHONE_DIGITS: Record<string, number> = { '+421': 9, '+420': 9 }
 
 export const customerSchema = z
   .object({
@@ -60,10 +73,25 @@ export const customerSchema = z
     extras: z.record(z.string().regex(UUID), z.number().int().min(0).max(20)),
   })
   .superRefine((value, ctx) => {
-    if (!value.isCompany) return
-    if (!value.companyName) ctx.addIssue({ code: 'custom', path: ['companyName'], message: 'required' })
-    if (!/^[A-Za-z0-9 ]{6,14}$/.test(value.ico)) ctx.addIssue({ code: 'custom', path: ['ico'], message: value.ico ? 'ico_invalid' : 'required' })
+    for (const [path, message] of Object.entries(customerRuleErrors(value))) ctx.addIssue({ code: 'custom', path: [path], message: message as string })
   })
+
+/**
+ * Rules that depend on more than one field. Zod runs cross-field checks only once every
+ * single field is valid, so the forms call this directly as well – all problems of a
+ * step are then reported together.
+ */
+export function customerRuleErrors(value: { phonePrefix: string; phoneNumber: string; isCompany: boolean; companyName: string; ico: string }): FieldErrors {
+  const errors: FieldErrors = {}
+  const phone = value.phoneNumber.replace(/[\s\-()/.]/g, '').replace(/^0+/, '')
+  const digits = PHONE_DIGITS[value.phonePrefix]
+  if (digits && /^\d{6,12}$/.test(phone) && phone.length !== digits) errors.phoneNumber = 'phone_length'
+  if (value.isCompany) {
+    if (!value.companyName.trim()) errors.companyName = 'required'
+    if (!/^[A-Za-z0-9 ]{6,14}$/.test(value.ico.trim())) errors.ico = value.ico.trim() ? 'ico_invalid' : 'required'
+  }
+  return errors
+}
 
 export const confirmSchema = z.object({
   termsConsent: mustAccept,

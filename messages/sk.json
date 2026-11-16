@@ -101,7 +101,8 @@
       "awd": "Pohon 4×4"
     },
     "navCategories": "Kategórie",
-    "menu": "Menu"
+    "menu": "Menu",
+    "luggage": "Batožina"
   },
   "vehicle": {
     "back": "Späť na ponuku",
@@ -124,11 +125,10 @@
       "included": "V cene prenájmu"
     },
     "availability": "Dostupnosť",
-    "availabilityLead": "Obsadené dni sú prečiarknuté. Presný čas vyzdvihnutia a odovzdania si zvolíte v rezervácii.",
+    "availabilityLead": "Kliknite na deň vyzdvihnutia a potom na deň odovzdania. Presný čas si zvolíte v rezervácii.",
     "legendFree": "voľné",
     "legendBooked": "obsadené",
     "legendPartial": "čiastočne obsadené",
-    "legendPending": "čaká na potvrdenie",
     "prevMonth": "Predchádzajúci mesiac",
     "nextMonth": "Nasledujúci mesiac",
     "calendarError": "Dostupnosť sa nepodarilo načítať.",
@@ -186,7 +186,17 @@
     "openPhoto": "Zväčšiť fotku",
     "close": "Zavrieť",
     "prev": "Predchádzajúca",
-    "next": "Nasledujúca"
+    "next": "Nasledujúca",
+    "pickPickup": "Kliknite na deň vyzdvihnutia",
+    "pickReturn": "Teraz kliknite na deň odovzdania",
+    "legendSelected": "váš termín",
+    "selectedTerm": "Vybraný termín",
+    "selectTermHint": "Vyberte v kalendári deň vyzdvihnutia a deň odovzdania.",
+    "bookTerm": "Rezervovať tento termín",
+    "drivetrain": "Typ pohonu",
+    "luggage": "Batožinový priestor",
+    "extrasLead": "Voliteľné, vyberiete si ich v rezervácii.",
+    "cancelFree": "bez poplatku"
   },
   "booking": {
     "title": "Rezervácia",
@@ -211,15 +221,12 @@
     "pickupTime": "Čas vyzdvihnutia",
     "returnDate": "Dátum odovzdania",
     "returnTime": "Čas odovzdania",
-    "termHint": "Vyzdvihnutie aj odovzdanie je možné kedykoľvek, 24 hodín denne. Rezervovať je možné najskôr {hours} h vopred.",
     "lengthLabel": "Dĺžka prenájmu",
     "days": "{count, plural, one {# deň} few {# dni} other {# dní}}",
-    "toleranceHint": "Deň sa počíta ako každých začatých 24 hodín od vyzdvihnutia; odovzdanie do {minutes} minút po tomto čase je bez príplatku.",
     "showCalendar": "Zobraziť kalendár dostupnosti",
     "place": "Miesto",
     "pickupLocation": "Miesto vyzdvihnutia",
     "returnLocation": "Miesto odovzdania",
-    "locationInfo": "Vyzdvihnutie aj odovzdanie",
     "locationSurcharge": "{name} (+{price})",
     "abroad": "Plánujem cestu do zahraničia",
     "abroadHint": "Cesty do zahraničia sú povolené bez príplatku. Údaj slúži len pre našu informáciu.",
@@ -335,7 +342,9 @@
       "rate_limited": "Príliš veľa pokusov. Skúste to prosím o chvíľu.",
       "captcha_failed": "Overenie proti robotom sa nepodarilo. Skúste to prosím znova.",
       "spam": "Odoslanie sa nepodarilo. Počkajte prosím chvíľu a skúste to znova.",
-      "unknown": "Rezerváciu sa nepodarilo odoslať. Skúste to prosím znova alebo nás kontaktujte."
+      "unknown": "Rezerváciu sa nepodarilo odoslať. Skúste to prosím znova alebo nás kontaktujte.",
+      "address_required": "Zadajte celú adresu (ulica, číslo, mesto).",
+      "phone_length": "Číslo musí mať {digits} číslic bez predvoľby a úvodnej nuly, napr. 900 123 456."
     },
     "thanks": {
       "metaTitle": "Ďakujeme za rezerváciu",
@@ -360,6 +369,12 @@
       "backToCatalog": "Späť na ponuku vozidiel",
       "account": "Zákaznícka zóna",
       "leadNoEmail": "Rezerváciu sme zaevidovali. Čoskoro sa vám ozveme e-mailom alebo telefonicky."
-    }
+    },
+    "pickupCustom": "Chcem vozidlo pristaviť na inú adresu",
+    "returnCustom": "Chcem vozidlo odovzdať na inej adrese",
+    "addressPlaceholder": "Ulica, číslo, mesto",
+    "delivery": "Pristavenie na adresu",
+    "deliveryFee": "podľa vzdialenosti",
+    "deliveryNote": "Poplatok za pristavenie alebo prevzatie vozidla na vašej adrese závisí od vzdialenosti od {address}. Jeho výšku vám oznámime pred potvrdením rezervácie; v uvedenej cene zatiaľ nie je."
   }
 }

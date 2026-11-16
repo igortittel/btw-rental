@@ -16,3 +16,29 @@ export const PAYMENT_METHOD_LABELS: Record<Database['public']['Enums']['payment_
   terminal: 'Platobný terminál',
   cash: 'Hotovosť',
 }
+
+/** Quick actions offered to staff for each status (a subset of the transitions the database allows). */
+export const NEXT_STATUSES: Record<BookingStatus, BookingStatus[]> = {
+  new: ['confirmed', 'cancelled'],
+  confirmed: ['active', 'cancelled'],
+  modified: [], // approving / rejecting a customer's change has its own screen
+  active: ['completed'],
+  completed: [],
+  cancelled: [],
+}
+
+export const STATUS_ACTION_LABELS: Partial<Record<BookingStatus, string>> = {
+  confirmed: 'Potvrdiť',
+  active: 'Vydať vozidlo',
+  completed: 'Ukončiť',
+  cancelled: 'Zrušiť',
+}
+
+export const STATUS_BADGE_CLASS: Record<BookingStatus, string> = {
+  new: 'border-gold bg-gold/15 text-white',
+  confirmed: 'border-emerald-500/60 bg-emerald-500/10 text-emerald-200',
+  modified: 'border-amber-400/60 bg-amber-400/10 text-amber-100',
+  active: 'border-sky-400/60 bg-sky-400/10 text-sky-100',
+  completed: 'border-line bg-white/5 text-muted2',
+  cancelled: 'border-red-400/50 bg-red-500/10 text-red-200',
+}

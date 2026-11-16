@@ -84,6 +84,12 @@ select pg_temp.expect_error($$select public.create_booking(pg_temp.payload('0000
 select pg_temp.expect_error($$select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-00000000000b', '8 days 2 hours', '9 days', false))$$, 'vehicle_unavailable', 'preparation buffer blocks the term');
 select pg_temp.expect((select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-00000000000b', '8 days 4 hours', '9 days', false)) ->> 'number' is not null), 'term right after the buffer is free');
 
+-- Delivery to the customer's own address is stored next to the standard location.
+create temp table r3 as select public.create_booking(jsonb_set(jsonb_set(pg_temp.payload('00000000-0000-0000-0000-00000000000b', '50 days', '52 days', false),
+  '{booking,pickup_custom_address}', '"  Letisko Schwechat "'), '{booking,return_custom_address}', '""')) as v;
+select pg_temp.expect((select b.pickup_custom_address = 'Letisko Schwechat' and b.return_custom_address is null and b.pickup_location_id is not null
+  from public.bookings b where b.id = (select (v ->> 'id')::uuid from r3)), 'own delivery address is stored trimmed, empty one as NULL');
+
 -- Atomicity: a bad extra aborts the whole booking.
 create temp table before_count as select count(*) as n from public.bookings;
 select pg_temp.expect_error($$select public.create_booking(jsonb_set(pg_temp.payload('00000000-0000-0000-0000-00000000000b', '20 days', '21 days', false), '{extras,0,quantity}', '0'))$$, '23514', 'invalid extra is rejected');

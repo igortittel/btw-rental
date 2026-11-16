@@ -1,6 +1,7 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
+import { DateField, SELECT_CHEVRON_STYLE } from '@/components/ui/date-field'
 import { cn } from '@/lib/utils'
 
 // Form controls of the public booking form: native elements (reliable on phones),
@@ -12,7 +13,7 @@ export const controlClass =
 
 export function Field({ id, label, error, hint, optional, className, children }: { id: string; label: string; error?: string; hint?: string; optional?: string; className?: string; children: ReactNode }) {
   return (
-    <div className={className}>
+    <div className={cn('min-w-0', className)}>
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-white">
         {label}
         {optional ? <span className="ml-1.5 font-normal text-muted2">({optional})</span> : null}
@@ -46,14 +47,16 @@ export function TextInput({ className, ...props }: ComponentProps<'input'>) {
   return <input {...props} className={cn(controlClass, className)} />
 }
 
-const CHEVRON = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23B88746' stroke-width='2'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E")`
+export function DateInput({ className, ...props }: Omit<ComponentProps<'input'>, 'type'>) {
+  return <DateField {...props} className={cn(controlClass, className)} />
+}
 
 export function SelectInput({ className, children, style, ...props }: ComponentProps<'select'>) {
   return (
     <select
       {...props}
       className={cn(controlClass, 'appearance-none pr-9', className)}
-      style={{ backgroundImage: CHEVRON, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.9rem center', backgroundSize: '12px 8px', ...style }}
+      style={{ ...SELECT_CHEVRON_STYLE, ...style }}
     >
       {children}
     </select>

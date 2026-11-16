@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ageOn, bookingSchema, customerSchema, fieldErrors, termInstants, validateDriverAge, validateTerm } from '@/lib/booking/schema'
+import { ageOn, bookingSchema, customerSchema, fieldErrors, termInstants, termSchema, validateDriverAge, validateTerm } from '@/lib/booking/schema'
 
 const RULES = { minLeadHours: 24, minRentalDays: 1, toleranceMinutes: 59 }
 const NOW = new Date('2027-05-30T08:00:00Z') // 10:00 in Bratislava
@@ -11,6 +11,10 @@ const valid = {
   ...term('2027-06-01', '10:00', '2027-06-04', '10:00'),
   pickupLocationId: UUID,
   returnLocationId: UUID,
+  pickupCustom: false,
+  pickupAddress: '',
+  returnCustom: false,
+  returnAddress: '',
   abroadTrip: false,
   abroadCountries: '',
   firstName: ' Anna ',
@@ -131,5 +135,30 @@ describe('bookingSchema', () => {
     expect(bookingSchema.safeParse({ ...valid, extras: { [UUID]: 21 } }).success).toBe(false)
     expect(bookingSchema.safeParse({ ...valid, extras: { [UUID]: -1 } }).success).toBe(false)
     expect(bookingSchema.safeParse({ ...valid, extras: { 'not-a-uuid': 1 } }).success).toBe(false)
+  })
+
+  it('requires exactly 9 digits for Slovak and Czech numbers', () => {
+    const codes = (over: Record<string, unknown>) => {
+      const result = customerSchema.safeParse({ ...valid, ...over })
+      return result.success ? {} : fieldErrors(result.error)
+    }
+    expect(codes({ phoneNumber: '900 123 456' })).toEqual({})
+    expect(codes({ phoneNumber: '0900123456' })).toEqual({}) // leading zero is dropped
+    expect(codes({ phoneNumber: '90012345' })).toEqual({ phoneNumber: 'phone_length' })
+    expect(codes({ phoneNumber: '9001234567' })).toEqual({ phoneNumber: 'phone_length' })
+    expect(codes({ phonePrefix: '+420', phoneNumber: '60112345' })).toEqual({ phoneNumber: 'phone_length' })
+    expect(codes({ phonePrefix: '+43', phoneNumber: '6641234567' })).toEqual({}) // other countries: 6–12 digits
+    expect(codes({ phoneNumber: '12345' })).toEqual({ phoneNumber: 'phone_invalid' })
+  })
+
+  it('requires an address when delivery to an own address is chosen', () => {
+    const codes = (over: Record<string, unknown>) => {
+      const result = termSchema.safeParse({ ...valid, ...over })
+      return result.success ? {} : fieldErrors(result.error)
+    }
+    expect(codes({})).toEqual({})
+    expect(codes({ pickupCustom: true })).toEqual({ pickupAddress: 'address_required' })
+    expect(codes({ returnCustom: true, returnAddress: 'BA' })).toEqual({ returnAddress: 'address_required' })
+    expect(codes({ pickupCustom: true, pickupAddress: 'Letisko M. R. Štefánika, Bratislava' })).toEqual({})
   })
 })

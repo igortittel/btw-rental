@@ -1,18 +1,20 @@
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { VehicleCard } from '@/components/catalog/vehicle-card'
+import { DateField, SELECT_CHEVRON_STYLE } from '@/components/ui/date-field'
 import { Link } from '@/i18n/navigation'
 import { getAvailableVehicleIds, localize, type Catalog } from '@/lib/catalog'
-import { catalogPath, filterQuery, filterWindow, hasActiveFilters, toggleCategory, type CatalogFilters } from '@/lib/catalog-filters'
+import { catalogPath, filterQuery, filterWindow, hasActiveFilters, type CatalogFilters } from '@/lib/catalog-filters'
 import { formatDate } from '@/lib/time'
 
-const selectClass =
+const inputClass =
   'h-11 w-full rounded-lg border border-line bg-surface-2 px-3 text-sm text-white focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/50'
+const selectClass = `${inputClass} appearance-none pr-9`
 const SEAT_OPTIONS = [5, 7, 8]
 
-/** Filter chips, filter form and the vehicle grid. Works without JavaScript: chips are links, the form is a GET. */
+/** Category chips (one active at a time), a collapsible filter form and the vehicle grid. Works without JavaScript: chips are links, the form is a GET. */
 export async function CatalogView({ catalog, filters }: { catalog: Catalog; filters: CatalogFilters }) {
   const [t, locale] = await Promise.all([getTranslations('catalog'), getLocale()])
-  const order = catalog.categories.map((c) => c.slug)
   const window = filterWindow(filters)
 
   let vehicles = catalog.vehicles.filter(
@@ -40,6 +42,7 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
     }`
   const formAction = catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, minSeats: null, from: null, to: null })
   const [actionPath, actionQuery] = formAction.split('?')
+  const activeCount = [filters.transmission, filters.fuel, filters.minSeats, filters.from && filters.to].filter(Boolean).length
 
   return (
     <div>
@@ -48,81 +51,85 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
           {t('allCategories')}
         </Link>
         {catalog.categories.map((category) => {
-          const active = filters.categories.includes(category.slug)
+          const active = filters.categories.length === 1 && filters.categories[0] === category.slug
           return (
-            <Link
-              key={category.slug}
-              href={catalogPath(toggleCategory(filters.categories, category.slug, order), filters)}
-              className={chip(active)}
-              aria-current={active ? "true" : undefined}
-              // Only the single-category pages are meant to be indexed.
-              rel={filters.categories.length === 0 || (active && filters.categories.length === 2) ? undefined : 'nofollow'}
-            >
+            <Link key={category.slug} href={catalogPath([category.slug], filters)} className={chip(active)} aria-current={active ? 'page' : undefined}>
               {localize(category.name, locale)}
             </Link>
           )
         })}
       </nav>
 
-      <form method="get" action={locale === 'en' ? `/en${actionPath === '/' ? '' : actionPath}` : actionPath} className="mx-auto mt-8 grid max-w-5xl gap-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-2 lg:grid-cols-6">
-        {new URLSearchParams(actionQuery ?? '').get('kategoria') ? <input type="hidden" name="kategoria" value={filters.categories.join(',')} /> : null}
-        <div className="space-y-2">
-          <label htmlFor="f-transmission" className="block text-sm font-medium text-white">
-            {t('transmission')}
-          </label>
-          <select id="f-transmission" name="prevodovka" defaultValue={filters.transmission ?? ''} className={selectClass}>
-            <option value="">{t('any')}</option>
-            {transmissions.map((value) => (
-              <option key={value} value={value}>
-                {t(`transmissionLabels.${value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="f-fuel" className="block text-sm font-medium text-white">
-            {t('fuel')}
-          </label>
-          <select id="f-fuel" name="palivo" defaultValue={filters.fuel ?? ''} className={selectClass}>
-            <option value="">{t('any')}</option>
-            {fuels.map((value) => (
-              <option key={value} value={value}>
-                {t(`fuelLabels.${value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="f-seats" className="block text-sm font-medium text-white">
-            {t('seats')}
-          </label>
-          <select id="f-seats" name="miesta" defaultValue={filters.minSeats ?? ''} className={selectClass}>
-            <option value="">{t('any')}</option>
-            {SEAT_OPTIONS.map((count) => (
-              <option key={count} value={count}>
-                {t('seatsMin', { count })}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="f-from" className="block text-sm font-medium text-white">
-            {t('dateFrom')}
-          </label>
-          <input id="f-from" type="date" name="od" defaultValue={filters.from ?? ''} className={`${selectClass} [color-scheme:dark]`} />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="f-to" className="block text-sm font-medium text-white">
-            {t('dateTo')}
-          </label>
-          <input id="f-to" type="date" name="do" defaultValue={filters.to ?? ''} className={`${selectClass} [color-scheme:dark]`} />
-        </div>
-        <div className="flex items-end">
-          <button type="submit" className="h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold-hover">
-            {t('apply')}
-          </button>
-        </div>
-      </form>
+      {/* Filters are optional: collapsed until the visitor opens them (or one is active). */}
+      <details className="group mx-auto mt-6 max-w-5xl rounded-xl border border-line bg-surface" open={hasActiveFilters(filters)}>
+        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-5 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2.5">
+            <SlidersHorizontal className="h-4 w-4 text-gold" aria-hidden="true" />
+            {t('filters')}
+            {activeCount > 0 ? <span className="rounded-full bg-gold px-2 py-0.5 text-xs text-white">{activeCount}</span> : null}
+          </span>
+          <ChevronDown className="h-4 w-4 text-gold transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+        <form method="get" action={locale === 'en' ? `/en${actionPath === '/' ? '' : actionPath}` : actionPath} className="grid gap-4 border-t border-line p-5 sm:grid-cols-2 lg:grid-cols-6">
+          {new URLSearchParams(actionQuery ?? '').get('kategoria') ? <input type="hidden" name="kategoria" value={filters.categories.join(',')} /> : null}
+          <div className="min-w-0 space-y-2">
+            <label htmlFor="f-transmission" className="block text-sm font-medium text-white">
+              {t('transmission')}
+            </label>
+            <select id="f-transmission" name="prevodovka" defaultValue={filters.transmission ?? ''} className={selectClass} style={SELECT_CHEVRON_STYLE}>
+              <option value="">{t('any')}</option>
+              {transmissions.map((value) => (
+                <option key={value} value={value}>
+                  {t(`transmissionLabels.${value}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-0 space-y-2">
+            <label htmlFor="f-fuel" className="block text-sm font-medium text-white">
+              {t('fuel')}
+            </label>
+            <select id="f-fuel" name="palivo" defaultValue={filters.fuel ?? ''} className={selectClass} style={SELECT_CHEVRON_STYLE}>
+              <option value="">{t('any')}</option>
+              {fuels.map((value) => (
+                <option key={value} value={value}>
+                  {t(`fuelLabels.${value}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-0 space-y-2">
+            <label htmlFor="f-seats" className="block text-sm font-medium text-white">
+              {t('seats')}
+            </label>
+            <select id="f-seats" name="miesta" defaultValue={filters.minSeats ?? ''} className={selectClass} style={SELECT_CHEVRON_STYLE}>
+              <option value="">{t('any')}</option>
+              {SEAT_OPTIONS.map((count) => (
+                <option key={count} value={count}>
+                  {t('seatsMin', { count })}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-0 space-y-2">
+            <label htmlFor="f-from" className="block text-sm font-medium text-white">
+              {t('dateFrom')}
+            </label>
+            <DateField id="f-from" name="od" defaultValue={filters.from ?? ''} className={inputClass} />
+          </div>
+          <div className="min-w-0 space-y-2">
+            <label htmlFor="f-to" className="block text-sm font-medium text-white">
+              {t('dateTo')}
+            </label>
+            <DateField id="f-to" name="do" defaultValue={filters.to ?? ''} className={inputClass} />
+          </div>
+          <div className="flex items-end">
+            <button type="submit" className="h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold-hover">
+              {t('apply')}
+            </button>
+          </div>
+        </form>
+      </details>
 
       <div className="mx-auto mt-6 flex max-w-5xl flex-wrap items-center justify-between gap-3 text-sm text-muted2" aria-live="polite">
         <p>

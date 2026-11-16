@@ -6,11 +6,11 @@ import { useLocale, useTranslations } from 'next-intl'
 import { AvailabilityCalendar } from '@/components/catalog/availability-calendar'
 import { checkTermAction, createBookingAction } from '@/lib/booking/actions'
 import { COUNTRY_CODES, PHONE_PREFIXES, countryName } from '@/lib/booking/countries'
-import { customerSchema, confirmSchema, fieldErrors, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors } from '@/lib/booking/schema'
+import { PHONE_DIGITS, customerRuleErrors, customerSchema, confirmSchema, fieldErrors, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors } from '@/lib/booking/schema'
 import { formatEuro } from '@/lib/format'
 import { calculatePrice } from '@/lib/pricing'
 import { formatDate, formatDateTime, utcToZonedLocal } from '@/lib/time'
-import { Card, CheckField, Field, RadioCards, SelectInput, TextInput, controlClass, describe } from './fields'
+import { Card, CheckField, DateInput, Field, RadioCards, SelectInput, TextInput, controlClass, describe } from './fields'
 import { PriceLines, PriceSummary } from './price-summary'
 import { Turnstile } from './turnstile'
 import type { BookingConfig, BookingLocation, BookingVehicle } from './types'
@@ -21,13 +21,15 @@ type Props = { vehicles: BookingVehicle[]; locations: BookingLocation[]; config:
 type Field_ = keyof BookingFormState
 
 const STEP_OF_FIELD: Partial<Record<Field_ | 'form', number>> = {
-  vin: 1, pickupDate: 1, pickupTime: 1, returnDate: 1, returnTime: 1, pickupLocationId: 1, returnLocationId: 1, abroadTrip: 1, abroadCountries: 1,
+  vin: 1, pickupDate: 1, pickupTime: 1, returnDate: 1, returnTime: 1, pickupLocationId: 1, returnLocationId: 1, pickupCustom: 1, pickupAddress: 1, returnCustom: 1, returnAddress: 1, abroadTrip: 1, abroadCountries: 1,
   termsConsent: 3, gdprConsent: 3, marketingConsent: 3, form: 3,
 }
 const TIMES = Array.from({ length: 48 }, (_, i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`)
 
-const primaryButton = 'inline-flex h-12 items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:opacity-60'
-const secondaryButton = 'inline-flex h-12 items-center justify-center rounded-lg border border-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:opacity-60'
+const primaryButton = 'inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:opacity-60 sm:w-auto'
+const secondaryButton = 'inline-flex h-12 w-full items-center justify-center rounded-lg border border-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:opacity-60 sm:w-auto'
+/** Same place on every step: full width and stacked on phones (primary on top), a row on larger screens. */
+const actions = 'flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between'
 const linkButton = 'text-sm font-semibold text-gold underline-offset-4 hover:underline'
 
 export function BookingForm({ vehicles, locations, config, initial }: Props) {
@@ -38,6 +40,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
   const [step, setStep] = useState(1)
   const [hydrated, setHydrated] = useState(false)
   const [changingVehicle, setChangingVehicle] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(!initial.pickupDate)
   const [website, setWebsite] = useState('')
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [turnstileReset, setTurnstileReset] = useState(0)
@@ -54,7 +57,6 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
   const returnOptions = locations.filter((l) => l.forReturn)
   const pickupLocation = locations.find((l) => l.id === values.pickupLocationId) ?? null
   const returnLocation = locations.find((l) => l.id === values.returnLocationId) ?? null
-  const singleLocation = pickupOptions.length <= 1 && returnOptions.length <= 1
   const rules = useMemo(() => ({ minLeadHours: config.minLeadHours, minRentalDays: config.minRentalDays, toleranceMinutes: config.toleranceMinutes }), [config])
 
   const set = <K extends Field_>(key: K, value: BookingFormState[K]) => {
@@ -73,13 +75,14 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
       ...instants,
       tiers: vehicle.prices,
       extras: vehicle.extras.filter((extra) => (values.extras[extra.id] ?? 0) > 0).map((extra) => ({ extra, quantity: values.extras[extra.id] })),
-      pickupSurchargeCents: pickupLocation?.surchargeCents ?? 0,
-      returnSurchargeCents: returnLocation?.surchargeCents ?? 0,
+      pickupSurchargeCents: values.pickupCustom ? 0 : (pickupLocation?.surchargeCents ?? 0),
+      returnSurchargeCents: values.returnCustom ? 0 : (returnLocation?.surchargeCents ?? 0),
       vatRate: config.vatRate,
       toleranceMinutes: config.toleranceMinutes,
       individualFromDays: config.individualFromDays,
     })
-  }, [vehicle, instants, values.extras, pickupLocation, returnLocation, config])
+  }, [vehicle, instants, values.extras, values.pickupCustom, values.returnCustom, pickupLocation, returnLocation, config])
+  const deliveryPending = values.pickupCustom || values.returnCustom
 
   // ── Validation per step (same schemas as the server) ──
   const validateStep = useCallback(
@@ -91,7 +94,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
       }
       if (target === 2) {
         const parsed = customerSchema.safeParse(v)
-        const found = parsed.success ? {} : fieldErrors(parsed.error)
+        const found = { ...customerRuleErrors(v), ...(parsed.success ? {} : fieldErrors(parsed.error)) }
         const current = vehicles.find((x) => x.vin === v.vin)
         if (!found.dateOfBirth && current) Object.assign(found, validateDriverAge(v.dateOfBirth, v.pickupDate, current.minDriverAge))
         return found
@@ -155,9 +158,17 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
   const goTo = (target: number) => {
     window.history.pushState(null, '', urlFor(target, values.vin))
     setStep(target)
-    window.scrollTo({ top: 0 })
-    requestAnimationFrame(() => heading.current?.focus())
   }
+  // Every step starts at the top of the page (after the new step has rendered).
+  const firstRender = useRef(true)
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    heading.current?.focus({ preventScroll: true })
+  }, [step])
   const showErrors = (found: FieldErrors) => {
     setErrors(found)
     requestAnimationFrame(() => (document.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus())
@@ -198,7 +209,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
     const code = errors[field]
     if (!code) return undefined
     const key = t.has(`errors.${code}`) ? code : 'unknown'
-    return t(`errors.${key}`, { hours: config.minLeadHours, days: config.minRentalDays, age: vehicle?.minDriverAge ?? 21 })
+    return t(`errors.${key}`, { hours: config.minLeadHours, days: config.minRentalDays, age: vehicle?.minDriverAge ?? 21, digits: PHONE_DIGITS[values.phonePrefix] ?? 9 })
   }
 
   const minPickupDate = useMemo(() => utcToZonedLocal(new Date(Date.now() + config.minLeadHours * 3600_000)).slice(0, 10), [config.minLeadHours])
@@ -210,7 +221,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
   const pick = (name: { sk?: string; en?: string }) => (locale === 'en' ? name.en : name.sk) || name.sk || name.en || ''
   const cancellation = [...config.cancellationTiers].sort((a, b) => b.min_hours - a.min_hours)
 
-  const text = (field: 'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'abroadCountries', label: string, props: React.ComponentProps<'input'> = {}, extra: { hint?: string; optional?: boolean; className?: string } = {}) => (
+  const text = (field: 'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'abroadCountries' | 'pickupAddress' | 'returnAddress', label: string, props: React.ComponentProps<'input'> = {}, extra: { hint?: string; optional?: boolean; className?: string } = {}) => (
     <Field id={field} label={label} error={err(field)} hint={extra.hint} optional={extra.optional ? t('optional') : undefined} className={extra.className}>
       <TextInput id={field} name={field} value={values[field]} onChange={(event) => set(field, event.target.value)} {...describe(field, err(field), extra.hint)} {...props} />
     </Field>
@@ -314,7 +325,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
               <Card title={t('term')}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field id="pickupDate" label={t('pickupDate')} error={err('pickupDate')}>
-                    <TextInput id="pickupDate" type="date" min={minPickupDate} value={values.pickupDate} {...describe('pickupDate', err('pickupDate'))} onChange={(event) => {
+                    <DateInput id="pickupDate" min={minPickupDate} value={values.pickupDate} {...describe('pickupDate', err('pickupDate'))} onChange={(event) => {
                       const pickupDate = event.target.value
                       set('pickupDate', pickupDate)
                       if (pickupDate && (!values.returnDate || values.returnDate < pickupDate)) setValues((current) => ({ ...current, returnDate: '' }))
@@ -326,7 +337,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                     </SelectInput>
                   </Field>
                   <Field id="returnDate" label={t('returnDate')} error={err('returnDate')}>
-                    <TextInput id="returnDate" type="date" min={values.pickupDate || minPickupDate} value={values.returnDate} {...describe('returnDate', err('returnDate'))} onChange={(event) => set('returnDate', event.target.value)} />
+                    <DateInput id="returnDate" min={values.pickupDate || minPickupDate} value={values.returnDate} {...describe('returnDate', err('returnDate'))} onChange={(event) => set('returnDate', event.target.value)} />
                   </Field>
                   <Field id="returnTime" label={t('returnTime')} error={err('returnTime')}>
                     <SelectInput id="returnTime" value={values.returnTime} onChange={(event) => set('returnTime', event.target.value)}>
@@ -339,9 +350,6 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                     {t('lengthLabel')}: <strong>{t('days', { count: price.days })}</strong>
                   </p>
                 ) : null}
-                <p className="mt-2 text-sm leading-6 text-muted2">
-                  {t('termHint', { hours: config.minLeadHours })} {t('toleranceHint', { minutes: config.toleranceMinutes })}
-                </p>
                 {price?.isIndividual ? (
                   <div className="mt-4 rounded-lg border border-gold bg-gold/10 px-4 py-3">
                     <p className="font-semibold text-white">{t('individualTitle')}</p>
@@ -349,37 +357,62 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                   </div>
                 ) : null}
                 {vehicle ? (
-                  <details className="mt-4 border-t border-line pt-3">
+                  <details className="mt-4 border-t border-line pt-3" open={calendarOpen} onToggle={(event) => setCalendarOpen(event.currentTarget.open)}>
                     <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-gold">{t('showCalendar')}</summary>
                     <div className="pt-3">
-                      <AvailabilityCalendar vin={vehicle.vin} />
+                      <AvailabilityCalendar
+                        vin={vehicle.vin}
+                        minDate={minPickupDate}
+                        value={values.pickupDate && values.returnDate && values.returnDate > values.pickupDate ? { from: values.pickupDate, to: values.returnDate } : null}
+                        onChange={(range) => {
+                          if (!range) return
+                          setValues((current) => ({ ...current, pickupDate: range.from, returnDate: range.to }))
+                          setErrors({})
+                        }}
+                      />
                     </div>
                   </details>
                 ) : null}
               </Card>
 
               <Card title={t('place')}>
-                {singleLocation ? (
-                  <p className="text-[15px] leading-6 text-white">
-                    <span className="text-muted2">{t('locationInfo')}:</span> {pickupLocation?.name}
-                    <br />
-                    <span className="text-muted2">{pickupLocation?.address}</span>
-                  </p>
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {(['pickupLocationId', 'returnLocationId'] as const).map((field) => (
-                      <Field key={field} id={field} label={t(field === 'pickupLocationId' ? 'pickupLocation' : 'returnLocation')} error={err(field)}>
-                        <SelectInput id={field} value={values[field]} onChange={(event) => set(field, event.target.value)} {...describe(field, err(field))}>
-                          {(field === 'pickupLocationId' ? pickupOptions : returnOptions).map((location) => (
-                            <option key={location.id} value={location.id}>
-                              {location.surchargeCents > 0 ? t('locationSurcharge', { name: location.name, price: euro(location.surchargeCents) }) : location.name}
-                            </option>
-                          ))}
-                        </SelectInput>
-                      </Field>
-                    ))}
-                  </div>
-                )}
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {(
+                    [
+                      { field: 'pickupLocationId', custom: 'pickupCustom', address: 'pickupAddress', options: pickupOptions, location: pickupLocation, label: t('pickupLocation'), toggle: t('pickupCustom') },
+                      { field: 'returnLocationId', custom: 'returnCustom', address: 'returnAddress', options: returnOptions, location: returnLocation, label: t('returnLocation'), toggle: t('returnCustom') },
+                    ] as const
+                  ).map((place) => (
+                    <div key={place.field} className="min-w-0">
+                      {values[place.custom] ? (
+                        text(place.address, place.label, { autoComplete: 'street-address', placeholder: t('addressPlaceholder'), maxLength: 200 })
+                      ) : place.options.length > 1 ? (
+                        <Field id={place.field} label={place.label} error={err(place.field)}>
+                          <SelectInput id={place.field} value={values[place.field]} onChange={(event) => set(place.field, event.target.value)} {...describe(place.field, err(place.field))}>
+                            {place.options.map((location) => (
+                              <option key={location.id} value={location.id}>
+                                {location.surchargeCents > 0 ? t('locationSurcharge', { name: location.name, price: euro(location.surchargeCents) }) : location.name}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </Field>
+                      ) : (
+                        <div>
+                          <p className="mb-1.5 text-sm font-medium text-white">{place.label}</p>
+                          <p className="text-[15px] leading-6 text-white">
+                            {place.location?.name}
+                            <br />
+                            <span className="text-muted2">{place.location?.address}</span>
+                          </p>
+                        </div>
+                      )}
+                      <CheckField id={place.custom} checked={values[place.custom]} onChange={(checked) => set(place.custom, checked)}>
+                        {place.toggle}
+                      </CheckField>
+                    </div>
+                  ))}
+                </div>
+                {deliveryPending ? <p className="mt-2 rounded-lg border border-gold/60 bg-gold/10 px-4 py-3 text-sm leading-6 text-white">{t('deliveryNote', { address: locations.find((l) => l.isDefault)?.address ?? '' })}</p> : null}
                 <div className="mt-4 border-t border-line pt-3">
                   <CheckField id="abroadTrip" checked={values.abroadTrip} onChange={(checked) => set('abroadTrip', checked)}>
                     {t('abroad')}
@@ -389,7 +422,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 </div>
               </Card>
 
-              <div className="flex justify-end">
+              <div className={`${actions} sm:justify-end`}>
                 <button type="submit" className={primaryButton} disabled={checking}>
                   {checking ? t('checking') : t('continue')}
                 </button>
@@ -422,7 +455,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
 
               <Card title={t('driver')}>
                 <Field id="dateOfBirth" label={t('dateOfBirth')} error={err('dateOfBirth')} hint={t('dateOfBirthHint', { age: vehicle.minDriverAge })} className="sm:max-w-xs">
-                  <TextInput id="dateOfBirth" type="date" autoComplete="bday" max={utcToZonedLocal(new Date()).slice(0, 10)} value={values.dateOfBirth} onChange={(event) => set('dateOfBirth', event.target.value)} {...describe('dateOfBirth', err('dateOfBirth'), 'hint')} />
+                  <DateInput id="dateOfBirth" autoComplete="bday" max={utcToZonedLocal(new Date()).slice(0, 10)} value={values.dateOfBirth} onChange={(event) => set('dateOfBirth', event.target.value)} {...describe('dateOfBirth', err('dateOfBirth'), 'hint')} />
                 </Field>
                 <div className="mt-3">
                   <CheckField id="licenseConfirmed" checked={values.licenseConfirmed} onChange={(checked) => set('licenseConfirmed', checked)} error={err('licenseConfirmed')}>
@@ -536,7 +569,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 <textarea id="note" value={values.note} maxLength={2000} rows={3} placeholder={t('notePlaceholder')} onChange={(event) => set('note', event.target.value)} className={`${controlClass} h-auto py-2.5`} />
               </Card>
 
-              <div className="flex justify-between gap-4">
+              <div className={actions}>
                 <button type="button" className={secondaryButton} onClick={() => goTo(1)}>
                   {t('back')}
                 </button>
@@ -555,8 +588,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
               <Card title={t('reviewTerm')} action={<button type="button" className={linkButton} onClick={() => goTo(1)}>{t('edit')}</button>}>
                 <dl className="space-y-2 text-[15px]">
                   <ReviewRow label={t('vehicle')} value={vehicle.name} />
-                  <ReviewRow label={t('reviewPickup')} value={<>{pickupLabel}<br /><span className="text-muted2">{pickupLocation?.name}, {pickupLocation?.address}</span></>} />
-                  <ReviewRow label={t('reviewReturn')} value={<>{returnLabel}<br /><span className="text-muted2">{returnLocation?.name}, {returnLocation?.address}</span></>} />
+                  <ReviewRow label={t('reviewPickup')} value={<>{pickupLabel}<br /><span className="text-muted2">{values.pickupCustom ? values.pickupAddress : `${pickupLocation?.name}, ${pickupLocation?.address}`}</span></>} />
+                  <ReviewRow label={t('reviewReturn')} value={<>{returnLabel}<br /><span className="text-muted2">{values.returnCustom ? values.returnAddress : `${returnLocation?.name}, ${returnLocation?.address}`}</span></>} />
                   <ReviewRow label={t('lengthLabel')} value={t('days', { count: price.days })} />
                   {values.abroadTrip ? <ReviewRow label={t('reviewAbroad')} value={values.abroadCountries || '✓'} /> : null}
                 </dl>
@@ -590,7 +623,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
               </Card>
 
               <Card title={t('reviewPrice')}>
-                <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} />
+                <PriceLines vehicle={vehicle} price={price} pickupLocation={pickupLocation} returnLocation={returnLocation} deliveryPending={deliveryPending} />
+                {deliveryPending ? <p className="mt-3 text-sm leading-6 text-muted2">{t('deliveryNote', { address: locations.find((l) => l.isDefault)?.address ?? '' })}</p> : null}
                 <dl className="mt-4 space-y-2 border-t border-line pt-4 text-[15px]">
                   <ReviewRow label={`${t('reviewPayment')} – ${t('rentalPayment').toLowerCase()}`} value={t(`methods.${values.rentalPaymentMethod}`)} />
                   <ReviewRow label={`${t('reviewPayment')} – ${t('depositPayment').toLowerCase()}`} value={t(`methods.${values.depositPaymentMethod}`)} />
@@ -633,7 +667,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 ) : null}
               </Card>
 
-              <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className={actions}>
                 <button type="button" className={secondaryButton} onClick={() => goTo(2)} disabled={submitting}>
                   {t('back')}
                 </button>
@@ -641,12 +675,12 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                   {submitting ? t('submitting') : price.isIndividual ? t('submitIndividual') : t('submit')}
                 </button>
               </div>
-              <p className="text-sm text-muted2 sm:text-right">{t('submitHint')}</p>
+              <p className="text-center text-sm text-muted2 sm:text-right">{t('submitHint')}</p>
             </>
           ) : null}
         </form>
 
-        <PriceSummary vehicle={vehicle} price={price} pickupLabel={pickupLabel} returnLabel={returnLabel} pickupLocation={pickupLocation} returnLocation={returnLocation} />
+        <PriceSummary vehicle={vehicle} price={price} pickupLabel={pickupLabel} returnLabel={returnLabel} pickupLocation={pickupLocation} returnLocation={returnLocation} deliveryPending={deliveryPending} />
       </div>
     </div>
   )

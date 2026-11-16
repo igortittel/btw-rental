@@ -6,6 +6,7 @@ vi.mock('@/lib/email/send', () => ({ sendEmail: vi.fn(async () => ({ sent: true 
 import { renderBookingAdminNotification, renderBookingReceived, sendBookingAdminNotification } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { sendEmail } from '@/lib/email/send'
+import { DEFAULT_SETTINGS } from '@/lib/settings'
 
 const termsUrl = 'https://www.btw.sk/vseobecne-obchodne-podmienky'
 const setPassword = { kind: 'set_password' as const, url: 'https://rental.btw.sk/nastavit-heslo?token=abc&next=%2Fmoj-ucet' }
@@ -83,5 +84,30 @@ describe('email 2 – staff notification', () => {
     const calls = vi.mocked(sendEmail).mock.calls.map(([message]) => message)
     expect(calls.map((m) => m.to)).toEqual(['a@btw.sk', 'b@btw.sk'])
     expect(calls.every((m) => m.replyTo === 'anna.novakova@example.com' && m.type === 'booking_admin_new' && m.bookingId === 'id')).toBe(true)
+  })
+})
+
+describe('delivery to the customer\'s own address', () => {
+  it('shows the address and that the fee is not in the total yet', async () => {
+    const { buildBookingEmailData } = await import('@/lib/booking/email-data')
+    const base = sampleBookingEmailData('sk')
+    const { calculatePrice } = await import('@/lib/pricing')
+    const pickupAt = new Date('2027-06-14T08:00:00Z')
+    const returnAt = new Date('2027-06-16T08:00:00Z')
+    const location = { name: { sk: 'Bratislava – Trenčianska 56/A' }, address: 'Trenčianska 56/A, 821 09 Bratislava' }
+    const booking = buildBookingEmailData({
+      locale: 'sk', number: 'BTW-2027-0043', customer: base.customer, vehicleName: base.vehicleName, pickupAt, returnAt,
+      price: calculatePrice({ pickupAt, returnAt, tiers: [{ minDays: 1, maxDays: 30, pricePerDayCents: 7900 }], extras: [], pickupSurchargeCents: 0, returnSurchargeCents: 0, vatRate: 23, toleranceMinutes: 59, individualFromDays: 31 }),
+      pickupLocation: location, returnLocation: location, pickupAddress: 'Letisko Schwechat, Viedeň', returnAddress: null,
+      depositCents: 100000, kmLimitPerDay: 300, extraKmCents: 62, rentalPaymentMethod: 'transfer', depositPaymentMethod: 'cash',
+      note: null, abroadTrip: false, abroadCountries: null, company: DEFAULT_SETTINGS.company,
+    })
+    expect(booking.deliveryFeePending).toBe(true)
+    const customer = await renderBookingReceived({ booking, account: login, termsUrl })
+    expect(customer.html).toContain('Letisko Schwechat, Viedeň')
+    expect(customer.html).toContain('podľa vzdialenosti')
+    expect(customer.html).toContain('v uvedenej sume zatiaľ nie je')
+    const staff = await renderBookingAdminNotification({ booking, adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: false })
+    expect(staff.html).toContain('pristavenie na vlastnú adresu')
   })
 })

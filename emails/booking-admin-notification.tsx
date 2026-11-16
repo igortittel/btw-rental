@@ -24,6 +24,7 @@ export default function BookingAdminNotificationEmail({ booking, adminUrl, pendi
     pendingOverlaps > 0
       ? `Kolízia: na tento termín ${pendingOverlaps === 1 ? 'čaká ďalšia nepotvrdená rezervácia' : `čakajú ďalšie nepotvrdené rezervácie (${pendingOverlaps})`} toho istého vozidla.`
       : null,
+    booking.deliveryFeePending ? 'Zákazník žiada pristavenie na vlastnú adresu – treba určiť poplatok podľa vzdialenosti a doplniť ho do ceny.' : null,
     isBlacklisted ? 'Zákazník je označený ako problémový (blacklist).' : null,
   ].filter((w): w is string => w !== null)
   const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`
@@ -79,8 +80,8 @@ export default function BookingAdminNotificationEmail({ booking, adminUrl, pendi
       <Rows
         rows={[
           { label: 'Vozidlo', value: booking.vehicleName },
-          { label: 'Vyzdvihnutie', value: `${booking.pickup.at}, ${booking.pickup.place}` },
-          { label: 'Odovzdanie', value: `${booking.return.at}, ${booking.return.place}` },
+          { label: 'Vyzdvihnutie', value: `${booking.pickup.at}, ${booking.pickup.place} – ${booking.pickup.address}` },
+          { label: 'Odovzdanie', value: `${booking.return.at}, ${booking.return.place} – ${booking.return.address}` },
           { label: 'Dĺžka', value: days(booking.days) },
           ...(booking.abroad ? [{ label: 'Cesta do zahraničia', value: booking.abroad }] : []),
           ...(booking.note ? [{ label: 'Poznámka zákazníka', value: booking.note }] : []),

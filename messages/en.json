@@ -101,7 +101,8 @@
       "awd": "All-wheel drive"
     },
     "navCategories": "Categories",
-    "menu": "Menu"
+    "menu": "Menu",
+    "luggage": "Luggage"
   },
   "vehicle": {
     "back": "Back to all vehicles",
@@ -124,11 +125,10 @@
       "included": "Included in the price"
     },
     "availability": "Availability",
-    "availabilityLead": "Booked days are crossed out. You choose the exact pick-up and return time when booking.",
+    "availabilityLead": "Click the pick-up day and then the return day. You will choose the exact time in the booking form.",
     "legendFree": "available",
     "legendBooked": "booked",
     "legendPartial": "partly booked",
-    "legendPending": "awaiting confirmation",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "calendarError": "Availability could not be loaded.",
@@ -186,7 +186,17 @@
     "openPhoto": "Enlarge photo",
     "close": "Close",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "pickPickup": "Click the pick-up day",
+    "pickReturn": "Now click the return day",
+    "legendSelected": "your dates",
+    "selectedTerm": "Selected dates",
+    "selectTermHint": "Choose the pick-up day and the return day in the calendar.",
+    "bookTerm": "Book these dates",
+    "drivetrain": "Drivetrain",
+    "luggage": "Luggage space",
+    "extrasLead": "Optional; you choose them in the booking form.",
+    "cancelFree": "free of charge"
   },
   "booking": {
     "title": "Booking",
@@ -211,15 +221,12 @@
     "pickupTime": "Pick-up time",
     "returnDate": "Return date",
     "returnTime": "Return time",
-    "termHint": "Pick-up and return are possible at any time, 24 hours a day. Bookings must be made at least {hours} h in advance.",
     "lengthLabel": "Rental length",
     "days": "{count, plural, one {# day} other {# days}}",
-    "toleranceHint": "A day is every started 24 hours from pick-up; returning up to {minutes} minutes later is free of charge.",
     "showCalendar": "Show availability calendar",
     "place": "Location",
     "pickupLocation": "Pick-up location",
     "returnLocation": "Return location",
-    "locationInfo": "Pick-up and return",
     "locationSurcharge": "{name} (+{price})",
     "abroad": "I plan to travel abroad",
     "abroadHint": "Travelling abroad is allowed at no extra charge. This is for our information only.",
@@ -335,7 +342,9 @@
       "rate_limited": "Too many attempts. Please try again in a while.",
       "captcha_failed": "The anti-robot check failed. Please try again.",
       "spam": "Sending failed. Please wait a moment and try again.",
-      "unknown": "We could not send your booking. Please try again or contact us."
+      "unknown": "We could not send your booking. Please try again or contact us.",
+      "address_required": "Enter the full address (street, number, city).",
+      "phone_length": "The number must have {digits} digits without the dial code and leading zero, e.g. 900 123 456."
     },
     "thanks": {
       "metaTitle": "Thank you for your booking",
@@ -360,6 +369,12 @@
       "backToCatalog": "Back to our vehicles",
       "account": "Customer area",
       "leadNoEmail": "Your booking has been recorded. We will contact you shortly by email or phone."
-    }
+    },
+    "pickupCustom": "Deliver the vehicle to a different address",
+    "returnCustom": "Return the vehicle at a different address",
+    "addressPlaceholder": "Street, number, city",
+    "delivery": "Delivery to address",
+    "deliveryFee": "depends on distance",
+    "deliveryNote": "The fee for delivering or collecting the vehicle at your address depends on the distance from {address}. We will let you know the amount before confirming the booking; it is not included in the price shown yet."
   }
 }

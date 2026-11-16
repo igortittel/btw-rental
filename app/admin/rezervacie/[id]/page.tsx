@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { BookingQuickActions } from '@/components/admin/booking-actions'
 import { PageHeader, Section } from '@/components/admin/section'
 import { requireStaff } from '@/lib/auth/session'
-import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/lib/booking/status'
+import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, STATUS_BADGE_CLASS } from '@/lib/booking/status'
 import { formatEuro } from '@/lib/format'
 import type { PriceBreakdown } from '@/lib/pricing'
 import { createClient } from '@/lib/supabase/server'
@@ -24,18 +25,18 @@ const EMAIL_STATUS: Record<string, string> = { queued: 'čaká', sent: 'odoslan�
 
 function Rows({ rows }: { rows: [string, React.ReactNode][] }) {
   return (
-    <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[14rem_1fr]">
+    <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[14rem_1fr] sm:gap-y-2">
       {rows.map(([label, value]) => (
         <div key={label} className="contents">
           <dt className="text-muted2">{label}</dt>
-          <dd className="text-white">{value || '—'}</dd>
+          <dd className="mb-2 break-words text-white sm:mb-0">{value || '—'}</dd>
         </div>
       ))}
     </dl>
   )
 }
 
-// Read-only detail (Phase 5). Status changes, editing and notes arrive in Phase 6.
+// Detail with quick status changes. Editing, price changes and notes arrive in Phase 6.
 export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   await requireStaff('operator', `/admin/rezervacie/${id}`)
@@ -59,13 +60,24 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     <div>
       <PageHeader title={`Rezervácia ${booking.number}`} back={{ href: '/admin/rezervacie', label: 'Rezervácie' }} />
       <div className="space-y-4">
+        <div className="rounded-xl border border-gold/60 bg-surface p-4">
+          <p className="mb-3 flex flex-wrap items-center gap-3 text-sm text-white">
+            <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE_CLASS[booking.status]}`}>{BOOKING_STATUS_LABELS[booking.status]}</span>
+            {booking.cancelled_at ? <span className="text-muted2">zrušená {formatDateTime(booking.cancelled_at)}</span> : null}
+          </p>
+          <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} />
+        </div>
+        {booking.pickup_custom_address || booking.return_custom_address ? (
+          <p className="rounded-xl border border-amber-400/60 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+            Zákazník žiada pristavenie na vlastnú adresu. Poplatok podľa vzdialenosti zatiaľ nie je v cene – dohodnite ho so zákazníkom pred potvrdením.
+          </p>
+        ) : null}
         <Section title="Rezervácia">
           <Rows
             rows={[
-              ['Stav', BOOKING_STATUS_LABELS[booking.status]],
               ['Vozidlo', `${booking.vehicles?.name ?? ''}${booking.vehicles?.license_plate ? ` · ${booking.vehicles.license_plate}` : ''}`],
-              ['Vyzdvihnutie', `${formatDateTime(booking.pickup_at)} · ${place(snapshot.pickup_location)}`],
-              ['Odovzdanie', `${formatDateTime(booking.return_at)} · ${place(snapshot.return_location)}`],
+              ['Vyzdvihnutie', `${formatDateTime(booking.pickup_at)} · ${booking.pickup_custom_address ? `pristavenie: ${booking.pickup_custom_address}` : place(snapshot.pickup_location)}`],
+              ['Odovzdanie', `${formatDateTime(booking.return_at)} · ${booking.return_custom_address ? `prevzatie: ${booking.return_custom_address}` : place(snapshot.return_location)}`],
               ['Počet dní', String(booking.days)],
               ['Cesta do zahraničia', booking.abroad_trip ? booking.abroad_countries || 'áno' : 'nie'],
               ['Poznámka zákazníka', booking.customer_note],

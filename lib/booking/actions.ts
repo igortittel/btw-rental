@@ -108,13 +108,17 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
   if (!settings.payment_methods.includes(data.depositPaymentMethod)) return fail({ depositPaymentMethod: 'required' })
 
   const { pickupAt, returnAt } = termInstants(data)!
+  // Own address: the vehicle is delivered / collected there. The standard location stays
+  // as the base; the fee depends on the distance and is added by staff before confirming.
+  const pickupAddress = data.pickupCustom ? data.pickupAddress : null
+  const returnAddress = data.returnCustom ? data.returnAddress : null
   const price = calculatePrice({
     pickupAt,
     returnAt,
     tiers: vehicle.prices,
     extras: vehicle.extras.filter((extra) => (data.extras[extra.id] ?? 0) > 0).map((extra) => ({ extra, quantity: data.extras[extra.id] })),
-    pickupSurchargeCents: pickupLocation.surchargeCents,
-    returnSurchargeCents: returnLocation.surchargeCents,
+    pickupSurchargeCents: pickupAddress ? 0 : pickupLocation.surchargeCents,
+    returnSurchargeCents: returnAddress ? 0 : returnLocation.surchargeCents,
     vatRate: settings.vat_rate,
     toleranceMinutes: settings.return_tolerance_minutes,
     individualFromDays: settings.individual_price_from_days,
@@ -174,6 +178,8 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
       return_at: returnAt.toISOString(),
       pickup_location_id: pickupLocation.id,
       return_location_id: returnLocation.id,
+      pickup_custom_address: pickupAddress ?? '',
+      return_custom_address: returnAddress ?? '',
       customer_note: data.note,
       customer_snapshot: { ...profile, email: data.email },
       days: price.days,
@@ -184,6 +190,9 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         vehicle: { id: vehicle.id, vin: vehicle.vin, name: vehicle.name },
         pickup_location: { id: pickupLocation.id, name: pickupLocation.name, address: pickupLocation.address },
         return_location: { id: returnLocation.id, name: returnLocation.name, address: returnLocation.address },
+        pickup_custom_address: pickupAddress,
+        return_custom_address: returnAddress,
+        delivery_fee_pending: !!(pickupAddress || returnAddress),
         min_driver_age: vehicle.minDriverAge,
         min_license_months: vehicle.minLicenseMonths,
       },
@@ -247,6 +256,8 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         returnAt,
         pickupLocation,
         returnLocation,
+        pickupAddress,
+        returnAddress,
         depositCents: vehicle.depositCents,
         kmLimitPerDay: vehicle.kmLimitPerDay,
         extraKmCents: vehicle.extraKmCents,

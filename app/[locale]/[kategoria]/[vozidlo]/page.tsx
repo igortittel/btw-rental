@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { AvailabilityCalendar } from '@/components/catalog/availability-calendar'
+import { BookingCalendar } from '@/components/catalog/booking-calendar'
 import { Gallery } from '@/components/catalog/gallery'
 import { bookingHref } from '@/components/catalog/vehicle-card'
 import { Link } from '@/i18n/navigation'
@@ -10,6 +10,7 @@ import { getCatalog, localize, type PublicVehicle } from '@/lib/catalog'
 import { formatEuro } from '@/lib/format'
 import { absoluteUrl, alternates } from '@/lib/seo'
 import { vehicleImageUrl } from '@/lib/storage'
+import { utcToZonedLocal } from '@/lib/time'
 import { parseVehicleSegment, vehiclePath } from '@/lib/vehicle-url'
 
 type Props = { params: Promise<{ locale: string; kategoria: string; vozidlo: string }> }
@@ -86,11 +87,11 @@ export default async function VehiclePage({ params }: Props) {
     [c('transmission'), [c(`transmissionLabels.${vehicle.transmission}`), vehicle.gears ? t('gears', { count: vehicle.gears }) : null].filter(Boolean).join(', ')],
     vehicle.engine ? [t('engine'), vehicle.engine] : null,
     vehicle.powerKw ? [t('power'), vehicle.powerHp ? t('powerValueHp', { kw: vehicle.powerKw, hp: vehicle.powerHp }) : t('powerValue', { kw: vehicle.powerKw })] : null,
-    vehicle.drivetrain ? [c('drivetrainLabels.' + vehicle.drivetrain), null] : null,
+    vehicle.drivetrain ? [t('drivetrain'), c('drivetrainLabels.' + vehicle.drivetrain)] : null,
     [c('seats'), String(vehicle.seats)],
-    vehicle.luggage ? [c('luggageCount', { count: vehicle.luggage }), null] : null,
+    vehicle.luggage ? [t('luggage'), c('luggageCount', { count: vehicle.luggage })] : null,
     [t('vin'), vehicle.vin],
-  ].filter((row): row is [string, string | null] => row !== null)
+  ].filter((row): row is [string, string] => row !== null)
 
   const tierLabel = (min: number, max: number | null) =>
     max === null ? t('tierOpen', { min }) : min === max ? (min === 1 ? t('tierOne') : t('tierSame', { count: min })) : t('tierRange', { min, max })
@@ -98,7 +99,7 @@ export default async function VehiclePage({ params }: Props) {
   const tiers = [...settings.cancellation_tiers].sort((a, b) => b.min_hours - a.min_hours)
   const cancellationRows = tiers.map((tier, i) => ({
     when: i === 0 ? t('cancelMoreThan', { hours: tier.min_hours }) : tier.min_hours === 0 ? t('cancelLessThan', { hours: tiers[i - 1].min_hours }) : t('cancelBetween', { from: tiers[i - 1].min_hours, to: tier.min_hours }),
-    fee: `${tier.fee_percent} %`,
+    fee: tier.fee_percent === 0 ? t('cancelFree') : `${tier.fee_percent} %`,
   }))
 
   const conditions: [string, string][] = [
@@ -143,10 +144,13 @@ export default async function VehiclePage({ params }: Props) {
   }
 
   const h2 = 'text-2xl font-bold tracking-wide text-white'
-  const th = 'border-b border-gold/40 px-4 py-3 text-left text-sm font-semibold text-white'
-  const td = 'border-b border-line px-4 py-3 text-sm text-muted2'
+  const card = 'rounded-xl border border-gold/40 bg-surface p-6'
+  const cardTitle = 'text-xl font-bold tracking-wide text-white'
+  const cardLead = 'mt-2 text-sm text-muted2'
+  const row = 'flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-line py-3 text-sm last:border-0'
+  const minDate = utcToZonedLocal(new Date(Date.now() + settings.min_lead_hours * 3600_000)).slice(0, 10)
   const book = (
-    <Link href={bookingHref(vehicle)} rel="nofollow" className="inline-flex h-12 items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover">
+    <Link href={bookingHref(vehicle)} rel="nofollow" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover sm:w-auto">
       {t('book')}
     </Link>
   )
@@ -161,7 +165,7 @@ export default async function VehiclePage({ params }: Props) {
         </Link>
 
         <div className="mt-4 grid gap-10 lg:grid-cols-2">
-          <Gallery images={vehicle.images.map((i) => ({ id: i.id, url: vehicleImageUrl(i.path), alt: localize(i.alt, locale) || vehicle.name }))} />
+          <Gallery images={vehicle.images.map((i) => ({ id: i.id, url: vehicleImageUrl(i.path), alt: localize(i.alt, locale) || vehicle.name, fit: i.isMain ? 'contain' : 'cover' }))} />
 
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gold">{localize(vehicle.categoryName, locale)}</p>
@@ -175,14 +179,8 @@ export default async function VehiclePage({ params }: Props) {
             <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-gold/40 pt-6 text-sm">
               {parameters.map(([label, value]) => (
                 <div key={label}>
-                  {value === null ? (
-                    <dd className="text-white">{label}</dd>
-                  ) : (
-                    <>
-                      <dt className="text-muted2">{label}</dt>
-                      <dd className="break-all text-white">{value}</dd>
-                    </>
-                  )}
+                  <dt className="text-muted2">{label}</dt>
+                  <dd className="break-words text-white">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -192,6 +190,16 @@ export default async function VehiclePage({ params }: Props) {
       </div>
 
       <div className="mx-auto mt-16 max-w-6xl space-y-16 px-6">
+        <section aria-labelledby="availability">
+          <h2 id="availability" className={h2}>
+            {t('availability')}
+          </h2>
+          <p className="mb-6 mt-2 text-sm text-muted2">{t('availabilityLead')}</p>
+          <div className="rounded-xl border border-gold/40 bg-surface p-5 sm:p-6">
+            <BookingCalendar vin={vehicle.vin} minDate={minDate} />
+          </div>
+        </section>
+
         <section aria-labelledby="equipment">
           <h2 id="equipment" className={h2}>
             {t('equipment')}
@@ -217,79 +225,51 @@ export default async function VehiclePage({ params }: Props) {
           </div>
         </section>
 
-        <section aria-labelledby="availability">
-          <h2 id="availability" className={h2}>
-            {t('availability')}
-          </h2>
-          <p className="mb-6 mt-2 text-sm text-muted2">{t('availabilityLead')}</p>
-          <div className="rounded-xl border border-gold/40 bg-surface p-5 sm:p-6">
-            <AvailabilityCalendar vin={vehicle.vin} />
-          </div>
-        </section>
-
-        <div className="grid gap-16 lg:grid-cols-2 lg:gap-10">
-          <section aria-labelledby="pricing">
-            <h2 id="pricing" className={h2}>
+        {/* Four equal cards on one 2 × 2 grid. */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <section aria-labelledby="pricing" className={card}>
+            <h2 id="pricing" className={cardTitle}>
               {t('pricing')}
             </h2>
-            <p className="mb-6 mt-2 text-sm text-muted2">{t('pricingLead')}</p>
-            <table className="w-full overflow-hidden rounded-xl border border-gold/40 bg-surface">
-              <thead>
-                <tr>
-                  <th scope="col" className={th}>
-                    {t('rentalLength')}
-                  </th>
-                  <th scope="col" className={`${th} text-right`}>
-                    {t('pricePerDay')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {vehicle.prices.map((price) => (
-                  <tr key={price.tierId}>
-                    <th scope="row" className={`${td} text-left font-normal`}>
-                      {tierLabel(price.minDays, price.maxDays)}
-                    </th>
-                    <td className={`${td} text-right font-semibold text-white`}>{price.maxDays === null || price.pricePerDayCents === null ? t('individualPrice') : euro(price.pricePerDayCents)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <p className={cardLead}>{t('pricingLead')}</p>
+            <dl className="mt-4">
+              {vehicle.prices.map((price) => (
+                <div key={price.tierId} className={row}>
+                  <dt className="text-muted2">{tierLabel(price.minDays, price.maxDays)}</dt>
+                  <dd className="text-right font-semibold text-white">{price.maxDays === null || price.pricePerDayCents === null ? t('individualPrice') : `${euro(price.pricePerDayCents)} ${t('perDay')}`}</dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
-          {vehicle.extras.length > 0 ? (
-            <section aria-labelledby="extras">
-              <h2 id="extras" className={h2}>
-                {t('extras')}
-              </h2>
-              <p className="mb-6 mt-2 text-sm text-muted2">&nbsp;</p>
-              <table className="w-full overflow-hidden rounded-xl border border-gold/40 bg-surface">
-                <tbody>
-                  {vehicle.extras.map((extra) => (
-                    <tr key={extra.id}>
-                      <th scope="row" className={`${td} text-left font-normal`}>
-                        {localize(extra.name, locale)}
-                        {extra.maxQuantity > 1 ? <span className="text-xs"> · {t('maxQuantity', { count: extra.maxQuantity })}</span> : null}
-                      </th>
-                      <td className={`${td} whitespace-nowrap text-right font-semibold text-white`}>
-                        {euro(extra.priceCents)} {extra.pricingType === 'per_day' ? t('perDay') : t('perRental')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          ) : null}
-        </div>
+          <section aria-labelledby="extras" className={card}>
+            <h2 id="extras" className={cardTitle}>
+              {t('extras')}
+            </h2>
+            <p className={cardLead}>{t('extrasLead')}</p>
+            <dl className="mt-4">
+              {vehicle.extras.map((extra) => (
+                <div key={extra.id} className={row}>
+                  <dt className="text-muted2">
+                    {localize(extra.name, locale)}
+                    {extra.maxQuantity > 1 ? <span className="text-xs"> · {t('maxQuantity', { count: extra.maxQuantity })}</span> : null}
+                  </dt>
+                  <dd className="whitespace-nowrap text-right font-semibold text-white">
+                    {euro(extra.priceCents)} {extra.pricingType === 'per_day' ? t('perDay') : t('perRental')}
+                  </dd>
+                </div>
+              ))}
+              {vehicle.extras.length === 0 ? <p className="py-3 text-sm text-muted2">—</p> : null}
+            </dl>
+          </section>
 
-        <div className="grid gap-16 lg:grid-cols-2 lg:gap-10">
-          <section aria-labelledby="conditions">
-            <h2 id="conditions" className={h2}>
+          <section aria-labelledby="conditions" className={card}>
+            <h2 id="conditions" className={cardTitle}>
               {t('conditions')}
             </h2>
-            <dl className="mt-6 rounded-xl border border-gold/40 bg-surface">
+            <dl className="mt-4">
               {conditions.map(([label, value]) => (
-                <div key={label} className="flex flex-wrap justify-between gap-x-6 gap-y-1 border-b border-line px-4 py-3 text-sm last:border-0">
+                <div key={label} className={row}>
                   <dt className="text-muted2">{label}</dt>
                   <dd className="text-right font-semibold text-white">{value}</dd>
                 </div>
@@ -297,33 +277,19 @@ export default async function VehiclePage({ params }: Props) {
             </dl>
           </section>
 
-          <section aria-labelledby="cancellation">
-            <h2 id="cancellation" className={h2}>
+          <section aria-labelledby="cancellation" className={card}>
+            <h2 id="cancellation" className={cardTitle}>
               {t('cancellation')}
             </h2>
-            <p className="mb-6 mt-2 text-sm text-muted2">{t('cancellationLead')}</p>
-            <table className="w-full overflow-hidden rounded-xl border border-gold/40 bg-surface">
-              <thead>
-                <tr>
-                  <th scope="col" className={th}>
-                    {t('cancelWhen')}
-                  </th>
-                  <th scope="col" className={`${th} text-right`}>
-                    {t('cancelFee')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {cancellationRows.map((row) => (
-                  <tr key={row.when}>
-                    <th scope="row" className={`${td} text-left font-normal`}>
-                      {row.when}
-                    </th>
-                    <td className={`${td} text-right font-semibold text-white`}>{row.fee}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <p className={cardLead}>{t('cancellationLead')}</p>
+            <dl className="mt-4">
+              {cancellationRows.map((item) => (
+                <div key={item.when} className={row}>
+                  <dt className="text-muted2">{item.when}</dt>
+                  <dd className="text-right font-semibold text-white">{item.fee}</dd>
+                </div>
+              ))}
+            </dl>
           </section>
         </div>
 
