@@ -50,11 +50,16 @@ const config = {
           foreground: 'hsl(var(--card-foreground))',
         },
         gold: '#B88746',
+        'gold-hover': '#A67C52',
+        surface: '#1A1A1A',
+        'surface-2': '#1D1D1D',
+        line: '#333333',
+        muted2: '#CCCCCC',
         'gold-light': '#FDF5A6',
         'rich-black': '#111111',
       },
       fontFamily: {
-        montserrat: ['Montserrat', 'sans-serif'],
+        montserrat: ['"Montserrat Variable"', 'Montserrat', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

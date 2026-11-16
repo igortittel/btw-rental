@@ -1,0 +1,59 @@
+{
+  "site": {
+    "name": "BY THE WAVE",
+    "tagline": "Car rental",
+    "backToBtw": "btw.sk",
+    "login": "Sign in",
+    "account": "My account",
+    "admin": "Administration",
+    "logout": "Sign out",
+    "terms": "Terms and conditions",
+    "privacy": "Privacy policy",
+    "comingSoonTitle": "Car rental",
+    "comingSoonText": "Our vehicle catalogue and online booking are on their way."
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginLead": "Sign in to the customer area to manage your bookings.",
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "passwordConfirm": "Repeat password",
+    "passwordHint": "At least {min} characters.",
+    "submitLogin": "Sign in",
+    "forgotLink": "Forgot your password?",
+    "backToLogin": "Back to sign in",
+    "forgotTitle": "Forgotten password",
+    "forgotLead": "Enter the email you used for your booking. We will send you a one-time link to set a password.",
+    "submitForgot": "Send link",
+    "forgotSent": "If an account exists for this email, we have sent a link to set a password. Please check your spam folder as well.",
+    "setTitle": "Set your password",
+    "setLead": "Choose the password you will sign in with.",
+    "submitSet": "Save password and sign in",
+    "expiredTitle": "This link is no longer valid",
+    "expiredLead": "The link has expired or has already been used. Enter your email and we will send you a new one.",
+    "submitResend": "Send a new link",
+    "pending": "Sending…",
+    "errors": {
+      "invalid_credentials": "Incorrect email or password.",
+      "rate_limited": "Too many attempts. Please try again in a few minutes.",
+      "email_invalid": "Please enter a valid email address.",
+      "password_too_short": "The password must have at least 10 characters.",
+      "password_too_long": "The password can have at most 72 characters.",
+      "passwords_do_not_match": "The passwords do not match.",
+      "password_rejected": "This password cannot be used. Please choose a different one.",
+      "token_invalid": "This link is no longer valid. Please request a new one.",
+      "unknown": "Something went wrong. Please try again."
+    }
+  },
+  "account": {
+    "title": "My account",
+    "greeting": "Hello, {name}",
+    "greetingAnonymous": "Hello",
+    "signedInAs": "Signed in as {email}",
+    "bookingsTitle": "My bookings",
+    "bookingsEmpty": "You have no bookings yet.",
+    "staffNotice": "This account has access to the administration.",
+    "goToAdmin": "Go to administration"
+  }
+}

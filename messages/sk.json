@@ -1,0 +1,59 @@
+{
+  "site": {
+    "name": "BY THE WAVE",
+    "tagline": "Prenájom vozidiel",
+    "backToBtw": "btw.sk",
+    "login": "Prihlásenie",
+    "account": "Môj účet",
+    "admin": "Administrácia",
+    "logout": "Odhlásiť sa",
+    "terms": "Všeobecné obchodné podmienky",
+    "privacy": "Ochrana osobných údajov",
+    "comingSoonTitle": "Prenájom vozidiel",
+    "comingSoonText": "Katalóg vozidiel a online rezerváciu pre vás práve pripravujeme."
+  },
+  "auth": {
+    "loginTitle": "Prihlásenie",
+    "loginLead": "Prihláste sa do zákazníckej zóny a spravujte svoje rezervácie.",
+    "email": "E-mail",
+    "password": "Heslo",
+    "newPassword": "Nové heslo",
+    "passwordConfirm": "Heslo znova",
+    "passwordHint": "Najmenej {min} znakov.",
+    "submitLogin": "Prihlásiť sa",
+    "forgotLink": "Zabudnuté heslo?",
+    "backToLogin": "Späť na prihlásenie",
+    "forgotTitle": "Zabudnuté heslo",
+    "forgotLead": "Zadajte e-mail, ktorý ste použili pri rezervácii. Pošleme vám jednorazový odkaz na nastavenie hesla.",
+    "submitForgot": "Poslať odkaz",
+    "forgotSent": "Ak k tomuto e-mailu existuje účet, poslali sme naň odkaz na nastavenie hesla. Skontrolujte si aj priečinok s nevyžiadanou poštou.",
+    "setTitle": "Nastavenie hesla",
+    "setLead": "Zvoľte si heslo, ktorým sa budete prihlasovať.",
+    "submitSet": "Uložiť heslo a prihlásiť sa",
+    "expiredTitle": "Odkaz už nie je platný",
+    "expiredLead": "Odkaz na nastavenie hesla vypršal alebo už bol použitý. Zadajte svoj e-mail a pošleme vám nový.",
+    "submitResend": "Poslať nový odkaz",
+    "pending": "Odosielam…",
+    "errors": {
+      "invalid_credentials": "Nesprávny e-mail alebo heslo.",
+      "rate_limited": "Príliš veľa pokusov. Skúste to prosím o niekoľko minút.",
+      "email_invalid": "Zadajte platnú e-mailovú adresu.",
+      "password_too_short": "Heslo musí mať najmenej 10 znakov.",
+      "password_too_long": "Heslo môže mať najviac 72 znakov.",
+      "passwords_do_not_match": "Heslá sa nezhodujú.",
+      "password_rejected": "Toto heslo nie je možné použiť. Zvoľte prosím iné.",
+      "token_invalid": "Odkaz už nie je platný. Vyžiadajte si prosím nový.",
+      "unknown": "Niečo sa nepodarilo. Skúste to prosím znova."
+    }
+  },
+  "account": {
+    "title": "Môj účet",
+    "greeting": "Dobrý deň, {name}",
+    "greetingAnonymous": "Dobrý deň",
+    "signedInAs": "Prihlásený účet: {email}",
+    "bookingsTitle": "Moje rezervácie",
+    "bookingsEmpty": "Zatiaľ tu nemáte žiadnu rezerváciu.",
+    "staffNotice": "Tento účet má prístup do administrácie.",
+    "goToAdmin": "Prejsť do administrácie"
+  }
+}

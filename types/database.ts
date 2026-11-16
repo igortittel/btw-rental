@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          profile_id: string
+          purpose: Database["public"]["Enums"]["auth_token_purpose"]
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          profile_id: string
+          purpose: Database["public"]["Enums"]["auth_token_purpose"]
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          profile_id?: string
+          purpose?: Database["public"]["Enums"]["auth_token_purpose"]
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auth_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auth_tokens_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_blocks: {
         Row: {
           created_at: string
@@ -1065,6 +1113,24 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           is_public: boolean
@@ -1736,6 +1802,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      check_rate_limit: {
+        Args: { p_key: string; p_max: number; p_window_seconds: number }
+        Returns: boolean
+      }
+      consume_auth_token: {
+        Args: { p_token_hash: string }
+        Returns: {
+          profile_id: string
+          purpose: Database["public"]["Enums"]["auth_token_purpose"]
+        }[]
+      }
       is_vehicle_available: {
         Args: {
           p_exclude_booking_id?: string
@@ -1755,6 +1832,7 @@ export type Database = {
       }
     }
     Enums: {
+      auth_token_purpose: "set_password" | "reset_password"
       block_reason: "service" | "stk" | "private" | "other"
       booking_creator: "customer" | "staff"
       booking_status:
@@ -1916,6 +1994,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      auth_token_purpose: ["set_password", "reset_password"],
       block_reason: ["service", "stk", "private", "other"],
       booking_creator: ["customer", "staff"],
       booking_status: [
