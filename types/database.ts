@@ -333,6 +333,7 @@ export type Database = {
           number: string
           pending_change: Json | null
           pickup_at: string
+          pickup_custom_address: string | null
           pickup_location_id: string
           price_override_reason: string | null
           price_snapshot: Json
@@ -341,6 +342,7 @@ export type Database = {
           rental_payment_method: Database["public"]["Enums"]["payment_method"]
           rental_payment_status: Database["public"]["Enums"]["rental_payment_status"]
           return_at: string
+          return_custom_address: string | null
           return_location_id: string
           review_requested_at: string | null
           status: Database["public"]["Enums"]["booking_status"]
@@ -385,6 +387,7 @@ export type Database = {
           number: string
           pending_change?: Json | null
           pickup_at: string
+          pickup_custom_address?: string | null
           pickup_location_id: string
           price_override_reason?: string | null
           price_snapshot?: Json
@@ -393,6 +396,7 @@ export type Database = {
           rental_payment_method: Database["public"]["Enums"]["payment_method"]
           rental_payment_status?: Database["public"]["Enums"]["rental_payment_status"]
           return_at: string
+          return_custom_address?: string | null
           return_location_id: string
           review_requested_at?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
@@ -437,6 +441,7 @@ export type Database = {
           number?: string
           pending_change?: Json | null
           pickup_at?: string
+          pickup_custom_address?: string | null
           pickup_location_id?: string
           price_override_reason?: string | null
           price_snapshot?: Json
@@ -445,6 +450,7 @@ export type Database = {
           rental_payment_method?: Database["public"]["Enums"]["payment_method"]
           rental_payment_status?: Database["public"]["Enums"]["rental_payment_status"]
           return_at?: string
+          return_custom_address?: string | null
           return_location_id?: string
           review_requested_at?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
@@ -1778,6 +1784,7 @@ export type Database = {
           number: string
           pending_change: Json | null
           pickup_at: string
+          pickup_custom_address: string | null
           pickup_location_id: string
           price_override_reason: string | null
           price_snapshot: Json
@@ -1786,6 +1793,7 @@ export type Database = {
           rental_payment_method: Database["public"]["Enums"]["payment_method"]
           rental_payment_status: Database["public"]["Enums"]["rental_payment_status"]
           return_at: string
+          return_custom_address: string | null
           return_location_id: string
           review_requested_at: string | null
           status: Database["public"]["Enums"]["booking_status"]
@@ -1812,6 +1820,11 @@ export type Database = {
           profile_id: string
           purpose: Database["public"]["Enums"]["auth_token_purpose"]
         }[]
+      }
+      create_booking: { Args: { p: Json }; Returns: Json }
+      staff_update_booking: {
+        Args: { p: Json; p_booking_id: string }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
       }
       is_vehicle_available: {
         Args: {

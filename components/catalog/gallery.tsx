@@ -5,7 +5,8 @@ import Image from 'next/image'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useTranslations } from 'next-intl'
 
-export type GalleryImage = { id: string; url: string; alt: string }
+/** `fit: 'contain'` keeps a cut-out studio shot whole; photos fill the frame. */
+export type GalleryImage = { id: string; url: string; alt: string; fit?: 'contain' | 'cover' }
 
 /**
  * Photo gallery: a swipeable strip (native scroll-snap, so it works with touch,
@@ -44,7 +45,7 @@ export function Gallery({ images }: { images: GalleryImage[] }) {
     <div aria-label={t('gallery')} role="group">
       <div
         ref={strip}
-        className="flex snap-x snap-mandatory overflow-x-auto rounded-xl border border-gold/50 bg-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory overflow-x-auto rounded-xl border border-gold/50 bg-surface [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => {
           const el = e.currentTarget
           const current = Math.round(el.scrollLeft / el.clientWidth)
@@ -62,7 +63,7 @@ export function Gallery({ images }: { images: GalleryImage[] }) {
             }}
             aria-label={`${t('openPhoto')} – ${t('photoOf', { index: i + 1, count: images.length })}`}
           >
-            <Image src={image.url} alt={image.alt} fill sizes="(min-width: 1024px) 560px, 100vw" className="object-contain" priority={i === 0} />
+            <Image src={image.url} alt={image.alt} fill sizes="(min-width: 1024px) 560px, 100vw" className={image.fit === 'contain' ? 'object-contain p-4 sm:p-6' : 'object-cover'} priority={i === 0} />
           </button>
         ))}
       </div>
@@ -76,9 +77,9 @@ export function Gallery({ images }: { images: GalleryImage[] }) {
                 onClick={() => go(i)}
                 aria-label={t('photoOf', { index: i + 1, count: images.length })}
                 aria-current={i === index ? 'true' : undefined}
-                className={`relative block aspect-[4/3] w-full overflow-hidden rounded-lg border bg-black ${i === index ? 'border-gold' : 'border-line hover:border-gold/60'}`}
+                className={`relative block aspect-[4/3] w-full overflow-hidden rounded-lg border bg-surface ${i === index ? 'border-gold' : 'border-line hover:border-gold/60'}`}
               >
-                <Image src={image.url} alt="" fill sizes="120px" className="object-cover" />
+                <Image src={image.url} alt="" fill sizes="120px" className={image.fit === 'contain' ? 'object-contain p-1' : 'object-cover'} />
               </button>
             </li>
           ))}

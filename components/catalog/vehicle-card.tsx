@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { Cog, Fuel, Luggage, Users } from 'lucide-react'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { localize, type PublicVehicle } from '@/lib/catalog'
@@ -18,11 +19,11 @@ export async function VehicleCard({ vehicle, priority = false, dates }: { vehicl
   const href = vehiclePath(vehicle.categorySlug, vehicle.slug, vehicle.vin)
   const engine = [vehicle.engine, vehicle.powerKw ? `${vehicle.powerKw} kW` : null].filter(Boolean).join(', ')
   const specs = [
-    t(`fuelLabels.${vehicle.fuel}`),
-    t(`transmissionLabels.${vehicle.transmission}`),
-    t('seatsCount', { count: vehicle.seats }),
-    vehicle.luggage ? t('luggageCount', { count: vehicle.luggage }) : null,
-  ].filter(Boolean)
+    { icon: Fuel, label: t('fuel'), value: t(`fuelLabels.${vehicle.fuel}`) },
+    { icon: Cog, label: t('transmission'), value: t(`transmissionLabels.${vehicle.transmission}`) },
+    { icon: Users, label: t('seats'), value: t('seatsCount', { count: vehicle.seats }) },
+    ...(vehicle.luggage ? [{ icon: Luggage, label: t('luggage'), value: t('luggageCount', { count: vehicle.luggage }) }] : []),
+  ]
 
   return (
     <article className="flex h-full flex-col rounded-xl border border-gold/50 bg-surface transition-colors hover:border-gold">
@@ -48,9 +49,13 @@ export async function VehicleCard({ vehicle, priority = false, dates }: { vehicl
           </Link>
         </h2>
         {engine ? <p className="mt-1 text-sm text-muted2">{engine}</p> : null}
-        <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted2">
+        <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm text-muted2">
           {specs.map((spec) => (
-            <li key={spec}>{spec}</li>
+            <li key={spec.label} className="flex items-center gap-2">
+              <spec.icon className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+              <span className="sr-only">{spec.label}: </span>
+              {spec.value}
+            </li>
           ))}
         </ul>
         <p className="mt-5 text-base font-semibold text-white">
