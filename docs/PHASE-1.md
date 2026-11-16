@@ -12,6 +12,7 @@ Stav: aplikované na Supabase projekt **btw** (`wlkdhdkflbswjjdobsfs`, eu-west-1
 | `supabase/migrations/20261116100200_rls.sql` | RLS politiky |
 | `supabase/migrations/20261116100300_public_api.sql` | verejné views `public_*` |
 | `supabase/migrations/20261116100400_storage.sql` | storage buckety a politiky |
+| `supabase/migrations/20261116100500_drop_legacy_prototype.sql` | zmazanie testovacích dát prototypu (schéma `legacy_prototype`) |
 | `supabase/seed.sql` | generovaný seed (`scripts/build-seed.py` z `supabase/seed/vehicles.json`) |
 | `supabase/tests/` | stub Supabase pre lokálny Postgres + 61 testov správania |
 | `types/database.ts` | typy vygenerované zo Supabase |
@@ -62,7 +63,6 @@ Storage: `vehicle-images` verejný; `protocols`, `protocol-media`, `documents` p
 
 - **Security Definer View** (5× `public_*`): zámer – views sprístupňujú whitelist stĺpcov bez prístupu `anon` k tabuľkám (požiadavka zadania „verejné čítanie cez views / RPC“).
 - **Security definer funkcie volateľné anon/authenticated**: `vehicle_availability`, `is_vehicle_available` vracajú len obsadené intervaly bez osobných údajov; `change_booking_status` si rolu overuje vnútri.
-- **RLS bez politík** (4× `legacy_prototype.*`): zámer, staré tabuľky sú neprístupné.
 - **Leaked password protection vypnutá**: zapnúť v Supabase → Authentication (rieši Fáza 2).
 
 ## Ako overiť
@@ -84,4 +84,3 @@ Na Supabase (SQL editor): `select name, category_slug, price_from_cents from pub
 - **Fotky nie sú v Supabase Storage.** V DB sú cesty (`<slug>/main.webp`…), súbory ležia v `supabase/seed/images/`. Nahrá ich skript vo Fáze 2/3 – potrebuje `SUPABASE_SERVICE_ROLE_KEY`.
 - **Owner účet** (`scripts/seed-owner.ts`) je súčasť Fázy 2.
 - VIN (`TESTBTW0000000001`–`7`) a ŠPZ (`BT001TW`–`BT007TW`) sú testovacie hodnoty.
-- Staré testovacie dáta prototypu sú v schéme `legacy_prototype`; zmazať ich možno príkazom `drop schema legacy_prototype cascade;`.
