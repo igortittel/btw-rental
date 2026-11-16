@@ -1,8 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useFormAction } from '@/components/use-form-action'
 import { changePasswordAction, type AdminFormState } from '@/app/admin/actions'
-import { FormFeedback } from '@/components/admin/form-feedback'
+import { Feedback as FormFeedback } from '@/components/admin/ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,10 +11,10 @@ import { PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 const initial: AdminFormState = {}
 
 export function ChangePasswordForm() {
-  const [state, action, pending] = useActionState(changePasswordAction, initial)
+  const { state: state, onSubmit: action, pending: pending } = useFormAction(changePasswordAction, initial)
 
   return (
-    <form action={action} className="max-w-md space-y-5" noValidate key={state.ok ? 'done' : 'form'}>
+    <form onSubmit={action} className="max-w-md space-y-5" noValidate key={state.ok ? 'done' : 'form'}>
       <div className="space-y-2">
         <Label htmlFor="currentPassword">Aktuálne heslo</Label>
         <Input id="currentPassword" name="currentPassword" type="password" autoComplete="current-password" required />

@@ -33,7 +33,7 @@ export default async function AdminHomePage({ searchParams }: Props) {
           </div>
         ))}
       </div>
-      <p className="text-sm text-muted2">Správa vozidiel, príplatkov a nastavení pribudne vo Fáze 3, rezervácie vo Fáze 6.</p>
+      <p className="text-sm text-muted2">Rezervácie, kalendár a KPI pribudnú vo Fáze 6.</p>
     </div>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useFormAction } from '@/components/use-form-action'
 import { inviteStaffAction, resendInviteAction, updateStaffAction, type AdminFormState } from '@/app/admin/actions'
-import { FormFeedback } from '@/components/admin/form-feedback'
+import { Feedback as FormFeedback } from '@/components/admin/ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,10 +13,10 @@ const selectClass =
   'h-10 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm text-white focus:border-gold/50 focus:outline-none focus:ring-2 focus:ring-gold/50'
 
 export function InviteStaffForm() {
-  const [state, action, pending] = useActionState(inviteStaffAction, initial)
+  const { state: state, onSubmit: action, pending: pending } = useFormAction(inviteStaffAction, initial)
 
   return (
-    <form action={action} className="space-y-5" noValidate>
+    <form onSubmit={action} className="space-y-5" noValidate>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="firstName">Meno</Label>
@@ -52,14 +52,14 @@ export function InviteStaffForm() {
 type StaffRowProps = { userId: string; role: StaffRole; isActive: boolean; isSelf: boolean; passwordSet: boolean }
 
 export function StaffRowActions({ userId, role, isActive, isSelf, passwordSet }: StaffRowProps) {
-  const [updateState, update, updating] = useActionState(updateStaffAction, initial)
-  const [resendState, resend, resending] = useActionState(resendInviteAction, initial)
+  const { state: updateState, onSubmit: update, pending: updating } = useFormAction(updateStaffAction, initial)
+  const { state: resendState, onSubmit: resend, pending: resending } = useFormAction(resendInviteAction, initial)
 
   if (isSelf) return <p className="text-sm text-muted2">Váš účet – rolu si nemôžete zmeniť sami.</p>
 
   return (
     <div className="space-y-3">
-      <form action={update} className="flex flex-wrap items-end gap-3">
+      <form onSubmit={update} className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="userId" value={userId} />
         <div className="space-y-1">
           <Label htmlFor={`role-${userId}`}>Rola</Label>
@@ -82,7 +82,7 @@ export function StaffRowActions({ userId, role, isActive, isSelf, passwordSet }:
           {updating ? 'Ukladám…' : 'Uložiť'}
         </Button>
       </form>
-      <form action={resend}>
+      <form onSubmit={resend}>
         <input type="hidden" name="userId" value={userId} />
         <Button type="submit" variant="link" disabled={resending}>
           {passwordSet ? 'Poslať odkaz na nové heslo' : 'Poslať pozvánku znova'}

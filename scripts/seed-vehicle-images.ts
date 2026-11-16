@@ -4,8 +4,9 @@
  *
  *   SUPABASE_SERVICE_ROLE_KEY=… NEXT_PUBLIC_SUPABASE_URL=… npx tsx scripts/seed-vehicle-images.ts
  *
- * Idempotent: existing files are never overwritten, so photos replaced in the admin
- * stay as they are.
+ * Idempotent: only files that a `vehicle_images` row still references are uploaded,
+ * and existing files are never overwritten – photos replaced or deleted in the admin
+ * stay as the admin left them.
  */
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -23,6 +24,10 @@ async function main() {
   }
   const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
 
+  const { data: rows, error: rowsError } = await supabase.from('vehicle_images').select('storage_path')
+  if (rowsError) throw new Error(`[seed-images] cannot read vehicle_images: ${rowsError.message}`)
+  const referenced = new Set((rows ?? []).map((r) => r.storage_path as string))
+
   let uploaded = 0
   let existing = 0
   for (const folder of await readdir(SOURCE_DIR, { withFileTypes: true })) {
@@ -32,7 +37,7 @@ async function main() {
     const have = new Set((present ?? []).map((f) => f.name))
 
     for (const file of await readdir(path.join(SOURCE_DIR, folder.name))) {
-      if (!file.endsWith('.webp')) continue
+      if (!file.endsWith('.webp') || !referenced.has(`${folder.name}/${file}`)) continue
       if (have.has(file)) {
         existing++
         continue

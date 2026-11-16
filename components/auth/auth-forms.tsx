@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useFormAction } from '@/components/use-form-action'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
@@ -29,10 +29,10 @@ function FormError({ code }: { code?: string }) {
 export function LoginForm({ next }: { next?: string }) {
   const t = useTranslations('auth')
   const locale = useLocale()
-  const [state, action, pending] = useActionState(loginAction, initial)
+  const { state: state, onSubmit: action, pending: pending } = useFormAction(loginAction, initial)
 
   return (
-    <form action={action} className="space-y-5" noValidate>
+    <form onSubmit={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <div className="space-y-2">
@@ -59,7 +59,7 @@ export function LoginForm({ next }: { next?: string }) {
 export function RequestLinkForm({ submitLabel }: { submitLabel: string }) {
   const t = useTranslations('auth')
   const locale = useLocale()
-  const [state, action, pending] = useActionState(requestPasswordLinkAction, initial)
+  const { state: state, onSubmit: action, pending: pending } = useFormAction(requestPasswordLinkAction, initial)
 
   if (state.ok) {
     return (
@@ -70,7 +70,7 @@ export function RequestLinkForm({ submitLabel }: { submitLabel: string }) {
   }
 
   return (
-    <form action={action} className="space-y-5" noValidate>
+    <form onSubmit={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <div className="space-y-2">
         <Label htmlFor="email">{t('email')}</Label>
@@ -87,10 +87,10 @@ export function RequestLinkForm({ submitLabel }: { submitLabel: string }) {
 export function SetPasswordForm({ token, next }: { token: string; next?: string }) {
   const t = useTranslations('auth')
   const locale = useLocale()
-  const [state, action, pending] = useActionState(setPasswordAction, initial)
+  const { state: state, onSubmit: action, pending: pending } = useFormAction(setPasswordAction, initial)
 
   return (
-    <form action={action} className="space-y-5" noValidate>
+    <form onSubmit={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="token" value={token} />
       {next ? <input type="hidden" name="next" value={next} /> : null}

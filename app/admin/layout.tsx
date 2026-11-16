@@ -17,6 +17,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await requireStaff('operator')
   const links = [
     { href: '/admin', label: 'Prehľad', show: true },
+    { href: '/admin/vozidla', label: 'Vozidlá', show: true },
+    { href: '/admin/kategorie', label: 'Kategórie', show: true },
+    { href: '/admin/priplatky', label: 'Príplatky', show: true },
+    { href: '/admin/miesta', label: 'Miesta', show: true },
+    { href: '/admin/nastavenia', label: 'Nastavenia', show: hasRole(user.role, 'owner') },
     { href: '/admin/zamestnanci', label: 'Zamestnanci', show: hasRole(user.role, 'owner') },
     { href: '/admin/profil', label: 'Môj profil', show: true },
   ]
