@@ -35,7 +35,7 @@ Oprávnenia sa kontrolujú trikrát: pri vykreslení stránky, v každej server 
 
 ## Čo chýba / poznámky
 
-- **Dátum na filtrovanie a drag & drop** poradia vozidiel v zozname: poradie sa mení číslom „Poradie zobrazenia“.
+- **Poradie vozidiel v zozname** sa mení číslom „Poradie zobrazenia“, nie ťahaním.
 - **Úprava číselníka výbavy** (premenovanie, EN preklad, zmazanie položky) zatiaľ nie je; položky sa dajú len pridať a priradiť.
 - **Alt texty fotiek** sa generujú z názvu vozidla, v admine sa zatiaľ nedajú upraviť.
 - **Audit log** sa plní, obrazovka na jeho čítanie príde vo Fáze 9. Obsahuje aj cca 40 záznamov z môjho testovania (log je zámerne nemazateľný).
