@@ -2,7 +2,7 @@
   "_meta": {
     "source_page": "https://www.btw.sk/nase-vozidla",
     "source_api": "https://wp.btw.sk/graphql",
-    "note": "One-off import. VINs are placeholders, prices are the 79 EUR/day placeholder from the brief.",
+    "note": "One-off import. VINs and licence plates are dummy test values, prices are the 79 EUR/day placeholder from the brief.",
     "skipped_non_rental": [
       {
         "title": "Mercedes-Benz V-Class, Hyundai Staria Luxury a iné",
@@ -41,9 +41,10 @@
       "model": "E 200 d",
       "variant": null,
       "category": "sedan",
-      "vin": "PLACEHOLDERVIN0001",
+      "vin": "TESTBTW0000000001",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT001TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "2.0 Diesel, 145kw (197 HP), Automat (9 st.), zadný náhon",
       "engine": "2.0 Diesel",
       "power_kw": 145,
@@ -71,13 +72,13 @@
         ],
         "safety": [
           "Svetelný a dažďový senzor, zadná parkovacia kamera, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,
@@ -135,9 +136,10 @@
       "model": "E 220 d",
       "variant": null,
       "category": "sedan",
-      "vin": "PLACEHOLDERVIN0002",
+      "vin": "TESTBTW0000000002",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT002TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "2.0 Diesel, 145kw (197 HP), Automat (9 st.), zadný náhon",
       "engine": "2.0 Diesel",
       "power_kw": 145,
@@ -165,13 +167,13 @@
         ],
         "safety": [
           "Svetelný a dažďový senzor, zadná parkovacia kamera, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,
@@ -229,9 +231,10 @@
       "model": "S 400 d",
       "variant": "4MATIC",
       "category": "limousine",
-      "vin": "PLACEHOLDERVIN0003",
+      "vin": "TESTBTW0000000003",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT003TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "3.0 Diesel, 243kW (330 HP), Automat (9st.), 4×4",
       "engine": "3.0 Diesel",
       "power_kw": 243,
@@ -264,13 +267,13 @@
         ],
         "safety": [
           "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,
@@ -328,9 +331,10 @@
       "model": "GLS 400 d",
       "variant": "4MATIC",
       "category": "suv",
-      "vin": "PLACEHOLDERVIN0004",
+      "vin": "TESTBTW0000000004",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT004TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "3.0 Diesel, 243kW (330 HP), Automat (9st.), 4×4",
       "engine": "3.0 Diesel",
       "power_kw": 243,
@@ -363,13 +367,13 @@
         ],
         "safety": [
           "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,
@@ -427,9 +431,10 @@
       "model": "V 250 d",
       "variant": "4MATIC Extra-Long",
       "category": "van",
-      "vin": "PLACEHOLDERVIN0005",
+      "vin": "TESTBTW0000000005",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT005TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "2.0 Diesel, 140kW (190 HP), Automat (9 st.), 4×4",
       "engine": "2.0 Diesel",
       "power_kw": 140,
@@ -461,13 +466,13 @@
         ],
         "safety": [
           "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,
@@ -525,9 +530,10 @@
       "model": "V 300 d",
       "variant": "4MATIC Long",
       "category": "van",
-      "vin": "PLACEHOLDERVIN0006",
+      "vin": "TESTBTW0000000006",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT006TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "2.0 Diesel, 174kW (237 HP), Automat (9 st.), 4×4",
       "engine": "2.0 Diesel",
       "power_kw": 174,
@@ -560,13 +566,13 @@
         ],
         "safety": [
           "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,
@@ -624,9 +630,10 @@
       "model": "Staria",
       "variant": "Luxury 4x4",
       "category": "van",
-      "vin": "PLACEHOLDERVIN0007",
+      "vin": "TESTBTW0000000007",
       "vin_is_placeholder": true,
-      "license_plate": null,
+      "license_plate": "BT007TW",
+      "license_plate_is_placeholder": true,
       "engine_text": "2.2 CRDi, 130kW, Automat (8 st.), 4×4",
       "engine": "2.2 CRDi",
       "power_kw": 130,
@@ -667,13 +674,13 @@
           "Svetelný a dažďový senzor",
           "Predné a zadné parkovacie senzory – 4 kamery 360 stupňov",
           "Zadná parkovacia kamera"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
+          "Asistenčná služba poisťovne"
         ]
       },
-      "included_services": [
-        "Dialničná známka: SVK",
-        "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
-        "Asistenčná služba poisťovne"
-      ],
       "for_rental": true,
       "for_transfer": false,
       "is_active": true,

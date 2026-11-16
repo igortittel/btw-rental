@@ -435,3 +435,8 @@ language sql stable security definer set search_path = '' as $$
      );
 $$;
 grant execute on function public.is_vehicle_available(uuid, timestamptz, timestamptz, uuid) to anon, authenticated, service_role;
+
+-- Accounts that existed before this schema get a profile too.
+insert into public.profiles (id, email)
+select u.id, u.email from auth.users u
+on conflict (id) do nothing;

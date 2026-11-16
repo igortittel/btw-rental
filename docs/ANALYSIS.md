@@ -86,8 +86,8 @@ Všetky: diesel, automat. Ku každému vozidlu: popis (SK), výbava, „služby 
 
 | Údaj | Stav | Riešenie v seede |
 |---|---|---|
-| **VIN** (všetkých 7) | na webe nie je | placeholder `PLACEHOLDERVIN0001` – `0007`, príznak `vin_is_placeholder: true`. **Sú súčasťou URL – doplniť pred spustením.** |
-| **ŠPZ** | na webe nie je | `null` |
+| **VIN** (všetkých 7) | na webe nie je | testovacie hodnoty `TESTBTW0000000001` – `…7`, príznak `vin_is_placeholder: true`. **Sú súčasťou URL – doplniť pred spustením.** |
+| **ŠPZ** | na webe nie je | testovacie hodnoty `BT001TW` – `BT007TW` |
 | **Počet kufrov** – S 400 d, GLS 400 d, V 250 d | v zdroji prázdne | `null` |
 | **Výkon v HP** – Staria | v zdroji len kW | `null` |
 | **Popis EN** (všetky) | zdroj je len SK | `null`; preložím vo Fáze 10 alebo doplní admin |
