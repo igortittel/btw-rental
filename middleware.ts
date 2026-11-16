@@ -1,54 +1,53 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import createIntlMiddleware from 'next-intl/middleware'
+import { createServerClient } from '@supabase/ssr'
+import { routing } from '@/i18n/routing'
+
+const handleI18nRouting = createIntlMiddleware(routing)
+
+const PROTECTED = /^\/(?:en\/)?moj-ucet(?:\/|$)/
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  const { pathname, search } = request.nextUrl
+  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/')
 
+  // Admin is Slovak only and lives outside the locale routing.
+  const response = isAdmin ? NextResponse.next({ request }) : handleI18nRouting(request)
+
+  // Refresh the Supabase session cookie. Authorisation itself (roles) is checked in
+  // the layouts and server actions against the database, not here.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet: { name: string; value: string; options?: object }[]) {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options as Parameters<typeof supabaseResponse.cookies.set>[2])
-          )
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
-    }
+    },
   )
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
-  const isAdmin = (user?.user_metadata as Record<string, string>)?.role === 'admin'
-
-  const isProtected  = pathname.startsWith('/dashboard') || pathname.startsWith('/admin')
-  const isAdminRoute = pathname.startsWith('/admin')
-  const isAuthPage   = pathname.startsWith('/auth/login')
-
-  if (isProtected && !user) {
+  if (!user && (isAdmin || PROTECTED.test(pathname))) {
     const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    url.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(url)
+    url.pathname = pathname.startsWith('/en/') ? '/en/prihlasenie' : '/prihlasenie'
+    url.search = `?next=${encodeURIComponent(pathname + search)}`
+    const redirect = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+    return redirect
   }
 
-  // Non-admins trying to access admin routes → their dashboard
-  if (isAdminRoute && user && !isAdmin) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-
-  // Already logged in visiting auth page → redirect to correct home
-  if (isAuthPage && user) {
-    return NextResponse.redirect(new URL(isAdmin ? '/admin' : '/dashboard', request.url))
-  }
-
-  return supabaseResponse
+  return response
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|api/auth).*)'],
+  // Everything except API routes, Next internals and files with an extension.
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 }

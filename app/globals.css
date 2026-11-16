@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -72,45 +70,4 @@
   .border-gold-gradient {
     border-image: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%) 1;
   }
-}
-
-/* react-day-picker dark theme overrides */
-.rdp {
-  --rdp-cell-size: 40px;
-  --rdp-accent-color: #B88746;
-  --rdp-background-color: rgba(184, 135, 70, 0.12);
-  --rdp-accent-color-dark: #B88746;
-  --rdp-background-color-dark: rgba(184, 135, 70, 0.12);
-  --rdp-outline: 2px solid var(--rdp-accent-color);
-  --rdp-outline-selected: 2px solid var(--rdp-accent-color);
-  color: #d4d4d4;
-  margin: 0;
-}
-.rdp-day_selected:not([disabled]),
-.rdp-day_selected:focus:not([disabled]),
-.rdp-day_selected:active:not([disabled]),
-.rdp-day_selected:hover:not([disabled]) {
-  background-color: #B88746;
-  color: #111111;
-}
-.rdp-day:hover:not([disabled]):not(.rdp-day_selected) {
-  background-color: rgba(184, 135, 70, 0.15);
-  color: #fff;
-}
-.rdp-caption_label {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  color: #fff;
-}
-.rdp-head_cell {
-  color: #B88746;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.rdp-nav_button {
-  color: #B88746;
-}
-.rdp-nav_button:hover {
-  background-color: rgba(184, 135, 70, 0.15);
 }

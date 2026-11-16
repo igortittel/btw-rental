@@ -1,0 +1,729 @@
+{
+  "_meta": {
+    "source_page": "https://www.btw.sk/nase-vozidla",
+    "source_api": "https://wp.btw.sk/graphql",
+    "note": "One-off import. VINs and licence plates are dummy test values, prices are the 79 EUR/day placeholder from the brief.",
+    "skipped_non_rental": [
+      {
+        "title": "Mercedes-Benz V-Class, Hyundai Staria Luxury a iné",
+        "slug": "mercedes-benz-v-class-a-ine-2",
+        "typ": [
+          "Transfer"
+        ]
+      },
+      {
+        "title": "Mercedes-Benz S-Class, BMW 7 a iné",
+        "slug": "mercedes-benz-s-class-bmw-5-a-ine",
+        "typ": [
+          "Transfer"
+        ]
+      },
+      {
+        "title": "Mercedes-Benz E-Class, BMW 5 a iné",
+        "slug": "mercedes-benz-e-class-bmw-5-a-ine",
+        "typ": [
+          "Transfer"
+        ]
+      }
+    ]
+  },
+  "vehicles": [
+    {
+      "source": {
+        "slug": "mercedes-benz-e200d",
+        "title": "Mercedes-Benz E200d",
+        "category": "Business Class",
+        "price_from_eur": 100
+      },
+      "name": "Mercedes-Benz E 200 d",
+      "slug": "mercedes-benz-e-200-d",
+      "brand": "Mercedes-Benz",
+      "model": "E 200 d",
+      "variant": null,
+      "category": "sedan",
+      "vin": "TESTBTW0000000001",
+      "vin_is_placeholder": true,
+      "license_plate": "BT001TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "2.0 Diesel, 145kw (197 HP), Automat (9 st.), zadný náhon",
+      "engine": "2.0 Diesel",
+      "power_kw": 145,
+      "power_hp": 197,
+      "gears": 9,
+      "drivetrain": "rwd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 5,
+      "luggage": 3,
+      "description": {
+        "sk": "Elegantný a komfortný sedan navrhnutý pre plynulé a pohodlné cestovanie. Prémiový interiér, moderné technológie a kultivovaný prejav z neho robia ideálnu voľbu pre reprezentatívne aj každodenné presuny.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "5-miestne prevedenie vozidla s lakťovou opierkou na zadných aj predných sedadlách",
+          "Predné a zadné vyhrievané sedadlá",
+          "Dvojzónová automatická klimatizácia"
+        ],
+        "technical": [
+          "Integrovaná navigácia MBUX s 14,4″ farebným displejom, podpora Apple CarPlay/Android Auto, Live Traffic Information a hlasové ovládanie “Hey Mercedes”",
+          "Bezdrôtová Qi-nabíjacia stanica pre mobilné zariadenia",
+          "Tepelnoizolačné čelné sklo s infračervenou ochranou, zatmavené okná v zadnej časti vozidla"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor, zadná parkovacia kamera, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 10,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/mercedes-benz-e-200-d/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/2.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/mercedes-benz-e-200-d/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-E-hnedy.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-e-200-d/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-E-hnedy-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-e-200-d/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-E-hnedy-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    },
+    {
+      "source": {
+        "slug": "mercedes-benz-e220d",
+        "title": "Mercedes-Benz E220d",
+        "category": "Business Class",
+        "price_from_eur": 100
+      },
+      "name": "Mercedes-Benz E 220 d",
+      "slug": "mercedes-benz-e-220-d",
+      "brand": "Mercedes-Benz",
+      "model": "E 220 d",
+      "variant": null,
+      "category": "sedan",
+      "vin": "TESTBTW0000000002",
+      "vin_is_placeholder": true,
+      "license_plate": "BT002TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "2.0 Diesel, 145kw (197 HP), Automat (9 st.), zadný náhon",
+      "engine": "2.0 Diesel",
+      "power_kw": 145,
+      "power_hp": 197,
+      "gears": 9,
+      "drivetrain": "rwd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 5,
+      "luggage": 3,
+      "description": {
+        "sk": "Komfortné a vyvážené vozidlo navrhnuté pre plynulú a pohodlnú jazdu. Kvalitne spracovaný interiér, moderné technológie a kultivovaný prejav z neho robia ideálnu voľbu pre reprezentatívne aj každodenné presuny.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "5-miestne prevedenie vozidla s lakťovou opierkou na zadných aj predných sedadlách",
+          "Predné a zadné vyhrievané sedadlá",
+          "Dvojzónová automatická klimatizácia"
+        ],
+        "technical": [
+          "Integrovaná navigácia MBUX s 14,4″ farebným displejom, podpora Apple CarPlay/Android Auto, Live Traffic Information a hlasové ovládanie “Hey Mercedes”",
+          "Bezdrôtová Qi-nabíjacia stanica pre mobilné zariadenia",
+          "Tepelnoizolačné čelné sklo s infračervenou ochranou, zatmavené okná v zadnej časti vozidla"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor, zadná parkovacia kamera, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 20,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/mercedes-benz-e-220-d/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/2.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/mercedes-benz-e-220-d/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-E.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-e-220-d/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-E-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-e-220-d/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-E-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    },
+    {
+      "source": {
+        "slug": "mercedes-benz-s400d",
+        "title": "Mercedes-Benz S400d",
+        "category": "First Class",
+        "price_from_eur": 210
+      },
+      "name": "Mercedes-Benz S 400 d 4MATIC",
+      "slug": "mercedes-benz-s-400-d-4matic",
+      "brand": "Mercedes-Benz",
+      "model": "S 400 d",
+      "variant": "4MATIC",
+      "category": "limousine",
+      "vin": "TESTBTW0000000003",
+      "vin_is_placeholder": true,
+      "license_plate": "BT003TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "3.0 Diesel, 243kW (330 HP), Automat (9st.), 4×4",
+      "engine": "3.0 Diesel",
+      "power_kw": 243,
+      "power_hp": 330,
+      "gears": 9,
+      "drivetrain": "awd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 5,
+      "luggage": null,
+      "description": {
+        "sk": "Vlajková loď značky Mercedes-Benz, ktorá definuje luxus, komfort a technológie. Prvotriedny interiér, maximálne pohodlie a nadčasová elegancia robia z tohto modelu ideálnu voľbu pre reprezentatívne a VIP presuny.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "Elektrické ovládané, vyhrievané a ventilované sedadlá predné aj zadné v prémiových materiáloch",
+          "Ambientné podsvietenie interiéru",
+          "Vzduchový podvozok AIRMATIC, ktorý sa automaticky prispôsobuje vozovke",
+          "Štvorzónová automatická klimatizácia s vlastným ovládaním",
+          "Kožený vyhrievaný volant potiahnutý kožou",
+          "Zadná časť vozidla poskytuje nadštandardný priestor na nohy a vďaka zvukovej izolácii zaručuje tichý interiér aj pri vyšších rýchlostiach",
+          "Panoramatická strecha"
+        ],
+        "technical": [
+          "Integrovaná navigácia MBUX s 12,8″ farebným displejom, podpora Apple CarPlay/Android Auto, Live Traffic Information a hlasové ovládanie “Hey Mercedes”",
+          "Prémiový surround systém Burmester® s 13 reproduktormi a subwooferom",
+          "Bezdrôtová Qi-nabíjacia stanica pre mobilné zariadenia",
+          "Tepelnoizolačné čelné sklo s infračervenou ochranou, zatmavené okná v zadných radoch"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 30,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/mercedes-benz-s-400-d-4matic/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Dizajn-bez-nazvu-2.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/mercedes-benz-s-400-d-4matic/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-S-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-s-400-d-4matic/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-S-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-s-400-d-4matic/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-S-2-1.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    },
+    {
+      "source": {
+        "slug": "mercedes-benz-gls400d",
+        "title": "Mercedes-Benz GLS400d",
+        "category": "First Class",
+        "price_from_eur": 210
+      },
+      "name": "Mercedes-Benz GLS 400 d 4MATIC",
+      "slug": "mercedes-benz-gls-400-d-4matic",
+      "brand": "Mercedes-Benz",
+      "model": "GLS 400 d",
+      "variant": "4MATIC",
+      "category": "suv",
+      "vin": "TESTBTW0000000004",
+      "vin_is_placeholder": true,
+      "license_plate": "BT004TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "3.0 Diesel, 243kW (330 HP), Automat (9st.), 4×4",
+      "engine": "3.0 Diesel",
+      "power_kw": 243,
+      "power_hp": 330,
+      "gears": 9,
+      "drivetrain": "awd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 7,
+      "luggage": null,
+      "description": {
+        "sk": "Luxusné SUV s veľkorysým priestorom, vysokým komfortom a istotou pohonu všetkých kolies. Prémiový interiér a moderné technológie z neho robia ideálnu voľbu pre pohodlné rodinné aj reprezentatívne presuny.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "7-miestne prevedenie – usporiadanie sedadiel 2 + 3 + 2",
+          "Elektrické ovládané, vyhrievané sedadlá predné aj zadné v prémiových materiáloch",
+          "Ambientné podsvietenie interiéru",
+          "Variabilný interiér s možnosťou prispôsobenia sedadiel pre väčší komfort alebo viac batožinového priestoru",
+          "Štvorzónová automatická klimatizácia s vlastným ovládaním",
+          "Kožený vyhrievaný volant potiahnutý kožou",
+          "Panoramatická strecha"
+        ],
+        "technical": [
+          "Integrovaná navigácia MBUX s 12,3″ farebným displejom, podpora Apple CarPlay/Android Auto, Live Traffic Information a hlasové ovládanie “Hey Mercedes”",
+          "Prémiový surround systém Burmester® s 13 reproduktormi a subwooferom",
+          "Bezdrôtová Qi-nabíjacia stanica pre mobilné zariadenia",
+          "Tepelnoizolačné čelné sklo s infračervenou ochranou, zatmavené okná v zadných radoch"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 350 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 40,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/mercedes-benz-gls-400-d-4matic/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/3.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/mercedes-benz-gls-400-d-4matic/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-GLS.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-gls-400-d-4matic/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-GLS-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-gls-400-d-4matic/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-GLS-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    },
+    {
+      "source": {
+        "slug": "mercedes-benz-v250d-4matic-extra-long",
+        "title": "Mercedes-Benz V250d 4Matic Extra-Long",
+        "category": "Business Van",
+        "price_from_eur": 130
+      },
+      "name": "Mercedes-Benz V 250 d 4MATIC Extra-Long",
+      "slug": "mercedes-benz-v-250-d-4matic-extra-long",
+      "brand": "Mercedes-Benz",
+      "model": "V 250 d",
+      "variant": "4MATIC Extra-Long",
+      "category": "van",
+      "vin": "TESTBTW0000000005",
+      "vin_is_placeholder": true,
+      "license_plate": "BT005TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "2.0 Diesel, 140kW (190 HP), Automat (9 st.), 4×4",
+      "engine": "2.0 Diesel",
+      "power_kw": 140,
+      "power_hp": 190,
+      "gears": 9,
+      "drivetrain": "awd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 8,
+      "luggage": null,
+      "description": {
+        "sk": "Komfortný a priestranný van s pohonom všetkých kolies, navrhnutý pre pohodlné cestovanie viacerých pasažierov. Kvalitný interiér a pokročilé technológie zaručujú vysoký štandard pri firemných, rodinných aj skupinových presunoch.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "8-miestne prevedenie – usporiadanie sedadiel 2 + 3 + 3",
+          "Elektrické ovládané, vyhrievané a ventilované sedadlá v prémiových materiáloch",
+          "Ambientné podsvietenie interiéru",
+          "Variabilný interiér s možnosťou prispôsobenia sedadiel pre väčší komfort alebo viac batožinového priestoru",
+          "Dvojzónová automatická klimatizácia so samostatnou zónou a výduchmi pre druhý a tretí rad sedadiel"
+        ],
+        "technical": [
+          "Integrovaná navigácia MBUX s 10,25″ farebným displejom, podpora Apple CarPlay/Android Auto, Live Traffic Information a hlasové ovládanie “Hey Mercedes”",
+          "Prémiový surround systém Burmester® s 15 reproduktormi a subwooferom",
+          "Bezdrôtová Qi-nabíjacia stanica pre mobilné zariadenia",
+          "230 V zásuvka a USB-C porty pre všetky rady sedadiel",
+          "Tepelnoizolačné čelné sklo s infračervenou ochranou, zatmavené okná v zadných radoch, manuálne roletky na bočných oknách pre druhý a tretí rad sedadiel"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 50,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/mercedes-benz-v-250-d-4matic-extra-long/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/4.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/mercedes-benz-v-250-d-4matic-extra-long/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-V250-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-v-250-d-4matic-extra-long/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-V250.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-v-250-d-4matic-extra-long/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/Mercedes-V250-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    },
+    {
+      "source": {
+        "slug": "mercedes-benz-v300d-4matic-long",
+        "title": "Mercedes-Benz V300d 4Matic Long",
+        "category": "Business Van",
+        "price_from_eur": 140
+      },
+      "name": "Mercedes-Benz V 300 d 4MATIC Long",
+      "slug": "mercedes-benz-v-300-d-4matic-long",
+      "brand": "Mercedes-Benz",
+      "model": "V 300 d",
+      "variant": "4MATIC Long",
+      "category": "van",
+      "vin": "TESTBTW0000000006",
+      "vin_is_placeholder": true,
+      "license_plate": "BT006TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "2.0 Diesel, 174kW (237 HP), Automat (9 st.), 4×4",
+      "engine": "2.0 Diesel",
+      "power_kw": 174,
+      "power_hp": 237,
+      "gears": 9,
+      "drivetrain": "awd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 8,
+      "luggage": 3,
+      "description": {
+        "sk": "Prémiový van s pohonom všetkých kolies, veľkorysým priestorom a vysokým komfortom. Luxusný interiér a moderné technológie z neho robia ideálnu voľbu pre reprezentatívne, rodinné aj skupinové presuny.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "8-miestne prevedenie – usporiadanie sedadiel 2 + 3 + 3",
+          "Elektrické ovládané, vyhrievané a ventilované sedadlá v prémiových materiáloch",
+          "Ambientné podsvietenie interiéru",
+          "Variabilný interiér s možnosťou prispôsobenia sedadiel pre väčší komfort alebo viac batožinového priestoru",
+          "Trojzónová automatická klimatizácia so samostatnou zónou a výduchmi pre druhý a tretí rad sedadiel",
+          "Kožený vyhrievaný volant potiahnutý kožou"
+        ],
+        "technical": [
+          "Integrovaná navigácia MBUX s 10,25″ farebným displejom, podpora Apple CarPlay/Android Auto, Live Traffic Information a hlasové ovládanie “Hey Mercedes”",
+          "Prémiový surround systém Burmester® s 15 reproduktormi a subwooferom",
+          "Bezdrôtová Qi-nabíjacia stanica pre mobilné zariadenia",
+          "230 V zásuvka a USB-C porty pre všetky rady sedadiel",
+          "Tepelnoizolačné čelné sklo s infračervenou ochranou, zatmavené okná v zadných radoch, manuálne roletky na bočných oknách pre druhý a tretí rad sedadiel"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor, 360-stupňová kamera s panoramatickým výhľadom, predné a zadné parkovacie senzory"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 60,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/mercedes-benz-v-300-d-4matic-long/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/1.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/mercedes-benz-v-300-d-4matic-long/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2025/09/Mercedes-V300.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-v-300-d-4matic-long/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2025/09/Mercedes-V300-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/mercedes-benz-v-300-d-4matic-long/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2025/09/Mercedes-V300-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    },
+    {
+      "source": {
+        "slug": "hyundai-staria-luxury-4x4",
+        "title": "Hyundai Staria Luxury 4×4",
+        "category": "Business Van",
+        "price_from_eur": 105
+      },
+      "name": "Hyundai Staria Luxury 4x4",
+      "slug": "hyundai-staria-luxury-4x4",
+      "brand": "Hyundai",
+      "model": "Staria",
+      "variant": "Luxury 4x4",
+      "category": "van",
+      "vin": "TESTBTW0000000007",
+      "vin_is_placeholder": true,
+      "license_plate": "BT007TW",
+      "license_plate_is_placeholder": true,
+      "engine_text": "2.2 CRDi, 130kW, Automat (8 st.), 4×4",
+      "engine": "2.2 CRDi",
+      "power_kw": 130,
+      "power_hp": null,
+      "gears": 8,
+      "drivetrain": "awd",
+      "fuel": "diesel",
+      "transmission": "automatic",
+      "seats": 7,
+      "luggage": 3,
+      "description": {
+        "sk": "Futuristický dizajn, výnimočný vnútorný priestor, vysoký komfort a bohatá výbava vo výbave Luxury, vďaka ktorej je toto vozidlo ideálnym spoločníkom na rodinné, pracovné aj skupinové cesty.",
+        "en": null
+      },
+      "features": {
+        "comfort": [
+          "7-miestne prevedenie – usporiadanie sedadiel 2 + 2 + 3",
+          "Elektrické ovládané, vyhrievané a ventilované relaxačné sedadlá v druhom rade",
+          "Vyhrievanie a ventilácia predných sedadiel",
+          "Elektricky nastaviteľné sedadlo vodiča a spolujazdca",
+          "Dvojzónová automatická klimatizácia so samostatnou zónou a výduchmi pre druhý a tretí rad sedadiel",
+          "Kožený vyhrievaný volant potiahnutý perforovanou kožou",
+          "Prémiové kožené čalúnenie Nappa",
+          "Strop, obloženie stĺpikov a slnečné clony potiahnuté semišom",
+          "Ambientné podsvietenie interiéru",
+          "LED osvetlenie interiéru pre druhý a tretí rad sedadiel"
+        ],
+        "technical": [
+          "Integrovaná navigácia s 10,25″ farebným LCD a služby Apple CarPlay/Android Auto/Bluelink/Live Services",
+          "12-prémiových reproduktorov Bose so subwooferom",
+          "Bezdrôtové nabíjanie mobilného telefónu",
+          "Elektrická zásuvka s napätím 12 V",
+          "Solárne čelné sklo a bočné okná",
+          "Protislnečné roletky bočných okien pre druhý a tretí rad sedadiel",
+          "Posuvné bočné okná pre druhý rad sedadiel"
+        ],
+        "safety": [
+          "Svetelný a dažďový senzor",
+          "Predné a zadné parkovacie senzory – 4 kamery 360 stupňov",
+          "Zadná parkovacia kamera"
+        ],
+        "included": [
+          "Dialničná známka: SVK",
+          "Poistenie: PZP + Havarijné poistenie (Spoluúčasť 300 EUR min 5%)",
+          "Asistenčná služba poisťovne"
+        ]
+      },
+      "for_rental": true,
+      "for_transfer": false,
+      "is_active": true,
+      "sort_order": 70,
+      "price_per_day_cents": 7900,
+      "images": [
+        {
+          "file": "images/hyundai-staria-luxury-4x4/main.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2026/01/5.png",
+          "width": 1000,
+          "height": 700,
+          "is_main": true,
+          "sort_order": 0,
+          "role": "exterior"
+        },
+        {
+          "file": "images/hyundai-staria-luxury-4x4/1.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2025/07/Staria.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 1,
+          "role": "interior"
+        },
+        {
+          "file": "images/hyundai-staria-luxury-4x4/2.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2025/07/Staria-2.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 2,
+          "role": "interior"
+        },
+        {
+          "file": "images/hyundai-staria-luxury-4x4/3.webp",
+          "source_url": "https://wp.btw.sk/wp-content/uploads/2025/07/Staria-3.png",
+          "width": 1000,
+          "height": 1000,
+          "is_main": false,
+          "sort_order": 3,
+          "role": "interior"
+        }
+      ]
+    }
+  ]
+}
