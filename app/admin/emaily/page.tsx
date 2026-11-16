@@ -12,6 +12,11 @@ const PREVIEWS = [
   { title: '1 · Booking received (EN)', query: 'sablona=zakaznik&jazyk=en' },
   { title: '2 · Nová rezervácia – notifikácia pre BTW', query: 'sablona=admin' },
   { title: '2 · Notifikácia s upozorneniami (kolízia, blacklist)', query: 'sablona=admin&varianta=kolizia' },
+  { title: '3 · Rezervácia potvrdená – platobné pokyny', query: 'sablona=potvrdena&jazyk=sk' },
+  { title: '3 · Rezervácia potvrdená – bez vyplnených bankových údajov', query: 'sablona=potvrdena&jazyk=sk&varianta=bezbanky' },
+  { title: '3 · Booking confirmed (EN)', query: 'sablona=potvrdena&jazyk=en&varianta=prevod' },
+  { title: '6 · Rezervácia zrušená – zákazník, so storno poplatkom', query: 'sablona=zrusena&jazyk=sk&varianta=poplatok' },
+  { title: '6 · Rezervácia zrušená – notifikácia pre BTW', query: 'sablona=zrusena&varianta=btw' },
 ]
 
 export default async function EmailsPage() {

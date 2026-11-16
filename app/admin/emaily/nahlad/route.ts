@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getStaff } from '@/lib/auth/session'
-import { renderBookingAdminNotification, renderBookingReceived } from '@/lib/email/booking-emails'
+import { renderBookingAdminNotification, renderBookingCancelled, renderBookingConfirmed, renderBookingReceived } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
 
@@ -16,7 +16,28 @@ export async function GET(request: NextRequest) {
   const individual = variant === 'dopyt'
 
   let email: { html: string; text: string; subject: string }
-  if (searchParams.get('sablona') === 'admin') {
+  const template = searchParams.get('sablona')
+  if (template === 'potvrdena') {
+    const booking = sampleBookingEmailData(locale)
+    email = await renderBookingConfirmed({
+      booking,
+      rental: { method: 'transfer', amount: booking.total },
+      deposit: { method: variant === 'prevod' ? 'transfer' : 'cash', amount: booking.deposit },
+      bank: variant === 'bezbanky' ? null : { iban: 'SK31 1200 0000 1987 4263 7541', swift: 'TATRSKBX', accountName: 'BY THE WAVE, s.r.o.' },
+      variableSymbol: '20270042',
+      dueDate: locale === 'en' ? '11/06/2027' : '11. 6. 2027',
+      accountUrl: `${origin}/moj-ucet`,
+    })
+  } else if (template === 'zrusena') {
+    email = await renderBookingCancelled({
+      booking: sampleBookingEmailData(variant === 'btw' ? 'sk' : locale),
+      audience: variant === 'btw' ? 'staff' : 'customer',
+      cancelledBy: 'staff',
+      reason: locale === 'en' ? 'The vehicle is unexpectedly out of service.' : 'Vozidlo je neočakávane v servise.',
+      fee: variant === 'poplatok' ? (locale === 'en' ? '€92' : '92 €') : null,
+      adminUrl: `${origin}/admin/rezervacie`,
+    })
+  } else if (template === 'admin') {
     email = await renderBookingAdminNotification({
       booking: sampleBookingEmailData('sk', individual),
       adminUrl: `${origin}/admin/rezervacie`,

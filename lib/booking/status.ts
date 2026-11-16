@@ -1,6 +1,7 @@
 import type { Database } from '@/types/database'
 
-export type BookingStatus = Database['public']['Enums']['booking_status']
+export type { BookingStatus } from '@/lib/booking-status'
+import type { BookingStatus } from '@/lib/booking-status'
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   new: 'Nová',
@@ -17,10 +18,13 @@ export const PAYMENT_METHOD_LABELS: Record<Database['public']['Enums']['payment_
   cash: 'Hotovosť',
 }
 
-/** Quick actions offered to staff for each status (a subset of the transitions the database allows). */
+/**
+ * One-tap actions offered to staff for each status (a subset of the transitions the
+ * database allows). Cancelling is separate: it needs a decision about the fee.
+ */
 export const NEXT_STATUSES: Record<BookingStatus, BookingStatus[]> = {
-  new: ['confirmed', 'cancelled'],
-  confirmed: ['active', 'cancelled'],
+  new: ['confirmed'],
+  confirmed: ['active'],
   modified: [], // approving / rejecting a customer's change has its own screen
   active: ['completed'],
   completed: [],

@@ -1,20 +1,28 @@
 'use client'
 
-import { changeBookingStatusAction } from '@/app/admin/rezervacie/actions'
-import { Feedback } from '@/components/admin/ui'
+import Link from 'next/link'
+import { addBookingNoteAction, cancelBookingAction, changeBookingStatusAction } from '@/app/admin/rezervacie/actions'
+import { ActionForm, Feedback, SubmitButton, textareaClass } from '@/components/admin/ui'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useFormAction } from '@/components/use-form-action'
+import { canTransition } from '@/lib/booking-status'
 import { NEXT_STATUSES, STATUS_ACTION_LABELS, type BookingStatus } from '@/lib/booking/status'
+import { centsToInput, formatEuro } from '@/lib/format'
 
 const CONFIRM: Partial<Record<BookingStatus, string>> = {
-  cancelled: 'Naozaj zrušiť rezerváciu {number}? Túto zmenu nie je možné vrátiť.',
   completed: 'Ukončiť rezerváciu {number}? Vozidlo sa uvoľní pre ďalšie termíny.',
 }
 
-/** One-tap status changes for a booking; large touch targets for use on a phone. */
-export function BookingQuickActions({ id, number, status }: { id: string; number: string; status: BookingStatus }) {
+/**
+ * One-tap status changes for a booking; large touch targets for use on a phone.
+ * Cancelling leads to the detail, where the cancellation fee is decided.
+ */
+export function BookingQuickActions({ id, number, status, cancelHref }: { id: string; number: string; status: BookingStatus; cancelHref?: string }) {
   const { state, pending, onSubmit } = useFormAction(changeBookingStatusAction, {})
   const options = NEXT_STATUSES[status]
-  if (options.length === 0) return null
+  const cancellable = !!cancelHref && canTransition(status, 'cancelled')
+  if (options.length === 0 && !cancellable) return null
 
   return (
     <div>
@@ -34,21 +42,64 @@ export function BookingQuickActions({ id, number, status }: { id: string; number
           >
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="to" value={to} />
-            <button
-              type="submit"
-              disabled={pending}
-              className={`h-11 w-full whitespace-nowrap rounded-lg px-4 text-sm font-semibold transition-colors disabled:opacity-60 ${
-                to === 'cancelled' ? 'border border-red-400/60 text-red-200 hover:bg-red-500/10' : 'bg-gold text-white hover:bg-gold-hover'
-              }`}
-            >
+            <button type="submit" disabled={pending} className="h-11 w-full whitespace-nowrap rounded-lg bg-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-60">
               {pending ? '…' : STATUS_ACTION_LABELS[to]}
             </button>
           </form>
         ))}
+        {cancellable ? (
+          <Link href={cancelHref} className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-red-400/60 px-4 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10">
+            Zrušiť
+          </Link>
+        ) : null}
       </div>
       <div className="mt-2 empty:hidden">
         <Feedback state={state} />
       </div>
     </div>
+  )
+}
+
+/** Cancellation with the fee pre-calculated from the cancellation tiers; staff may change or waive it with a reason. */
+export function CancelBookingForm({ id, number, quote, hasPrice }: { id: string; number: string; quote: { feeCents: number; feePercent: number; hoursBeforePickup: number }; hasPrice: boolean }) {
+  return (
+    <ActionForm action={cancelBookingAction} confirm={`Naozaj zrušiť rezerváciu ${number}? Túto zmenu nie je možné vrátiť.`} className="space-y-4">
+      <input type="hidden" name="id" value={id} />
+      <p className="text-sm text-muted2">
+        {hasPrice
+          ? `Do vyzdvihnutia ${quote.hoursBeforePickup >= 0 ? `zostáva ${quote.hoursBeforePickup} h` : 'už čas uplynul'}. Podľa storno podmienok: ${quote.feePercent} % = ${formatEuro(quote.feeCents)}.`
+          : 'Rezervácia nemá stanovenú cenu – storno je bez poplatku.'}
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="cancel-fee">Storno poplatok (€)</Label>
+          <Input id="cancel-fee" name="fee" inputMode="decimal" defaultValue={centsToInput(quote.feeCents)} required />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="cancel-fee-reason">Dôvod úpravy poplatku</Label>
+          <Input id="cancel-fee-reason" name="feeReason" maxLength={300} placeholder="Vyplňte, ak poplatok meníte alebo odpúšťate" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="cancel-reason">Dôvod zrušenia (uvidí ho zákazník)</Label>
+        <textarea id="cancel-reason" name="reason" maxLength={500} className={textareaClass} />
+      </div>
+      <SubmitButton variant="destructive" pendingLabel="Ruším…">
+        Zrušiť rezerváciu
+      </SubmitButton>
+    </ActionForm>
+  )
+}
+
+export function BookingNoteForm({ id }: { id: string }) {
+  return (
+    <ActionForm action={addBookingNoteAction} resetOnSuccess className="space-y-3">
+      <input type="hidden" name="id" value={id} />
+      <label htmlFor="note-body" className="sr-only">
+        Nová interná poznámka
+      </label>
+      <textarea id="note-body" name="body" maxLength={4000} placeholder="Interná poznámka – zákazník ju nevidí" className={textareaClass} />
+      <SubmitButton variant="outline">Pridať poznámku</SubmitButton>
+    </ActionForm>
   )
 }

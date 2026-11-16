@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/email/send', () => ({ sendEmail: vi.fn(async () => ({ sent: true })) }))
 
-import { renderBookingAdminNotification, renderBookingReceived, sendBookingAdminNotification } from '@/lib/email/booking-emails'
+import { renderBookingAdminNotification, renderBookingCancelled, renderBookingConfirmed, renderBookingReceived, sendBookingAdminNotification, sendBookingCancelled, sendBookingConfirmed } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { sendEmail } from '@/lib/email/send'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
@@ -123,5 +123,67 @@ describe('delivery to the customer\'s own address', () => {
     expect(customer.html).toContain('Budeme vás kontaktovať')
     const staff = await renderBookingAdminNotification({ booking, adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: false })
     expect(staff.html).toContain('treba ho kontaktovať')
+  })
+})
+
+describe('email 3 – booking confirmed', () => {
+  const bank = { iban: 'SK31 1200 0000 1987 4263 7541', swift: 'TATRSKBX', accountName: 'BY THE WAVE, s.r.o.' }
+  const props = (over = {}) => {
+    const booking = sampleBookingEmailData('sk')
+    return { booking, rental: { method: 'transfer' as const, amount: booking.total }, deposit: { method: 'cash' as const, amount: booking.deposit }, bank, variableSymbol: '20270042', dueDate: '11. 6. 2027', accountUrl: 'https://rental.btw.sk/moj-ucet', ...over }
+  }
+
+  it('gives transfer details with the booking number as the payment reference', async () => {
+    const email = await renderBookingConfirmed(props())
+    dump('booking-confirmed', email.html)
+    expect(email.subject).toBe('Rezervácia BTW-2027-0042 je potvrdená – BY THE WAVE')
+    const html = email.html.replace(/&nbsp;|\u00a0/g, ' ')
+    for (const part of ['SK31 1200 0000 1987 4263 7541', 'TATRSKBX', '20270042', '11. 6. 2027', '460 € bankovým prevodom', '1 000 € v hotovosti pri vyzdvihnutí', 'vodičský preukaz']) expect(html).toContain(part)
+    expect(email.text).toContain('20270042')
+  })
+
+  it('shows no bank details when nothing is paid by transfer', async () => {
+    const email = await renderBookingConfirmed(props({ rental: { method: 'terminal', amount: '460 €' } }))
+    expect(email.html).not.toContain('IBAN')
+    expect(email.html).toContain('platobným terminálom pri vyzdvihnutí')
+  })
+
+  it('never shows placeholder bank details', async () => {
+    const email = await renderBookingConfirmed(props({ bank: null }))
+    expect(email.html).not.toContain('IBAN')
+    expect(email.html).toContain('pošleme samostatne')
+  })
+
+  it('is sent with the term as a calendar attachment', async () => {
+    vi.mocked(sendEmail).mockClear()
+    await sendBookingConfirmed(props(), { bookingId: 'b', profileId: 'p', ics: 'BEGIN:VCALENDAR' })
+    const message = vi.mocked(sendEmail).mock.calls[0][0]
+    expect(message).toMatchObject({ type: 'booking_confirmed', to: 'anna.novakova@example.com', bookingId: 'b', profileId: 'p' })
+    expect(message.attachments).toEqual([{ filename: 'BTW-2027-0042.ics', content: 'BEGIN:VCALENDAR', contentType: 'text/calendar; charset=utf-8; method=PUBLISH' }])
+  })
+})
+
+describe('email 6 – booking cancelled', () => {
+  it('tells the customer who cancelled, why and the fee', async () => {
+    const email = await renderBookingCancelled({ booking: sampleBookingEmailData('sk'), audience: 'customer', cancelledBy: 'staff', reason: 'Vozidlo je v servise.', fee: '92 €' })
+    dump('booking-cancelled', email.html)
+    expect(email.subject).toBe('Rezervácia BTW-2027-0042 bola zrušená – BY THE WAVE')
+    for (const part of ['vašu rezerváciu sme zrušili', 'Vozidlo je v servise.', '92 €']) expect(email.html).toContain(part)
+  })
+
+  it('says "free of charge" without a fee and adapts to a cancellation by the customer', async () => {
+    const email = await renderBookingCancelled({ booking: sampleBookingEmailData('en'), audience: 'customer', cancelledBy: 'customer', reason: null, fee: null })
+    expect(email.html).toContain('free of charge')
+    expect(email.html).toContain('as you requested')
+    expect(email.html).not.toContain('Reason')
+  })
+
+  it('goes to the customer and to every staff address', async () => {
+    vi.mocked(sendEmail).mockClear()
+    await sendBookingCancelled({ booking: sampleBookingEmailData('en'), staffBooking: sampleBookingEmailData('sk'), cancelledBy: 'staff', reason: null, fee: null, adminUrl: 'https://rental.btw.sk/admin/rezervacie/1' }, ['a@btw.sk'], { bookingId: 'b', profileId: 'p' })
+    const calls = vi.mocked(sendEmail).mock.calls.map(([message]) => message)
+    expect(calls.map((m) => [m.type, m.to])).toEqual([['booking_cancelled', 'anna.novakova@example.com'], ['booking_cancelled_admin', 'a@btw.sk']])
+    expect(calls[0].subject).toContain('has been cancelled')
+    expect(calls[1].html).toContain('href="https://rental.btw.sk/admin/rezervacie/1"')
   })
 })

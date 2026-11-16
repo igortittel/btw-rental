@@ -97,6 +97,36 @@ select pg_temp.expect((select count(*) = (select n from before_count) from publi
 
 select pg_temp.expect_error($$select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-0000000000ff', '30 days', '31 days', false))$$, 'customer_not_found', 'unknown customer is rejected');
 
+-- Booking entered by staff: starts confirmed, is attributed to the staff member.
+create temp table r4 as select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-00000000000a', '60 days', '62 days', false)
+  || jsonb_build_object('created_by_staff_id', '00000000-0000-0000-0000-0000000000c2', 'status', 'confirmed')) as v;
+select pg_temp.expect((select b.status = 'confirmed' and b.created_by = 'staff' and b.created_by_staff_id = '00000000-0000-0000-0000-0000000000c2'
+  from public.bookings b where b.id = (select (v ->> 'id')::uuid from r4)), 'staff booking is confirmed and attributed');
+select pg_temp.expect((select h.changed_by = '00000000-0000-0000-0000-0000000000c2' from public.booking_status_history h where h.booking_id = (select (v ->> 'id')::uuid from r4)), 'history names the staff member');
+select pg_temp.expect_error($$select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-00000000000a', '70 days', '72 days', false) || jsonb_build_object('status', 'active'))$$, 'invalid_initial_status', 'a booking cannot be created as active');
+
+-- staff_update_booking: manager edits term, price and extras atomically; audit log has the actor.
+create temp table upd as select (pg_temp.payload('00000000-0000-0000-0000-00000000000a', '61 days', '64 days', false) -> 'booking')
+  || jsonb_build_object('days', 3, 'total_cents', 30000, 'subtotal_cents', 30000, 'price_override_reason', 'Dohodnutá cena') as b;
+grant select on r4, upd to authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c2', true);
+set local role authenticated;
+select pg_temp.expect((select (public.staff_update_booking((select (v ->> 'id')::uuid from r4), jsonb_build_object('booking', (select b from upd), 'extras', '[]'::jsonb))).total_cents = 30000), 'manager updates a booking');
+select pg_temp.expect((select b.price_override_reason = 'Dohodnutá cena' and b.status = 'confirmed' and b.blocked_until = b.return_at + interval '4 hours'
+  and not exists (select 1 from public.booking_extras e where e.booking_id = b.id)
+  from public.bookings b where b.id = (select (v ->> 'id')::uuid from r4)), 'new values stored, extras replaced, buffer recalculated, status untouched');
+select pg_temp.expect_error($$select public.staff_update_booking('00000000-0000-0000-0000-0000000000ee', '{"booking":{}}'::jsonb)$$, 'booking_not_editable', 'unknown booking is rejected');
+-- moving it onto another confirmed booking is refused by the exclusion constraint
+select pg_temp.expect_error($$select public.staff_update_booking((select (v ->> 'id')::uuid from r4), jsonb_build_object('booking', (pg_temp.payload('00000000-0000-0000-0000-00000000000a', '5 days', '8 days', false) -> 'booking'), 'extras', '[]'::jsonb))$$, '23P01', 'edit cannot create a double booking');
+reset role;
+-- (only the owner and the server can read the audit log)
+select pg_temp.expect((select count(*) >= 1 from public.audit_log where entity = 'bookings' and action = 'update' and actor_id = '00000000-0000-0000-0000-0000000000c2' and diff ? 'total_cents'), 'edit is in the audit log with the actor');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a', true);
+set local role authenticated;
+select pg_temp.expect_error($$select public.staff_update_booking((select (v ->> 'id')::uuid from r4), jsonb_build_object('booking', (select b from upd), 'extras', '[]'::jsonb))$$, 'booking_not_editable', 'a customer cannot edit a booking through the staff function');
+reset role;
+select set_config('request.jwt.claim.sub', '', true);
+
 -- Only the server may call it.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c2', true);
 select pg_temp.expect_error($$select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-00000000000b', '40 days', '41 days', false))$$, '42501', 'a signed-in user cannot call create_booking (function check)');

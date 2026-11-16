@@ -82,11 +82,11 @@ export function CheckField({ id, checked, onChange, error, children }: { id: str
   )
 }
 
-export function RadioCards<T extends string>({ name, legend, value, options, onChange, error }: { name: string; legend: string; value: string; options: { value: T; label: string }[]; onChange: (value: T) => void; error?: string }) {
+export function RadioCards<T extends string>({ name, legend, value, options, onChange, error, stack = false }: { name: string; legend: string; value: string; options: { value: T; label: string }[]; onChange: (value: T) => void; error?: string; /** One option per row (narrow columns). */ stack?: boolean }) {
   return (
     <fieldset>
       <legend className="mb-1.5 text-sm font-medium text-white">{legend}</legend>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className={stack ? 'grid gap-2' : 'grid gap-2 sm:grid-cols-3'}>
         {options.map((option) => (
           <label
             key={option.value}

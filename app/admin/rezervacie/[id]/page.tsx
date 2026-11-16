@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { BookingQuickActions } from '@/components/admin/booking-actions'
+import Link from 'next/link'
+import { BookingNoteForm, BookingQuickActions, CancelBookingForm } from '@/components/admin/booking-actions'
 import { PageHeader, Section } from '@/components/admin/section'
+import { hasRole } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
+import { canTransition, isEditable } from '@/lib/booking-status'
+import { cancellationQuote } from '@/lib/cancellation'
+import { getSettings } from '@/lib/settings'
 import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, STATUS_BADGE_CLASS } from '@/lib/booking/status'
 import { formatEuro } from '@/lib/format'
 import type { PriceBreakdown } from '@/lib/pricing'
@@ -20,7 +25,13 @@ type Customer = {
 type Snapshot = Partial<PriceBreakdown> & { delivery_outside_city?: boolean } & { pickup_location?: { name: Name; address: string }; return_location?: { name: Name; address: string } }
 
 const CONSENT_LABELS: Record<string, string> = { terms: 'VOP', gdpr: 'Osobné údaje', marketing: 'Marketing', deposit: 'Depozit', km_limit: 'Limit km', license: 'Vodičský preukaz' }
-const EMAIL_LABELS: Record<string, string> = { booking_received: 'Rezervácia prijatá (zákazník)', booking_admin_new: 'Nová rezervácia (BTW)' }
+const EMAIL_LABELS: Record<string, string> = {
+  booking_received: 'Rezervácia prijatá (zákazník)',
+  booking_admin_new: 'Nová rezervácia (BTW)',
+  booking_confirmed: 'Rezervácia potvrdená (zákazník)',
+  booking_cancelled: 'Rezervácia zrušená (zákazník)',
+  booking_cancelled_admin: 'Rezervácia zrušená (BTW)',
+}
 const EMAIL_STATUS: Record<string, string> = { queued: 'čaká', sent: 'odoslaný', delivered: 'doručený', bounced: 'vrátený', failed: 'neodoslaný' }
 
 function Rows({ rows }: { rows: [string, React.ReactNode][] }) {
@@ -36,18 +47,21 @@ function Rows({ rows }: { rows: [string, React.ReactNode][] }) {
   )
 }
 
-// Detail with quick status changes. Editing, price changes and notes arrive in Phase 6.
+// Everything about one booking: status changes, cancellation, notes, history, emails.
 export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  await requireStaff('operator', `/admin/rezervacie/${id}`)
+  const user = await requireStaff('operator', `/admin/rezervacie/${id}`)
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
 
   const supabase = await createClient()
-  const [{ data: booking }, { data: extras }, { data: consents }, { data: emails }] = await Promise.all([
+  const [{ data: booking }, { data: extras }, { data: consents }, { data: emails }, { data: history }, { data: notes }, settings] = await Promise.all([
     supabase.from('bookings').select('*, vehicles(name, license_plate, vin)').eq('id', id).maybeSingle(),
     supabase.from('booking_extras').select('*').eq('booking_id', id),
     supabase.from('consents').select('type, version, granted, granted_at').eq('booking_id', id).order('type'),
     supabase.from('email_log').select('id, type, recipient, status, error, created_at').eq('booking_id', id).order('created_at'),
+    supabase.from('booking_status_history').select('id, from_status, to_status, note, created_at, changed_by').eq('booking_id', id).order('created_at'),
+    supabase.from('booking_notes').select('id, body, created_at, author_id').eq('booking_id', id).order('created_at', { ascending: false }),
+    getSettings(supabase),
   ])
   if (!booking) notFound()
 
@@ -55,6 +69,18 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   const snapshot = (booking.price_snapshot ?? {}) as Snapshot
   const address = customer.billing_address ?? {}
   const place = (location?: { name: Name; address: string }) => (location ? `${location.name.sk ?? ''} (${location.address})` : '')
+
+  // Names of the people in the history and notes (staff can read profiles).
+  const personIds = [...new Set([...(history ?? []).map((h) => h.changed_by), ...(notes ?? []).map((n) => n.author_id)].filter((v): v is string => !!v))]
+  const { data: people } = personIds.length > 0 ? await supabase.from('profiles').select('id, first_name, last_name, type').in('id', personIds) : { data: [] }
+  const personName = (personId: string | null) => {
+    if (!personId) return 'systém'
+    if (personId === booking.customer_id) return 'zákazník'
+    const person = (people ?? []).find((p) => p.id === personId)
+    return person ? `${person.first_name} ${person.last_name}`.trim() || 'zamestnanec' : 'zamestnanec'
+  }
+  const quote = cancellationQuote(new Date(booking.pickup_at), booking.total_cents, settings.cancellation_tiers)
+  const canEdit = hasRole(user.role, 'manager') && isEditable(booking.status)
 
   return (
     <div>
@@ -65,7 +91,18 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE_CLASS[booking.status]}`}>{BOOKING_STATUS_LABELS[booking.status]}</span>
             {booking.cancelled_at ? <span className="text-muted2">zrušená {formatDateTime(booking.cancelled_at)}</span> : null}
           </p>
-          <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} />
+          <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref="#storno" />
+          {canEdit ? (
+            <Link href={`/admin/rezervacie/${booking.id}/upravit`} className="mt-2 flex h-11 items-center justify-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
+              Upraviť rezerváciu{booking.total_cents === null ? ' a doplniť cenu' : ''}
+            </Link>
+          ) : null}
+          {booking.status === 'cancelled' ? (
+            <p className="mt-3 text-sm text-white">
+              Storno poplatok: <strong>{booking.cancellation_fee_cents ? formatEuro(booking.cancellation_fee_cents) : 'bez poplatku'}</strong>
+              {booking.cancellation_reason ? <span className="text-muted2"> · {booking.cancellation_reason}</span> : null}
+            </p>
+          ) : null}
         </div>
         {snapshot.delivery_outside_city ? (
           <p className="rounded-xl border border-amber-400/60 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
@@ -102,7 +139,8 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         <Section title="Cena a platba" description="Hodnoty uložené v čase rezervácie – neskoršie zmeny cenníka ich nemenia.">
           <Rows
             rows={[
-              ['Prenájom', booking.subtotal_cents !== null ? `${booking.days} × ${formatEuro(snapshot.ratePerDayCents ?? null)} = ${formatEuro(booking.subtotal_cents)}` : 'individuálna cena – treba doplniť'],
+              ['Prenájom', booking.subtotal_cents === null ? 'individuálna cena – treba doplniť' : snapshot.ratePerDayCents ? `${booking.days} × ${formatEuro(snapshot.ratePerDayCents)} = ${formatEuro(booking.subtotal_cents)}` : `${formatEuro(booking.subtotal_cents)} (cena určená ručne)`],
+              ...(booking.price_override_reason ? ([['Dôvod úpravy ceny', booking.price_override_reason]] as [string, string][]) : []),
               ...((extras ?? []).map((extra) => [
                 `${(extra.name_snapshot as Name).sk ?? ''}${extra.quantity > 1 ? ` (${extra.quantity} ks)` : ''}`,
                 `${formatEuro(extra.total_cents)} · ${formatEuro(extra.unit_price_cents)} ${extra.pricing_type === 'per_day' ? '/ deň' : '/ prenájom'}`,
@@ -118,9 +156,45 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
           />
         </Section>
 
+        <Section title="Interné poznámky" description="Vidia ich len zamestnanci.">
+          <BookingNoteForm id={booking.id} />
+          {(notes ?? []).length > 0 ? (
+            <ul className="mt-4 space-y-3 border-t border-line pt-4">
+              {(notes ?? []).map((note) => (
+                <li key={note.id} className="text-sm">
+                  <p className="whitespace-pre-line text-white">{note.body}</p>
+                  <p className="mt-1 text-xs text-muted2">
+                    {personName(note.author_id)} · {formatDateTime(note.created_at)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </Section>
+
+        <Section title="História stavov">
+          <ol className="space-y-2 text-sm">
+            {(history ?? []).map((entry) => (
+              <li key={entry.id} className="flex flex-wrap gap-x-3 text-white">
+                <span className="text-muted2">{formatDateTime(entry.created_at)}</span>
+                <span>
+                  {entry.from_status ? `${BOOKING_STATUS_LABELS[entry.from_status]} → ` : ''}
+                  <strong>{BOOKING_STATUS_LABELS[entry.to_status]}</strong>
+                </span>
+                <span className="text-muted2">
+                  {personName(entry.changed_by)}
+                  {entry.note ? ` · ${entry.note}` : ''}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Section>
+
+        {(consents ?? []).length > 0 ? (
         <Section title="Súhlasy">
           <Rows rows={(consents ?? []).map((consent) => [CONSENT_LABELS[consent.type] ?? consent.type, `${consent.granted ? 'udelený' : 'neudelený'} · verzia ${consent.version} · ${formatDateTime(consent.granted_at)}`])} />
         </Section>
+        ) : null}
 
         <Section title="E-maily">
           {(emails ?? []).length === 0 ? (
@@ -134,6 +208,12 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             />
           )}
         </Section>
+
+        {canTransition(booking.status, 'cancelled') ? (
+          <Section id="storno" title="Zrušenie rezervácie">
+            <CancelBookingForm id={booking.id} number={booking.number} quote={quote} hasPrice={booking.total_cents !== null} />
+          </Section>
+        ) : null}
       </div>
     </div>
   )

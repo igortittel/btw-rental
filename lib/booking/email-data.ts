@@ -78,7 +78,9 @@ export function buildBookingEmailData(input: BookingEmailInput, locale: 'sk' | '
   const lines: BookingEmailData['lines'] = [
     price.ratePerDayCents !== null && price.rentalCents !== null
       ? { label: l.rental(price.days, euro(price.ratePerDayCents)), amount: euro(price.rentalCents) }
-      : { label: l.rentalIndividual, amount: l.individual },
+      : price.rentalCents !== null && price.totalCents !== null
+        ? { label: l.rentalIndividual, amount: euro(price.rentalCents) } // price set by staff
+        : { label: l.rentalIndividual, amount: l.individual },
     ...price.extras.map((line) => ({
       label: `${pick(line.name, locale)}${line.quantity > 1 ? ` (${l.pieces(line.quantity)})` : ''}`,
       amount: euro(line.totalCents),
@@ -117,4 +119,81 @@ export function buildBookingEmailData(input: BookingEmailInput, locale: 'sk' | '
     abroad: input.abroadTrip ? input.abroadCountries || l.abroadYes : null,
     company: { name: input.company.name, address: input.company.address, phone: input.company.phone, email: input.company.email },
   }
+}
+
+type BookingRow = {
+  number: string
+  locale: string
+  pickup_at: string
+  return_at: string
+  days: number
+  total_cents: number | null
+  vat_rate: number | string
+  deposit_cents: number
+  km_limit_per_day: number
+  extra_km_cents: number
+  rental_payment_method: PaymentMethod
+  deposit_payment_method: PaymentMethod
+  customer_note: string | null
+  abroad_trip: boolean
+  abroad_countries: string | null
+  pickup_custom_address: string | null
+  return_custom_address: string | null
+  customer_snapshot: unknown
+  price_snapshot: unknown
+}
+
+/** The same email data built from a stored booking (confirmation, cancellation…), using its price snapshot. */
+export function bookingEmailDataFromRow(row: BookingRow, vehicleName: string, company: Settings['company'], locale?: 'sk' | 'en'): BookingEmailData {
+  const customer = (row.customer_snapshot ?? {}) as { first_name?: string; last_name?: string; email?: string; phone?: string; company_name?: string | null }
+  const snapshot = (row.price_snapshot ?? {}) as Partial<PriceBreakdown> & {
+    pickup_location?: { name: Localized; address: string }
+    return_location?: { name: Localized; address: string }
+    delivery_outside_city?: boolean
+  }
+  const vatRate = Number(row.vat_rate)
+  const total = row.total_cents
+  const net = total === null ? null : Math.round((total * 100) / (100 + vatRate))
+  const price: PriceBreakdown = {
+    days: row.days,
+    isIndividual: total === null,
+    tier: snapshot.tier ?? null,
+    ratePerDayCents: snapshot.ratePerDayCents ?? null,
+    rentalCents: total === null ? null : (snapshot.rentalCents ?? null),
+    extras: snapshot.extras ?? [],
+    extrasCents: snapshot.extrasCents ?? 0,
+    pickupSurchargeCents: snapshot.pickupSurchargeCents ?? 0,
+    returnSurchargeCents: snapshot.returnSurchargeCents ?? 0,
+    totalCents: total,
+    netCents: net,
+    vatCents: total === null || net === null ? null : total - net,
+    vatRate,
+  }
+  const fallback = { name: {}, address: '' }
+  return buildBookingEmailData(
+    {
+      locale: row.locale === 'en' ? 'en' : 'sk',
+      number: row.number,
+      price,
+      customer: { firstName: customer.first_name ?? '', lastName: customer.last_name ?? '', email: customer.email ?? '', phone: customer.phone ?? '', companyName: customer.company_name ?? null },
+      vehicleName,
+      pickupAt: new Date(row.pickup_at),
+      returnAt: new Date(row.return_at),
+      pickupLocation: snapshot.pickup_location ?? fallback,
+      returnLocation: snapshot.return_location ?? fallback,
+      pickupAddress: row.pickup_custom_address,
+      returnAddress: row.return_custom_address,
+      deliveryOutsideCity: !!snapshot.delivery_outside_city,
+      depositCents: row.deposit_cents,
+      kmLimitPerDay: row.km_limit_per_day,
+      extraKmCents: row.extra_km_cents,
+      rentalPaymentMethod: row.rental_payment_method,
+      depositPaymentMethod: row.deposit_payment_method,
+      note: row.customer_note,
+      abroadTrip: row.abroad_trip,
+      abroadCountries: row.abroad_countries,
+      company,
+    },
+    locale ?? (row.locale === 'en' ? 'en' : 'sk'),
+  )
 }

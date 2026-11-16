@@ -1822,6 +1822,10 @@ export type Database = {
         }[]
       }
       create_booking: { Args: { p: Json }; Returns: Json }
+      staff_update_booking: {
+        Args: { p: Json; p_booking_id: string }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
+      }
       is_vehicle_available: {
         Args: {
           p_exclude_booking_id?: string

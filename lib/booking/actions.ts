@@ -2,12 +2,12 @@
 
 import { after } from 'next/server'
 import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { localizedPath } from '@/i18n/routing'
 import { getClientIp, rateLimit } from '@/lib/auth/rate-limit'
 import { getSessionUser } from '@/lib/auth/session'
 import { issueAuthToken } from '@/lib/auth/tokens'
 import { buildBookingEmailData } from '@/lib/booking/email-data'
+import { buildBookingRecord } from '@/lib/booking/record'
 import {
   bookingSchema,
   fieldErrors,
@@ -29,7 +29,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyTurnstile } from '@/lib/turnstile'
 import type { Json } from '@/types/database'
 
-export type BookingActionResult = { errors: FieldErrors }
+/**
+ * `redirectTo` is returned instead of calling redirect(): the browser navigates itself.
+ * (A redirect thrown inside a server action surfaces in the caller as a rejected
+ * promise, which is indistinguishable from a network failure there.)
+ */
+export type BookingActionResult = { errors: FieldErrors; redirectTo?: string }
 
 const fail = (errors: FieldErrors): BookingActionResult => ({ errors })
 
@@ -174,51 +179,25 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
     customer_id: customerId,
     update_profile: updateProfile,
     profile,
-    booking: {
-      vehicle_id: vehicle.id,
-      pickup_at: pickupAt.toISOString(),
-      return_at: returnAt.toISOString(),
-      pickup_location_id: pickupLocation.id,
-      return_location_id: returnLocation.id,
-      pickup_custom_address: pickupAddress ?? '',
-      return_custom_address: returnAddress ?? '',
-      customer_note: data.note,
-      customer_snapshot: { ...profile, email: data.email },
-      days: price.days,
-      // Snapshot: later changes of the price list never affect this booking.
-      price_snapshot: {
-        ...price,
-        tolerance_minutes: settings.return_tolerance_minutes,
-        vehicle: { id: vehicle.id, vin: vehicle.vin, name: vehicle.name },
-        pickup_location: { id: pickupLocation.id, name: pickupLocation.name, address: pickupLocation.address },
-        return_location: { id: returnLocation.id, name: returnLocation.name, address: returnLocation.address },
-        pickup_custom_address: pickupAddress,
-        return_custom_address: returnAddress,
-        delivery_outside_city: deliveryOutsideCity,
-        min_driver_age: vehicle.minDriverAge,
-        min_license_months: vehicle.minLicenseMonths,
-      },
-      subtotal_cents: price.rentalCents,
-      total_cents: price.totalCents,
-      vat_rate: price.vatRate,
-      is_individual_price: price.isIndividual,
-      deposit_cents: vehicle.depositCents,
-      rental_payment_method: data.rentalPaymentMethod,
-      deposit_payment_method: data.depositPaymentMethod,
-      km_limit_per_day: vehicle.kmLimitPerDay,
-      extra_km_cents: vehicle.extraKmCents,
+    ...buildBookingRecord({
+      vehicle,
+      pickupAt,
+      returnAt,
+      pickupLocation,
+      returnLocation,
+      pickupAddress,
+      returnAddress,
+      deliveryOutsideCity,
+      price,
+      toleranceMinutes: settings.return_tolerance_minutes,
+      customerSnapshot: { ...profile, email: data.email },
+      note: data.note,
+      rentalPaymentMethod: data.rentalPaymentMethod,
+      depositPaymentMethod: data.depositPaymentMethod,
       locale,
-      abroad_trip: data.abroadTrip,
-      abroad_countries: data.abroadTrip ? data.abroadCountries : '',
-    },
-    extras: price.extras.map((line) => ({
-      extra_id: line.extraId,
-      name_snapshot: line.name,
-      quantity: line.quantity,
-      unit_price_cents: line.unitPriceCents,
-      pricing_type: line.pricingType,
-      total_cents: line.totalCents,
-    })),
+      abroadTrip: data.abroadTrip,
+      abroadCountries: data.abroadCountries,
+    }),
     consents: [
       { type: 'terms', version: settings.terms_version },
       { type: 'gdpr', version: settings.gdpr_version },
@@ -300,5 +279,5 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
 
   const query = new URLSearchParams({ cislo: result.number })
   if (price.isIndividual) query.set('typ', 'dopyt')
-  redirect(`${localizedPath(locale, '/rezervacia/dakujeme')}?${query}`)
+  return { errors: {}, redirectTo: `${localizedPath(locale, '/rezervacia/dakujeme')}?${query}` }
 }

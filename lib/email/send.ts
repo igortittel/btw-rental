@@ -13,6 +13,8 @@ export type EmailMessage = {
   bookingId?: string | null
   /** Defaults to the company address. */
   replyTo?: string
+  /** Files to attach, e.g. the calendar invitation. */
+  attachments?: { filename: string; content: string; contentType?: string }[]
 }
 
 export type EmailResult = { sent: boolean; reason?: 'not_configured' | 'provider_error' }
@@ -29,18 +31,22 @@ export function isEmailConfigured(): boolean {
  * Never throws: callers decide what a failed email means for their flow.
  */
 export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
-  const admin = createAdminClient()
   const log = async (status: 'sent' | 'failed', resendId: string | null, error: string | null) => {
-    await admin.from('email_log').insert({
-      type: message.type,
-      recipient: message.to,
-      locale: message.locale ?? null,
-      profile_id: message.profileId ?? null,
-      booking_id: message.bookingId ?? null,
-      resend_id: resendId,
-      status,
-      error,
-    })
+    // Logging must not break the flow either (e.g. no service key in local development).
+    try {
+      await createAdminClient().from('email_log').insert({
+        type: message.type,
+        recipient: message.to,
+        locale: message.locale ?? null,
+        profile_id: message.profileId ?? null,
+        booking_id: message.bookingId ?? null,
+        resend_id: resendId,
+        status,
+        error,
+      })
+    } catch (e) {
+      console.error('email log failed', e)
+    }
   }
 
   const apiKey = env.resendApiKey
@@ -60,6 +66,7 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
         subject: message.subject,
         html: message.html,
         text: message.text,
+        attachments: message.attachments?.map((file) => ({ filename: file.filename, content: Buffer.from(file.content, 'utf8').toString('base64'), content_type: file.contentType })),
       }),
     })
     const body = (await response.json().catch(() => ({}))) as { id?: string; message?: string }

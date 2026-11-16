@@ -141,3 +141,21 @@ export function calculatePrice(input: PriceInput): PriceBreakdown {
     vatRate: input.vatRate,
   }
 }
+
+/**
+ * Price set by staff instead of the price list (individual price for a long rental, an
+ * agreed discount…). `totalCents` is the final amount incl. VAT and incl. extras; the
+ * rental part is what remains after the extras and location surcharges.
+ */
+export function applyPriceOverride(price: PriceBreakdown, totalCents: number): PriceBreakdown & { overridden: true } {
+  const { netCents, vatCents } = splitVat(totalCents, price.vatRate)
+  return {
+    ...price,
+    ratePerDayCents: null,
+    rentalCents: Math.max(0, totalCents - price.extrasCents - price.pickupSurchargeCents - price.returnSurchargeCents),
+    totalCents,
+    netCents,
+    vatCents,
+    overridden: true,
+  }
+}

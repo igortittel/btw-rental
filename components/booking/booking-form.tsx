@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { AvailabilityCalendar } from '@/components/catalog/availability-calendar'
-import { checkTermAction, createBookingAction } from '@/lib/booking/actions'
+import { checkTermAction, createBookingAction, type BookingActionResult } from '@/lib/booking/actions'
 import { COUNTRY_CODES, PHONE_PREFIXES, countryName } from '@/lib/booking/countries'
 import { PHONE_DIGITS, customerRuleErrors, customerSchema, confirmSchema, fieldErrors, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors } from '@/lib/booking/schema'
 import { formatEuro } from '@/lib/format'
@@ -195,9 +195,11 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
     const found = validateStep(3, values)
     if (hasErrors(found)) return showErrors(found)
     startSubmitting(async () => {
-      // On success the action redirects to the thank-you page and never returns.
-      const result = await createBookingAction({ ...values, locale, website, startedAt: startedAt.current, turnstileToken }).catch(() => ({ errors: { form: 'unknown' } as FieldErrors }))
-      if (!result) return
+      const result: BookingActionResult = await createBookingAction({ ...values, locale, website, startedAt: startedAt.current, turnstileToken }).catch(() => ({ errors: { form: 'unknown' } }))
+      if (result.redirectTo) {
+        window.location.assign(result.redirectTo)
+        return
+      }
       setTurnstileReset((n) => n + 1)
       const firstField = (Object.keys(result.errors) as (Field_ | 'form')[]).find((key) => result.errors[key])
       const target = firstField ? (STEP_OF_FIELD[firstField] ?? 2) : 3
