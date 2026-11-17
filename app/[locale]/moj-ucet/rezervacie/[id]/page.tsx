@@ -15,6 +15,7 @@ import { getCatalog, localize } from '@/lib/catalog'
 import { formatEuro } from '@/lib/format'
 import { variableSymbol } from '@/lib/payment'
 import type { PriceBreakdown } from '@/lib/pricing'
+import { depositOutcome, settlementLines } from '@/lib/settlement'
 import { vehicleImageUrl } from '@/lib/storage'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateTime } from '@/lib/time'
@@ -37,10 +38,13 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
 
   const supabase = await createClient()
-  const [{ data: booking }, { data: extras }, catalog, t, c] = await Promise.all([
+  const [{ data: booking }, { data: extras }, { data: protocolRows }, { data: settlement }, catalog, t, c] = await Promise.all([
     // RLS already limits this to the customer's own bookings; the filter makes it explicit (staff would otherwise see any booking here).
     supabase.from('bookings').select('*').eq('id', id).eq('customer_id', user.id).maybeSingle(),
     supabase.from('booking_extras').select('id, name_snapshot, quantity, total_cents').eq('booking_id', id),
+    // Signed protocols and the approved settlement only (RLS enforces the same for customers).
+    supabase.from('handover_protocols').select('id, type, version, signed_at, pdf_path').eq('booking_id', id).not('signed_at', 'is', null).order('version', { ascending: false }),
+    supabase.from('settlements').select('*').eq('booking_id', id).not('approved_at', 'is', null).maybeSingle(),
     getCatalog(),
     getTranslations('account'),
     getTranslations('catalog'),
@@ -74,6 +78,11 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
   const pending = status === 'modified' ? (booking.pending_change as { booking?: ChangeableBooking; extras?: { name_snapshot: unknown; quantity: number }[] } | null) : null
   const changes = pending?.booking ? describeBookingChange(booking, extras ?? [], pending.booking, pending.extras ?? [], locale === 'en' ? 'en' : 'sk') : []
   const assistance = vehicle ? ((await supabase.from('public_vehicles').select('assistance_phone').eq('id', vehicle.id).maybeSingle()).data?.assistance_phone ?? null) : null
+
+  // The valid protocol of each type is its newest signed version.
+  const protocols = (['pickup', 'return'] as const).flatMap((type) => (protocolRows ?? []).filter((p) => p.type === type).slice(0, 1))
+  const settlementTotal = settlement?.total_cents ?? 0
+  const outcome = depositOutcome(booking.deposit_cents, settlementTotal)
 
   const card = 'rounded-xl border border-gold/40 bg-surface p-5 sm:p-6'
   const h2 = 'text-lg font-bold text-white'
@@ -287,6 +296,71 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
             ) : null}
           </dl>
           <p className="mt-3 text-sm text-muted2">{status === 'new' ? t('paymentAfterConfirm') : booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer' ? t('transferNote') : ''}</p>
+        </div>
+      ) : null}
+
+      {protocols.length > 0 ? (
+        <div className={card}>
+          <h2 className={h2}>{t('protocolsTitle')}</h2>
+          <ul className="mt-3">
+            {protocols.map((protocol) => (
+              <li key={protocol.id} className={row}>
+                <span className="text-white">
+                  {t(protocol.type === 'pickup' ? 'protocolPickup' : 'protocolReturn')}
+                  <span className="block text-sm text-muted2">{t('protocolSigned', { date: formatDateTime(protocol.signed_at!, locale) })}</span>
+                </span>
+                {protocol.pdf_path ? (
+                  <a href={`/api/protocols/${protocol.id}/pdf`} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
+                    {t('protocolDownload')}
+                  </a>
+                ) : (
+                  <span className="text-sm text-muted2">{t('protocolPreparing')}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {settlement ? (
+        <div className={card}>
+          <h2 className={h2}>{t('settlementTitle')}</h2>
+          {settlementTotal === 0 ? <p className="mt-3 text-[15px] leading-6 text-muted2">{t('settlementClean')}</p> : null}
+          <dl className="mt-3">
+            {settlementLines(settlement, locale === 'en' ? 'en' : 'sk').map((line, index) => (
+              <div key={index} className={row}>
+                <dt className="text-muted2">
+                  {line.label}
+                  {line.detail ? ` (${line.detail})` : ''}
+                </dt>
+                <dd className="text-white">{euro(line.cents)}</dd>
+              </div>
+            ))}
+            {settlementTotal > 0 ? (
+              <div className={`${row} !border-gold/40`}>
+                <dt className="font-semibold text-white">{t('settlementTotal')}</dt>
+                <dd className="text-xl font-bold text-white">{euro(settlementTotal)}</dd>
+              </div>
+            ) : null}
+            <div className={row}>
+              <dt className="text-muted2">{t('settlementDeposit')}</dt>
+              <dd className="text-white">{euro(booking.deposit_cents)}</dd>
+            </div>
+            <div className={row}>
+              <dt className="text-muted2">{t(outcome.dueCents > 0 ? 'settlementDue' : 'settlementRefund')}</dt>
+              <dd className="font-semibold text-white">{euro(outcome.dueCents > 0 ? outcome.dueCents : outcome.refundCents)}</dd>
+            </div>
+          </dl>
+          {settlement.note ? (
+            <p className="mt-3 whitespace-pre-line text-sm text-muted2">
+              {t('settlementNote')}: {settlement.note}
+            </p>
+          ) : null}
+        </div>
+      ) : status === 'completed' && protocols.some((p) => p.type === 'return') ? (
+        <div className={card}>
+          <h2 className={h2}>{t('settlementTitle')}</h2>
+          <p className="mt-3 text-[15px] leading-6 text-muted2">{t('settlementWaiting')}</p>
         </div>
       ) : null}
 

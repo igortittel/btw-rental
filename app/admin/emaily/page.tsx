@@ -21,6 +21,11 @@ const PREVIEWS = [
   { title: '5 · Úprava zamietnutá', query: 'sablona=rozhodnutie&jazyk=sk&varianta=zamietnuta' },
   { title: '6 · Rezervácia zrušená – zákazník, so storno poplatkom', query: 'sablona=zrusena&jazyk=sk&varianta=poplatok' },
   { title: '6 · Rezervácia zrušená – notifikácia pre BTW', query: 'sablona=zrusena&varianta=btw' },
+  { title: '8 · Odovzdávací protokol (PDF v prílohe)', query: 'sablona=protokol&jazyk=sk' },
+  { title: '10 · Preberací protokol (PDF v prílohe)', query: 'sablona=protokol&jazyk=sk&varianta=preberaci' },
+  { title: '10 · Return report (EN)', query: 'sablona=protokol&jazyk=en&varianta=preberaci' },
+  { title: '10 · Vyúčtovanie – s doúčtovaním', query: 'sablona=vyuctovanie&jazyk=sk' },
+  { title: '10 · Vyúčtovanie – bez doúčtovania', query: 'sablona=vyuctovanie&jazyk=sk&varianta=bez' },
 ]
 
 export default async function EmailsPage() {

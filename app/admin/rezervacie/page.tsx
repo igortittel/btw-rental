@@ -170,7 +170,7 @@ export default async function BookingsPage({ searchParams }: Props) {
                 {delivery ? booking.outside === true ? <span className="text-amber-200"> · pristavenie mimo BA – kontaktovať</span> : <span className="text-muted2"> · pristavenie v BA</span> : null}
               </p>
               <div className="mt-auto pt-4">
-                <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref={`/admin/rezervacie/${booking.id}#storno`} />
+                <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref={`/admin/rezervacie/${booking.id}#storno`} detailHref={`/admin/rezervacie/${booking.id}`} />
               </div>
             </li>
           )

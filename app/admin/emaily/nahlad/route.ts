@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getStaff } from '@/lib/auth/session'
-import { renderBookingAdminNotification, renderBookingCancelled, renderBookingChangeRequested, renderBookingChangeResolved, renderBookingConfirmed, renderBookingReceived } from '@/lib/email/booking-emails'
+import { renderBookingAdminNotification, renderBookingCancelled, renderBookingChangeRequested, renderBookingChangeResolved, renderBookingConfirmed, renderBookingReceived, renderProtocolSigned, renderSettlement } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
 
@@ -56,6 +56,40 @@ export async function GET(request: NextRequest) {
       reason: locale === 'en' ? 'The vehicle is unexpectedly out of service.' : 'Vozidlo je neočakávane v servise.',
       fee: variant === 'poplatok' ? (locale === 'en' ? '€92' : '92 €') : null,
       adminUrl: `${origin}/admin/rezervacie`,
+    })
+  } else if (template === 'protokol') {
+    const isReturn = variant === 'preberaci'
+    email = await renderProtocolSigned({
+      booking: sampleBookingEmailData(locale),
+      type: isReturn ? 'return' : 'pickup',
+      handoverAt: locale === 'en' ? (isReturn ? '19/06/2027, 11:40' : '14/06/2027, 10:05') : isReturn ? '19. 6. 2027 11:40' : '14. 6. 2027 10:05',
+      odometer: isReturn ? '50 195 km' : '48 210 km',
+      fuel: isReturn ? '5/8 · 63 %' : '8/8 · 100 %',
+      newDamages: isReturn ? 1 : 0,
+      hasAttachment: true,
+      accountUrl: `${origin}/moj-ucet`,
+      assistancePhone: DEFAULT_SETTINGS.assistance.phone,
+    })
+  } else if (template === 'vyuctovanie') {
+    const clean = variant === 'bez'
+    const euro = (value: string) => (locale === 'en' ? `€${value.replace(',', '.')}` : `${value} €`)
+    email = await renderSettlement({
+      booking: sampleBookingEmailData(locale),
+      lines: clean
+        ? []
+        : [
+            { label: locale === 'en' ? 'Mileage over the limit' : 'Kilometre nad limit', detail: '485 km', amount: euro('300,70') },
+            { label: locale === 'en' ? 'Fuel' : 'Palivo', amount: euro('45') },
+            { label: locale === 'en' ? 'Damage' : 'Poškodenie', detail: locale === 'en' ? 'Dent · right side · front wing' : 'Preliačina · Pravý bok · predný blatník', amount: euro('180') },
+            { label: locale === 'en' ? 'Late return' : 'Meškanie pri vrátení', detail: '1 h 40 min', amount: euro('79') },
+          ],
+      total: euro(clean ? '0' : '604,70'),
+      hasCharges: !clean,
+      deposit: euro('1 000'),
+      refund: euro(clean ? '1 000' : '395,30'),
+      due: null,
+      note: clean ? null : locale === 'en' ? 'Thank you for letting us know about the delay in advance.' : 'Ďakujeme, že ste nám meškanie vopred oznámili.',
+      accountUrl: `${origin}/moj-ucet`,
     })
   } else if (template === 'admin') {
     email = await renderBookingAdminNotification({

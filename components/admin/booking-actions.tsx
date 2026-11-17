@@ -17,11 +17,13 @@ const CONFIRM: Partial<Record<BookingStatus, string>> = {
  * One-tap status changes for a booking; large touch targets for use on a phone.
  * Cancelling leads to the detail, where the cancellation fee is decided.
  */
-export function BookingQuickActions({ id, number, status, cancelHref }: { id: string; number: string; status: BookingStatus; cancelHref?: string }) {
+export function BookingQuickActions({ id, number, status, cancelHref, detailHref }: { id: string; number: string; status: BookingStatus; cancelHref?: string; detailHref?: string }) {
   const { state, pending, onSubmit } = useFormAction(changeBookingStatusAction, {})
-  const options = NEXT_STATUSES[status]
+  // Handing over and taking back go through the protocol, whose signature changes the status.
+  const options = NEXT_STATUSES[status].filter((to) => !detailHref || (to !== 'active' && to !== 'completed'))
+  const protocol = detailHref && status === 'confirmed' ? { href: `${detailHref}/protokol/odovzdavaci`, label: 'Odovzdať vozidlo' } : detailHref && status === 'active' ? { href: `${detailHref}/protokol/preberaci`, label: 'Prevziať vozidlo' } : null
   const cancellable = !!cancelHref && canTransition(status, 'cancelled')
-  if (options.length === 0 && !cancellable) return null
+  if (options.length === 0 && !cancellable && !protocol) return null
   const reviewHref = status === 'modified' && cancelHref ? cancelHref.replace(/#.*$/, '#uprava') : null
 
   return (
@@ -47,6 +49,11 @@ export function BookingQuickActions({ id, number, status, cancelHref }: { id: st
             </button>
           </form>
         ))}
+        {protocol ? (
+          <a href={protocol.href} className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold-hover">
+            {protocol.label}
+          </a>
+        ) : null}
         {/* Plain <a>: links with a #fragment must load the page so the browser scrolls to the section
             (client-side navigation to a prefetched route with a hash does not complete). */}
         {reviewHref ? (
@@ -130,6 +137,20 @@ export function BookingNoteForm({ id }: { id: string }) {
       </label>
       <textarea id="note-body" name="body" maxLength={4000} placeholder="Interná poznámka – zákazník ju nevidí" className={textareaClass} />
       <SubmitButton variant="outline">Pridať poznámku</SubmitButton>
+    </ActionForm>
+  )
+}
+
+/** Exception path: change the status without a protocol (e.g. the tablet is not at hand). */
+export function StatusWithoutProtocol({ id, to }: { id: string; to: 'active' | 'completed' }) {
+  return (
+    <ActionForm action={changeBookingStatusAction} confirm={to === 'active' ? 'Vydať vozidlo bez odovzdávacieho protokolu? Stav vozidla pri odovzdaní nebude zdokumentovaný.' : 'Ukončiť rezerváciu bez preberacieho protokolu? Vyúčtovanie sa nevytvorí.'}>
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="to" value={to} />
+      <input type="hidden" name="note" value="Bez protokolu" />
+      <button type="submit" className="min-h-11 text-sm text-muted2 underline underline-offset-4 hover:text-white">
+        {to === 'active' ? 'Vydať vozidlo bez protokolu' : 'Ukončiť bez protokolu'}
+      </button>
     </ActionForm>
   )
 }

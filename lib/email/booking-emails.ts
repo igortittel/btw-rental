@@ -5,6 +5,8 @@ import { BookingChangeRequestedEmail, BookingChangeResolvedEmail, bookingChangeR
 import BookingCancelledEmail, { bookingCancelledSubject, type BookingCancelledProps } from '@/emails/booking-cancelled'
 import BookingConfirmedEmail, { bookingConfirmedSubject, type BookingConfirmedProps } from '@/emails/booking-confirmed'
 import BookingReceivedEmail, { bookingReceivedSubject, type BookingReceivedProps } from '@/emails/booking-received'
+import ProtocolSignedEmail, { protocolSignedSubject, type ProtocolSignedProps } from '@/emails/protocol-signed'
+import SettlementEmail, { settlementSubject, type SettlementEmailProps } from '@/emails/settlement'
 import { sendEmail } from '@/lib/email/send'
 
 /** Renders a React Email template to HTML and a plain-text alternative. */
@@ -85,4 +87,32 @@ export async function sendBookingChangeRequested(props: BookingChangeRequestedPr
 export async function sendBookingChangeResolved(props: BookingChangeResolvedProps, meta: { bookingId: string; profileId: string }) {
   const email = await renderBookingChangeResolved(props)
   return sendEmail({ type: props.approved ? 'booking_change_approved' : 'booking_change_rejected', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...email })
+}
+
+export async function renderProtocolSigned(props: ProtocolSignedProps) {
+  return { subject: protocolSignedSubject(props), ...(await renderBoth(ProtocolSignedEmail(props))) }
+}
+
+export async function renderSettlement(props: SettlementEmailProps) {
+  return { subject: settlementSubject(props), ...(await renderBoth(SettlementEmail(props))) }
+}
+
+/** Emails 8 and 10 – signed pickup / return protocol (customer) with the PDF attached. */
+export async function sendProtocolSigned(props: ProtocolSignedProps, meta: { bookingId: string; profileId: string; pdf: { filename: string; content: Buffer } | null }) {
+  const email = await renderProtocolSigned(props)
+  return sendEmail({
+    type: props.type === 'pickup' ? 'protocol_pickup' : 'protocol_return',
+    to: props.booking.customer.email,
+    locale: props.booking.locale,
+    bookingId: meta.bookingId,
+    profileId: meta.profileId,
+    attachments: meta.pdf ? [{ filename: meta.pdf.filename, content: meta.pdf.content, contentType: 'application/pdf' }] : undefined,
+    ...email,
+  })
+}
+
+/** Email 10, second part – the approved settlement (customer). */
+export async function sendSettlement(props: SettlementEmailProps, meta: { bookingId: string; profileId: string }) {
+  const email = await renderSettlement(props)
+  return sendEmail({ type: 'settlement_approved', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...email })
 }

@@ -45,6 +45,19 @@ export default async function AdminHomePage({ searchParams }: Props) {
     supabase.from('bookings').select('pickup_at, return_at, total_cents').in('status', ['confirmed', 'active', 'completed']).lt('pickup_at', iso(periodTo, '00:00')).gt('return_at', iso(periodFrom, '00:00')),
     supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('for_rental', true),
   ])
+  // Returned vehicles whose settlement has not been approved yet.
+  const { data: returned } = await supabase
+    .from('handover_protocols')
+    .select('booking_id, signed_at, bookings(number, customer_snapshot, vehicles(name))')
+    .eq('type', 'return')
+    .not('signed_at', 'is', null)
+    .order('signed_at', { ascending: false })
+    .limit(60)
+  const returnedIds = [...new Set((returned ?? []).map((row) => row.booking_id))]
+  const { data: approved } = returnedIds.length > 0 ? await supabase.from('settlements').select('booking_id').not('approved_at', 'is', null).in('booking_id', returnedIds) : { data: [] }
+  const settled = new Set((approved ?? []).map((row) => row.booking_id))
+  const toSettle = (returned ?? []).filter((row, index, all) => !settled.has(row.booking_id) && all.findIndex((other) => other.booking_id === row.booking_id) === index)
+
   const kpi = computeKpi(kpiBookings.data ?? [], new Date(iso(periodFrom, '00:00')), new Date(iso(periodTo, '00:00')), vehicles.count ?? 0)
 
   const tiles = [
@@ -76,6 +89,29 @@ export default async function AdminHomePage({ searchParams }: Props) {
           </Link>
         ))}
       </div>
+
+      {toSettle.length > 0 ? (
+        <section className="rounded-xl border border-gold bg-surface p-4 sm:p-5">
+          <h2 className="text-base font-bold text-white">Vyúčtovania na potvrdenie ({toSettle.length})</h2>
+          <ul className="mt-2 divide-y divide-line">
+            {toSettle.map((row) => {
+              const customer = (row.bookings?.customer_snapshot ?? {}) as Snapshot
+              return (
+                <li key={row.booking_id}>
+                  <Link href={`/admin/rezervacie/${row.booking_id}/vyuctovanie`} prefetch={false} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold">
+                    <span>
+                      <strong>{row.bookings?.number}</strong> · {row.bookings?.vehicles?.name}
+                    </span>
+                    <span className="text-muted2">
+                      {customer.first_name} {customer.last_name} · vrátené {formatDateTime(row.signed_at!)}
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {lists.map((list) => (

@@ -206,7 +206,21 @@
       "password_too_long": "The password can have at most 72 characters.",
       "passwords_do_not_match": "The passwords do not match.",
       "password_rejected": "This password cannot be used. Please choose another one."
-    }
+    },
+    "protocolsTitle": "Reports",
+    "protocolPickup": "Handover report",
+    "protocolReturn": "Return report",
+    "protocolSigned": "signed {date}",
+    "protocolDownload": "View PDF",
+    "protocolPreparing": "PDF is being prepared",
+    "settlementTitle": "Settlement",
+    "settlementWaiting": "We are preparing the settlement of your rental. We will email it to you and you will also find it here.",
+    "settlementClean": "The vehicle was returned in good order – there are no additional charges.",
+    "settlementTotal": "Additional charges (incl. VAT)",
+    "settlementDeposit": "Deposit",
+    "settlementRefund": "Refund to you",
+    "settlementDue": "Amount due beyond the deposit",
+    "settlementNote": "Note"
   },
   "catalog": {
     "title": "Car rental",
