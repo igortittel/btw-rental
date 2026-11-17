@@ -206,7 +206,21 @@
       "password_too_long": "Heslo môže mať najviac 72 znakov.",
       "passwords_do_not_match": "Heslá sa nezhodujú.",
       "password_rejected": "Toto heslo nie je možné použiť. Zvoľte prosím iné."
-    }
+    },
+    "protocolsTitle": "Protokoly",
+    "protocolPickup": "Odovzdávací protokol",
+    "protocolReturn": "Preberací protokol",
+    "protocolSigned": "podpísaný {date}",
+    "protocolDownload": "Zobraziť PDF",
+    "protocolPreparing": "PDF pripravujeme",
+    "settlementTitle": "Vyúčtovanie",
+    "settlementWaiting": "Vyúčtovanie prenájmu pripravujeme. Pošleme vám ho e-mailom a nájdete ho aj tu.",
+    "settlementClean": "Vozidlo ste vrátili v poriadku – nič nedoúčtovávame.",
+    "settlementTotal": "Doúčtovanie spolu (s DPH)",
+    "settlementDeposit": "Depozit",
+    "settlementRefund": "Vrátime vám",
+    "settlementDue": "Doplatok nad rámec depozitu",
+    "settlementNote": "Poznámka"
   },
   "catalog": {
     "title": "Prenájom vozidiel",

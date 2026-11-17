@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { BookingNoteForm, BookingQuickActions, CancelBookingForm, ResolveChangeForm } from '@/components/admin/booking-actions'
+import { BookingNoteForm, BookingQuickActions, CancelBookingForm, ResolveChangeForm, StatusWithoutProtocol } from '@/components/admin/booking-actions'
 import { PageHeader, Section } from '@/components/admin/section'
 import { hasRole } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
 import { canTransition, isEditable } from '@/lib/booking-status'
 import { describeBookingChange, type ChangeableBooking } from '@/lib/booking/change'
 import { cancellationQuote } from '@/lib/cancellation'
+import { latestSigned, draftOf } from '@/lib/protocol/load'
+import { PROTOCOL_SLUG, PROTOCOL_TITLE, type ProtocolType } from '@/lib/protocol/model'
 import { getSettings } from '@/lib/settings'
 import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, STATUS_BADGE_CLASS } from '@/lib/booking/status'
 import { formatEuro } from '@/lib/format'
@@ -35,6 +37,9 @@ const EMAIL_LABELS: Record<string, string> = {
   booking_change_requested: 'Úprava od zákazníka (BTW)',
   booking_change_approved: 'Úprava schválená (zákazník)',
   booking_change_rejected: 'Úprava zamietnutá (zákazník)',
+  protocol_pickup: 'Odovzdávací protokol (zákazník)',
+  protocol_return: 'Preberací protokol (zákazník)',
+  settlement_approved: 'Vyúčtovanie (zákazník)',
 }
 const EMAIL_STATUS: Record<string, string> = { queued: 'čaká', sent: 'odoslaný', delivered: 'doručený', bounced: 'vrátený', failed: 'neodoslaný' }
 
@@ -58,7 +63,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
 
   const supabase = await createClient()
-  const [{ data: booking }, { data: extras }, { data: consents }, { data: emails }, { data: history }, { data: notes }, settings] = await Promise.all([
+  const [{ data: booking }, { data: extras }, { data: consents }, { data: emails }, { data: history }, { data: notes }, settings, { data: protocols }, { data: settlement }] = await Promise.all([
     supabase.from('bookings').select('*, vehicles(name, license_plate, vin)').eq('id', id).maybeSingle(),
     supabase.from('booking_extras').select('*').eq('booking_id', id),
     supabase.from('consents').select('type, version, granted, granted_at').eq('booking_id', id).order('type'),
@@ -66,6 +71,8 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     supabase.from('booking_status_history').select('id, from_status, to_status, note, created_at, changed_by').eq('booking_id', id).order('created_at'),
     supabase.from('booking_notes').select('id, body, created_at, author_id').eq('booking_id', id).order('created_at', { ascending: false }),
     getSettings(supabase),
+    supabase.from('handover_protocols').select('id, type, version, signed_at, pdf_path').eq('booking_id', id),
+    supabase.from('settlements').select('total_cents, approved_at').eq('booking_id', id).maybeSingle(),
   ])
   if (!booking) notFound()
 
@@ -104,7 +111,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE_CLASS[booking.status]}`}>{BOOKING_STATUS_LABELS[booking.status]}</span>
             {booking.cancelled_at ? <span className="text-muted2">zrušená {formatDateTime(booking.cancelled_at)}</span> : null}
           </p>
-          <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref="#storno" />
+          <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref="#storno" detailHref={`/admin/rezervacie/${booking.id}`} />
           {canEdit ? (
             <Link href={`/admin/rezervacie/${booking.id}/upravit`} className="mt-2 flex h-11 items-center justify-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
               Upraviť rezerváciu{booking.total_cents === null ? ' a doplniť cenu' : ''}
@@ -117,6 +124,58 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             </p>
           ) : null}
         </div>
+        {booking.status === 'confirmed' || booking.status === 'active' || booking.status === 'completed' || (protocols ?? []).length > 0 ? (
+          <Section id="protokoly" title="Protokoly a vyúčtovanie">
+            <ul className="divide-y divide-line">
+              {(['pickup', 'return'] as ProtocolType[]).map((type) => {
+                const signedProtocol = latestSigned(protocols ?? [], type)
+                const draft = draftOf(protocols ?? [], type)
+                const canStart = type === 'pickup' ? booking.status === 'confirmed' || booking.status === 'active' : booking.status === 'active' || booking.status === 'completed'
+                const href = `/admin/rezervacie/${booking.id}/protokol/${PROTOCOL_SLUG[type]}`
+                return (
+                  <li key={type} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0">
+                    <div className="min-w-0 text-sm">
+                      <p className="font-semibold text-white">{PROTOCOL_TITLE[type]}</p>
+                      <p className="text-muted2">
+                        {draft ? `rozpracovaný${draft.version > 1 ? ` (oprava, verzia ${draft.version})` : ''}` : signedProtocol ? `podpísaný ${formatDateTime(signedProtocol.signed_at!)}${signedProtocol.version > 1 ? ` · verzia ${signedProtocol.version}` : ''}` : canStart ? 'zatiaľ nevyplnený' : type === 'pickup' ? 'vypĺňa sa pri potvrdenej rezervácii' : 'vypĺňa sa pri vrátení vozidla'}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {signedProtocol?.pdf_path ? (
+                        <a href={`/api/protocols/${signedProtocol.id}/pdf`} target="_blank" rel="noopener" className="flex h-11 items-center rounded-lg border border-gold/60 px-4 text-sm font-semibold text-gold hover:bg-gold/10">
+                          PDF
+                        </a>
+                      ) : null}
+                      {draft || signedProtocol || canStart ? (
+                        <Link href={href} prefetch={false} className={`flex h-11 items-center rounded-lg px-4 text-sm font-semibold ${draft || !signedProtocol ? 'bg-gold text-white hover:bg-gold-hover' : 'border border-gold text-white hover:bg-gold/15'}`}>
+                          {draft ? 'Pokračovať' : signedProtocol ? 'Otvoriť' : 'Vyplniť'}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </li>
+                )
+              })}
+              {latestSigned(protocols ?? [], 'return') ? (
+                <li className="flex flex-wrap items-center justify-between gap-3 py-3 last:pb-0">
+                  <div className="min-w-0 text-sm">
+                    <p className="font-semibold text-white">Vyúčtovanie</p>
+                    <p className="text-muted2">
+                      {settlement?.approved_at ? `potvrdené ${formatDateTime(settlement.approved_at)} · doúčtovanie ${formatEuro(settlement.total_cents ?? 0)}` : settlement ? 'uložený návrh – čaká na potvrdenie' : 'návrh čaká na kontrolu a potvrdenie'}
+                    </p>
+                  </div>
+                  <Link href={`/admin/rezervacie/${booking.id}/vyuctovanie`} prefetch={false} className={`flex h-11 items-center rounded-lg px-4 text-sm font-semibold ${settlement?.approved_at ? 'border border-gold text-white hover:bg-gold/15' : 'bg-gold text-white hover:bg-gold-hover'}`}>
+                    {settlement?.approved_at ? 'Otvoriť' : 'Skontrolovať'}
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
+            {(booking.status === 'confirmed' && !latestSigned(protocols ?? [], 'pickup')) || (booking.status === 'active' && !latestSigned(protocols ?? [], 'return')) ? (
+              <div className="mt-3 border-t border-line pt-2">
+                <StatusWithoutProtocol id={booking.id} to={booking.status === 'confirmed' ? 'active' : 'completed'} />
+              </div>
+            ) : null}
+          </Section>
+        ) : null}
         {pending ? (
           <Section id="uprava" title="Úprava od zákazníka" description={`Rezervácia platí v pôvodnom znení, kým nerozhodnete.${pending.requested_at ? ` Žiadosť: ${formatDateTime(pending.requested_at)}.` : ''}`}>
             {collision ? (

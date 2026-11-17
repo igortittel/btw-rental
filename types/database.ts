@@ -809,9 +809,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_signature_path: string | null
+          driver_license_no: string | null
           fuel_level: number | null
           handover_at: string | null
           id: string
+          id_document_no: string | null
           location_id: string | null
           note: string | null
           odometer_km: number | null
@@ -833,9 +835,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_signature_path?: string | null
+          driver_license_no?: string | null
           fuel_level?: number | null
           handover_at?: string | null
           id?: string
+          id_document_no?: string | null
           location_id?: string | null
           note?: string | null
           odometer_km?: number | null
@@ -857,9 +861,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_signature_path?: string | null
+          driver_license_no?: string | null
           fuel_level?: number | null
           handover_at?: string | null
           id?: string
+          id_document_no?: string | null
           location_id?: string | null
           note?: string | null
           odometer_km?: number | null
@@ -1049,6 +1055,7 @@ export type Database = {
           description: string
           id: string
           is_new: boolean
+          kind: string
           photo_path: string | null
           protocol_id: string
           view: Database["public"]["Enums"]["damage_view"]
@@ -1060,6 +1067,7 @@ export type Database = {
           description?: string
           id?: string
           is_new?: boolean
+          kind?: string
           photo_path?: string | null
           protocol_id: string
           view: Database["public"]["Enums"]["damage_view"]
@@ -1071,6 +1079,7 @@ export type Database = {
           description?: string
           id?: string
           is_new?: boolean
+          kind?: string
           photo_path?: string | null
           protocol_id?: string
           view?: Database["public"]["Enums"]["damage_view"]
@@ -1168,6 +1177,7 @@ export type Database = {
           booking_id: string
           created_at: string
           damage_cents: number
+          damage_items: Json
           extra_km: number
           extra_km_cents: number
           fuel_cents: number
@@ -1175,8 +1185,10 @@ export type Database = {
           id: string
           km_driven: number | null
           late_cents: number
+          late_minutes: number
           note: string | null
           other_cents: number
+          other_label: string | null
           total_cents: number | null
           updated_at: string
         }
@@ -1186,6 +1198,7 @@ export type Database = {
           booking_id: string
           created_at?: string
           damage_cents?: number
+          damage_items?: Json
           extra_km?: number
           extra_km_cents?: number
           fuel_cents?: number
@@ -1193,8 +1206,10 @@ export type Database = {
           id?: string
           km_driven?: number | null
           late_cents?: number
+          late_minutes?: number
           note?: string | null
           other_cents?: number
+          other_label?: string | null
           total_cents?: number | null
           updated_at?: string
         }
@@ -1204,6 +1219,7 @@ export type Database = {
           booking_id?: string
           created_at?: string
           damage_cents?: number
+          damage_items?: Json
           extra_km?: number
           extra_km_cents?: number
           fuel_cents?: number
@@ -1211,8 +1227,10 @@ export type Database = {
           id?: string
           km_driven?: number | null
           late_cents?: number
+          late_minutes?: number
           note?: string | null
           other_cents?: number
+          other_label?: string | null
           total_cents?: number | null
           updated_at?: string
         }
@@ -1835,6 +1853,80 @@ export type Database = {
         Args: { p_approve: boolean; p_booking_id: string; p_note?: string }
         Returns: Database["public"]["Tables"]["bookings"]["Row"]
       }
+      save_protocol_draft: {
+        Args: { p_data: Json; p_protocol_id: string }
+        Returns: {
+          accessories: Json
+          booking_id: string
+          charge_level: number | null
+          cleanliness: Json
+          created_at: string
+          created_by: string | null
+          customer_signature_path: string | null
+          driver_license_no: string | null
+          fuel_level: number | null
+          handover_at: string | null
+          id: string
+          id_document_no: string | null
+          location_id: string | null
+          note: string | null
+          odometer_km: number | null
+          pdf_path: string | null
+          signed_at: string | null
+          signed_by_name: string | null
+          staff_name: string | null
+          staff_signature_path: string | null
+          supersedes_id: string | null
+          type: Database["public"]["Enums"]["protocol_type"]
+          updated_at: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "handover_protocols"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      sign_protocol: {
+        Args: {
+          p_customer_signature_path: string
+          p_protocol_id: string
+          p_staff_signature_path: string
+        }
+        Returns: {
+          accessories: Json
+          booking_id: string
+          charge_level: number | null
+          cleanliness: Json
+          created_at: string
+          created_by: string | null
+          customer_signature_path: string | null
+          driver_license_no: string | null
+          fuel_level: number | null
+          handover_at: string | null
+          id: string
+          id_document_no: string | null
+          location_id: string | null
+          note: string | null
+          odometer_km: number | null
+          pdf_path: string | null
+          signed_at: string | null
+          signed_by_name: string | null
+          staff_name: string | null
+          staff_signature_path: string | null
+          supersedes_id: string | null
+          type: Database["public"]["Enums"]["protocol_type"]
+          updated_at: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "handover_protocols"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       staff_update_booking: {
         Args: { p: Json; p_booking_id: string }
         Returns: Database["public"]["Tables"]["bookings"]["Row"]
@@ -1847,6 +1939,44 @@ export type Database = {
           p_vehicle_id: string
         }
         Returns: boolean
+      }
+      start_protocol: {
+        Args: {
+          p_booking_id: string
+          p_type: Database["public"]["Enums"]["protocol_type"]
+        }
+        Returns: {
+          accessories: Json
+          booking_id: string
+          charge_level: number | null
+          cleanliness: Json
+          created_at: string
+          created_by: string | null
+          customer_signature_path: string | null
+          driver_license_no: string | null
+          fuel_level: number | null
+          handover_at: string | null
+          id: string
+          id_document_no: string | null
+          location_id: string | null
+          note: string | null
+          odometer_km: number | null
+          pdf_path: string | null
+          signed_at: string | null
+          signed_by_name: string | null
+          staff_name: string | null
+          staff_signature_path: string | null
+          supersedes_id: string | null
+          type: Database["public"]["Enums"]["protocol_type"]
+          updated_at: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "handover_protocols"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       vehicle_availability: {
         Args: { p_from: string; p_to: string; p_vehicle_id: string }

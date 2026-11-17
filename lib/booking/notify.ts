@@ -3,13 +3,15 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { localizedPath } from '@/i18n/routing'
 import { bookingEmailDataFromRow } from '@/lib/booking/email-data'
 import { describeBookingChange, type ChangeableBooking } from '@/lib/booking/change'
-import { sendBookingCancelled, sendBookingChangeRequested, sendBookingChangeResolved, sendBookingConfirmed } from '@/lib/email/booking-emails'
+import { sendBookingCancelled, sendBookingChangeRequested, sendBookingChangeResolved, sendBookingConfirmed, sendProtocolSigned, sendSettlement } from '@/lib/email/booking-emails'
 import { formatEuro } from '@/lib/format'
 import { buildIcs } from '@/lib/ics'
 import { formatIban, paymentDueDate, variableSymbol } from '@/lib/payment'
+import { fuelLabel, usesFuel } from '@/lib/protocol/model'
+import { depositOutcome, settlementLines } from '@/lib/settlement'
 import { getSettings } from '@/lib/settings'
 import { getSiteOrigin } from '@/lib/site-url'
-import { formatDate } from '@/lib/time'
+import { formatDate, formatDateTime } from '@/lib/time'
 import type { Database } from '@/types/database'
 
 type Client = SupabaseClient<Database>
@@ -138,6 +140,76 @@ export async function notifyBookingChangeResolved(supabase: Client, bookingId: s
     return result.sent
   } catch (e) {
     console.error('booking change resolved email failed', e)
+    return false
+  }
+}
+
+/**
+ * Emails 8 and 10 – the signed protocol goes to the customer with the PDF attached
+ * (`pdf` is null when it could not be generated; the email then points to the account).
+ * Never throws.
+ */
+export async function notifyProtocolSigned(supabase: Client, protocolId: string, pdf: { filename: string; content: Buffer } | null): Promise<boolean> {
+  try {
+    const { data: protocol } = await supabase.from('handover_protocols').select('booking_id, type, handover_at, odometer_km, fuel_level').eq('id', protocolId).maybeSingle()
+    if (!protocol) return false
+    const [loaded, { data: vehicle }, { count }] = await Promise.all([
+      load(supabase, protocol.booking_id),
+      supabase.from('bookings').select('vehicles(fuel, assistance)').eq('id', protocol.booking_id).maybeSingle(),
+      supabase.from('protocol_damages').select('id', { count: 'exact', head: true }).eq('protocol_id', protocolId),
+    ])
+    if (!loaded) return false
+    const { booking, settings, origin, vehicleName } = loaded
+    const data = bookingEmailDataFromRow(booking, vehicleName, settings.company)
+    const assistance = (vehicle?.vehicles?.assistance ?? null) as { phone?: string } | null
+    const result = await sendProtocolSigned(
+      {
+        booking: data,
+        type: protocol.type,
+        handoverAt: formatDateTime(protocol.handover_at ?? new Date(), data.locale),
+        odometer: protocol.odometer_km === null ? '—' : `${new Intl.NumberFormat(data.locale === 'en' ? 'en-GB' : 'sk-SK').format(protocol.odometer_km)} km`,
+        fuel: usesFuel(vehicle?.vehicles?.fuel ?? '') && protocol.fuel_level !== null ? fuelLabel(protocol.fuel_level) : null,
+        newDamages: protocol.type === 'return' ? (count ?? 0) : 0,
+        hasAttachment: !!pdf,
+        accountUrl: `${origin}${localizedPath(data.locale, `/moj-ucet/rezervacie/${protocol.booking_id}`)}`,
+        assistancePhone: assistance?.phone || settings.assistance.phone || null,
+      },
+      { bookingId: protocol.booking_id, profileId: booking.customer_id, pdf },
+    )
+    return result.sent
+  } catch (e) {
+    console.error('protocol email failed', e)
+    return false
+  }
+}
+
+/** Email 10, second part – the approved settlement. Never throws. */
+export async function notifySettlementApproved(supabase: Client, bookingId: string): Promise<boolean> {
+  try {
+    const [loaded, { data: settlement }] = await Promise.all([load(supabase, bookingId), supabase.from('settlements').select('*').eq('booking_id', bookingId).maybeSingle()])
+    if (!loaded || !settlement?.approved_at) return false
+    const { booking, settings, origin, vehicleName } = loaded
+    const data = bookingEmailDataFromRow(booking, vehicleName, settings.company)
+    const euro = (cents: number) => formatEuro(cents, data.locale)
+    const total = settlement.total_cents ?? 0
+    const { refundCents, dueCents } = depositOutcome(booking.deposit_cents, total)
+    const result = await sendSettlement(
+      {
+        booking: data,
+        lines: settlementLines(settlement, data.locale).map((line) => ({ label: line.label, detail: line.detail, amount: euro(line.cents) })),
+        total: euro(total),
+        hasCharges: total > 0,
+        deposit: euro(booking.deposit_cents),
+        refund: dueCents > 0 ? null : euro(refundCents),
+        due: dueCents > 0 ? euro(dueCents) : null,
+        note: settlement.note,
+        accountUrl: `${origin}${localizedPath(data.locale, `/moj-ucet/rezervacie/${bookingId}`)}`,
+      },
+      { bookingId, profileId: booking.customer_id },
+    )
+    return result.sent
+  } catch (e) {
+    console.error('settlement email failed', e)
     return false
   }
 }

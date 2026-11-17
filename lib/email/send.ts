@@ -13,8 +13,8 @@ export type EmailMessage = {
   bookingId?: string | null
   /** Defaults to the company address. */
   replyTo?: string
-  /** Files to attach, e.g. the calendar invitation. */
-  attachments?: { filename: string; content: string; contentType?: string }[]
+  /** Files to attach: text (calendar invitation) or binary (protocol PDF). */
+  attachments?: { filename: string; content: string | Buffer; contentType?: string }[]
 }
 
 export type EmailResult = { sent: boolean; reason?: 'not_configured' | 'provider_error' }
@@ -66,7 +66,7 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
         subject: message.subject,
         html: message.html,
         text: message.text,
-        attachments: message.attachments?.map((file) => ({ filename: file.filename, content: Buffer.from(file.content, 'utf8').toString('base64'), content_type: file.contentType })),
+        attachments: message.attachments?.map((file) => ({ filename: file.filename, content: (typeof file.content === 'string' ? Buffer.from(file.content, 'utf8') : file.content).toString('base64'), content_type: file.contentType })),
       }),
     })
     const body = (await response.json().catch(() => ({}))) as { id?: string; message?: string }
