@@ -15,6 +15,10 @@ const PREVIEWS = [
   { title: '3 · Rezervácia potvrdená – platobné pokyny', query: 'sablona=potvrdena&jazyk=sk' },
   { title: '3 · Rezervácia potvrdená – bez vyplnených bankových údajov', query: 'sablona=potvrdena&jazyk=sk&varianta=bezbanky' },
   { title: '3 · Booking confirmed (EN)', query: 'sablona=potvrdena&jazyk=en&varianta=prevod' },
+  { title: '4 · Úprava od zákazníka – čaká na schválenie', query: 'sablona=uprava' },
+  { title: '4 · Úprava od zákazníka – s kolíziou termínu', query: 'sablona=uprava&varianta=kolizia' },
+  { title: '5 · Úprava schválená', query: 'sablona=rozhodnutie&jazyk=sk' },
+  { title: '5 · Úprava zamietnutá', query: 'sablona=rozhodnutie&jazyk=sk&varianta=zamietnuta' },
   { title: '6 · Rezervácia zrušená – zákazník, so storno poplatkom', query: 'sablona=zrusena&jazyk=sk&varianta=poplatok' },
   { title: '6 · Rezervácia zrušená – notifikácia pre BTW', query: 'sablona=zrusena&varianta=btw' },
 ]

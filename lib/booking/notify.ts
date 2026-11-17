@@ -2,7 +2,8 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { localizedPath } from '@/i18n/routing'
 import { bookingEmailDataFromRow } from '@/lib/booking/email-data'
-import { sendBookingCancelled, sendBookingConfirmed } from '@/lib/email/booking-emails'
+import { describeBookingChange, type ChangeableBooking } from '@/lib/booking/change'
+import { sendBookingCancelled, sendBookingChangeRequested, sendBookingChangeResolved, sendBookingConfirmed } from '@/lib/email/booking-emails'
 import { formatEuro } from '@/lib/format'
 import { buildIcs } from '@/lib/ics'
 import { formatIban, paymentDueDate, variableSymbol } from '@/lib/payment'
@@ -88,6 +89,55 @@ export async function notifyBookingCancelled(supabase: Client, bookingId: string
     return results[0]?.sent ?? false
   } catch (e) {
     console.error('booking cancelled email failed', e)
+    return false
+  }
+}
+
+type ExtraRow = { name_snapshot: unknown; quantity: number }
+
+/**
+ * Email 4 – staff are told that the customer changed a booking. `before` is the booking
+ * as it was; the proposal is read from pending_change (confirmed booking) or from the
+ * row itself (a new booking that was rewritten). Never throws.
+ */
+export async function notifyBookingChangeRequested(supabase: Client, bookingId: string, before: { booking: ChangeableBooking; extras: ExtraRow[] }, collision: boolean): Promise<boolean> {
+  try {
+    const loaded = await load(supabase, bookingId)
+    if (!loaded) return false
+    const { booking, settings, origin, vehicleName } = loaded
+    const pending = booking.pending_change as { booking?: ChangeableBooking; extras?: ExtraRow[] } | null
+    const { data: currentExtras } = await supabase.from('booking_extras').select('name_snapshot, quantity').eq('booking_id', bookingId)
+    const after = pending?.booking ?? booking
+    const afterExtras = pending ? (pending.extras ?? []) : (currentExtras ?? [])
+    const results = await sendBookingChangeRequested(
+      {
+        booking: bookingEmailDataFromRow(booking, vehicleName, settings.company, 'sk'),
+        changes: describeBookingChange(before.booking, before.extras, after, afterExtras, 'sk'),
+        needsApproval: booking.status === 'modified',
+        collision,
+        adminUrl: `${origin}/admin/rezervacie/${bookingId}`,
+      },
+      settings.admin_notification_emails,
+      { bookingId },
+    )
+    return results.some((result) => result.sent)
+  } catch (e) {
+    console.error('booking change email failed', e)
+    return false
+  }
+}
+
+/** Email 5 – the customer learns whether the change was approved. Never throws. */
+export async function notifyBookingChangeResolved(supabase: Client, bookingId: string, approved: boolean, note: string | null): Promise<boolean> {
+  try {
+    const loaded = await load(supabase, bookingId)
+    if (!loaded) return false
+    const { booking, settings, origin, vehicleName } = loaded
+    const data = bookingEmailDataFromRow(booking, vehicleName, settings.company)
+    const result = await sendBookingChangeResolved({ booking: data, approved, note, accountUrl: `${origin}${localizedPath(data.locale, `/moj-ucet/rezervacie/${bookingId}`)}` }, { bookingId, profileId: booking.customer_id })
+    return result.sent
+  } catch (e) {
+    console.error('booking change resolved email failed', e)
     return false
   }
 }

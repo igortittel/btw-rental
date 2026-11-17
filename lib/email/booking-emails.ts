@@ -1,6 +1,7 @@
 import 'server-only'
 import { render } from '@react-email/render'
 import BookingAdminNotificationEmail, { bookingAdminSubject, type BookingAdminNotificationProps } from '@/emails/booking-admin-notification'
+import { BookingChangeRequestedEmail, BookingChangeResolvedEmail, bookingChangeRequestedSubject, bookingChangeResolvedSubject, type BookingChangeRequestedProps, type BookingChangeResolvedProps } from '@/emails/booking-change'
 import BookingCancelledEmail, { bookingCancelledSubject, type BookingCancelledProps } from '@/emails/booking-cancelled'
 import BookingConfirmedEmail, { bookingConfirmedSubject, type BookingConfirmedProps } from '@/emails/booking-confirmed'
 import BookingReceivedEmail, { bookingReceivedSubject, type BookingReceivedProps } from '@/emails/booking-received'
@@ -64,4 +65,24 @@ export async function sendBookingCancelled(props: Omit<BookingCancelledProps, 'a
     sendEmail({ type: 'booking_cancelled', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...customer }),
     ...staffRecipients.map((to) => sendEmail({ type: 'booking_cancelled_admin', to, locale: 'sk', bookingId: meta.bookingId, replyTo: props.booking.customer.email, ...staff })),
   ])
+}
+
+export async function renderBookingChangeRequested(props: BookingChangeRequestedProps) {
+  return { subject: bookingChangeRequestedSubject(props), ...(await renderBoth(BookingChangeRequestedEmail(props))) }
+}
+
+export async function renderBookingChangeResolved(props: BookingChangeResolvedProps) {
+  return { subject: bookingChangeResolvedSubject(props), ...(await renderBoth(BookingChangeResolvedEmail(props))) }
+}
+
+/** Email 4 – the customer changed a booking (staff). */
+export async function sendBookingChangeRequested(props: BookingChangeRequestedProps, recipients: string[], meta: { bookingId: string }) {
+  const email = await renderBookingChangeRequested(props)
+  return Promise.all(recipients.map((to) => sendEmail({ type: 'booking_change_requested', to, locale: 'sk', bookingId: meta.bookingId, replyTo: props.booking.customer.email, ...email })))
+}
+
+/** Email 5 – the change was approved or rejected (customer). */
+export async function sendBookingChangeResolved(props: BookingChangeResolvedProps, meta: { bookingId: string; profileId: string }) {
+  const email = await renderBookingChangeResolved(props)
+  return sendEmail({ type: props.approved ? 'booking_change_approved' : 'booking_change_rejected', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...email })
 }

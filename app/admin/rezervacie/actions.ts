@@ -6,7 +6,7 @@ import { getStaff } from '@/lib/auth/session'
 import { issueAuthToken } from '@/lib/auth/tokens'
 import { canTransition, isEditable, BLOCKING_STATUSES } from '@/lib/booking-status'
 import { buildBookingEmailData } from '@/lib/booking/email-data'
-import { notifyBookingCancelled, notifyBookingConfirmed } from '@/lib/booking/notify'
+import { notifyBookingCancelled, notifyBookingChangeResolved, notifyBookingConfirmed } from '@/lib/booking/notify'
 import { buildBookingRecord } from '@/lib/booking/record'
 import { fullPhone, termInstants } from '@/lib/booking/schema'
 import { staffBookingSchema, staffFieldErrors, staffRuleErrors, type StaffBookingValues, type StaffFieldErrors } from '@/lib/booking/staff-schema'
@@ -95,6 +95,34 @@ export async function cancelBookingAction(_prev: ActionState, formData: FormData
     refresh(id)
     const sent = await notifyBookingCancelled(supabase, id, 'staff')
     return { ok: true, message: sent ? 'Rezervácia je zrušená, zákazník dostal e-mail.' : 'Rezervácia je zrušená. E-mail zákazníkovi sa neodoslal (odosielanie nie je nastavené alebo zlyhalo).' }
+  })
+}
+
+/**
+ * Decision about a change requested by the customer (status `modified`): approve = the
+ * proposal replaces the booking, reject = the original stays. Both return the booking to
+ * `confirmed` and send email 5. Approving onto an occupied term is refused by the database.
+ */
+export async function resolveBookingChangeAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return staffAction('operator', async ({ supabase }) => {
+    const id = text(formData, 'id')
+    const decision = text(formData, 'decision')
+    // Never guess: an unknown decision must not turn into a rejection (or an approval).
+    if (decision !== 'approve' && decision !== 'reject') return { error: 'Akcia sa nepodarila. Skúste to znova.' }
+    const approve = decision === 'approve'
+    const note = text(formData, 'note')
+    if (!UUID.test(id)) return { error: 'Rezervácia sa nenašla.' }
+    if (!approve && !note) return { error: 'Pri zamietnutí napíšte zákazníkovi dôvod.' }
+
+    const { error } = await supabase.rpc('resolve_booking_change', { p_booking_id: id, p_approve: approve, p_note: note || undefined })
+    if (error) {
+      if (error.code === '23P01') return { error: 'Navrhovaný termín koliduje s inou potvrdenou rezerváciou alebo blokáciou. Úpravu nie je možné schváliť – zamietnite ju alebo najprv uvoľnite termín.' }
+      if (error.message.includes('no_pending_change')) return { error: 'Táto rezervácia už nemá úpravu na posúdenie.' }
+      return { error: dbErrorMessage(error) }
+    }
+    refresh(id)
+    const sent = await notifyBookingChangeResolved(supabase, id, approve, note || null)
+    return { ok: true, message: `Úprava ${approve ? 'schválená' : 'zamietnutá'}. ${sent ? 'Zákazník dostal e-mail.' : 'E-mail zákazníkovi sa neodoslal (odosielanie nie je nastavené alebo zlyhalo).'}` }
   })
 }
 

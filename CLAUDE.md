@@ -3,7 +3,7 @@
 Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 
 - **Zadanie:** [`docs/ZADANIE.md`](docs/ZADANIE.md) – čítaj ako prvé, najmä sekciu 14 (fázy).
-- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-6.md`.
+- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-7.md`.
 
 ## Stav
 
@@ -15,9 +15,10 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 3 Admin: vozidlá, fotky, výbava, ceny, príplatky, miesta, blokácie, nastavenia | hotová, schválená |
 | 4 Verejný katalóg, detail, kalendár dostupnosti | hotová, schválená |
 | 5 Rezervačný formulár, `calculatePrice`, testy, emaily 1–2 | hotová, schválená |
-| 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, **čaká na schválenie** |
-| 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno; **+ e-maily 4–5 a schvaľovanie úprav v admine** | **ďalšia na rade** |
-| 8–10 | nezačaté |
+| 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
+| 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, **čaká na schválenie** |
+| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie | **ďalšia na rade** |
+| 9–10 | nezačaté |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
@@ -25,7 +26,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - **Po každej fáze sa zastav**, zhrň zmeny, napíš, ako to otestovať na preview, a počkaj na schválenie.
 - Komunikácia a UI texty po slovensky; kód, tabuľky a premenné po anglicky.
-- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–4 sú zlúčené v `main` (PR #1); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
+- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–6 sú zlúčené v `main` (PR #1, #2); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
 - Repo `igortittel/btw-web` nečítaj ani neupravuj.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
@@ -50,8 +51,12 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Pristavenie na vlastnú adresu:** adresa v `bookings.pickup_custom_address` / `return_custom_address`, štandardné miesto ostáva ako východisko. **V Bratislave bez poplatku; mimo Bratislavy ručné spracovanie** (BTW zákazníka kontaktuje) – rozhodnutie klienta, žiadny automatický výpočet podľa km. Príznak je v `price_snapshot.delivery_outside_city`.
 - **Stavy v admine:** jedným ťuknutím Potvrdiť / Vydať / Ukončiť (`NEXT_STATUSES`), zrušenie zvlášť kvôli storno poplatku (`cancelBookingAction`, `lib/cancellation.ts`). Prechody stráži databáza; `lib/booking-status.ts` je ich kópia pre UI.
 - **Úprava rezervácie má tri režimy ceny** – ponechať (predvolené), podľa cenníka, vlastná s dôvodom. Úprava nikdy potichu neprepočíta dohodnutú cenu.
-- **E-maily 4–5 a porovnanie úprav sú presunuté do Fázy 7** (stav `modified` vzniká až v zákazníckej zóne).
+- **Úprava zákazníkom:** nová rezervácia sa prepíše, potvrdená ide do `modified` s návrhom v `pending_change` (riadok drží pôvodné údaje a blokuje pôvodný termín). Schválenie / zamietnutie: `resolve_booking_change`. Pri ručne dohodnutej cene a po lehote sa online upraviť nedá (`customerEditBlock`).
+- **Storno poplatok pri storne zákazníkom počíta databáza** (`private.cancellation_fee_cents`), `lib/cancellation.ts` je to isté pravidlo pre zobrazenie a pre zamestnanca. Pri zmene pravidla treba zmeniť obe a testy na oboch stranách.
+- **Žiadosť o vymazanie účtu** sa len zaznamená (`profiles.deletion_requested_at`); vykonanie je Fáza 9.
 - **Server akcie, po ktorých sa má prejsť inam, vracajú `redirectTo`** a klient urobí `window.location.assign`. `redirect()` v akcii volanej cez `await` s `.catch` sa na klientovi prejaví ako zamietnutý promise a navigácia sa stratí (chyba z Fázy 5).
+- **Odkazy s kotvou (`#sekcia`) na inú stránku píš ako `<a href>`**, nie `next/link` – klientska navigácia na prednačítanú trasu s kotvou nedobehne.
+- **`useFormAction` posiela aj stlačené tlačidlo** (`name`/`value`); formuláre s viacerými tlačidlami sa na to spoliehajú. Server pri neznámej hodnote musí vrátiť chybu, nie zvoliť predvolenú vetvu.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
@@ -114,6 +119,7 @@ npm run build
 - **E-maily** sú React Email šablóny v `emails/`, odosielanie cez `lib/email/booking-emails.ts` → `sendEmail` (zápis do `email_log`). E-maily k uloženej rezervácii skladá `lib/booking/notify.ts` z jej snapshotu. Náhľad: `/admin/emaily` – novú šablónu tam vždy pridaj.
 - **Záznam rezervácie** (stĺpce + cenový snapshot) vždy cez `buildBookingRecord()` z `lib/booking/record.ts` – používa ho web, manuálna rezervácia aj úprava.
 - **Zoznam rezervácií a export** zdieľajú filtre v `lib/booking/list-query.ts`.
+- **Zákaznícka zóna** číta cez session klienta (RLS); vozidlo berie z verejného katalógu, lebo zákazník tabuľku `vehicles` nečíta. Akcie sú v `lib/account/actions.ts`; e-maily z nich idú cez service role v `after()`.
 - **Preklady** v `messages/sk.json` a `messages/en.json`; admin je len po slovensky a mimo locale routingu.
 - Žiadne nové UI knižnice s vlastným vizuálom; Radix primitíva sú v poriadku.
 

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getStaff } from '@/lib/auth/session'
-import { renderBookingAdminNotification, renderBookingCancelled, renderBookingConfirmed, renderBookingReceived } from '@/lib/email/booking-emails'
+import { renderBookingAdminNotification, renderBookingCancelled, renderBookingChangeRequested, renderBookingChangeResolved, renderBookingConfirmed, renderBookingReceived } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
 
@@ -26,6 +26,26 @@ export async function GET(request: NextRequest) {
       bank: variant === 'bezbanky' ? null : { iban: 'SK31 1200 0000 1987 4263 7541', swift: 'TATRSKBX', accountName: 'BY THE WAVE, s.r.o.' },
       variableSymbol: '20270042',
       dueDate: locale === 'en' ? '11/06/2027' : '11. 6. 2027',
+      accountUrl: `${origin}/moj-ucet`,
+    })
+  } else if (template === 'uprava') {
+    email = await renderBookingChangeRequested({
+      booking: sampleBookingEmailData('sk'),
+      changes: [
+        { label: 'Vyzdvihnutie', before: '14. 6. 2027 10:00', after: '15. 6. 2027 09:00' },
+        { label: 'Odovzdanie', before: '19. 6. 2027 10:00', after: '21. 6. 2027 09:00' },
+        { label: 'Doplnky', before: 'Autosedačka (2 ks), Druhý šofér', after: 'Autosedačka (2 ks)' },
+        { label: 'Cena s DPH', before: '460 €', after: '522 €' },
+      ],
+      needsApproval: variant !== 'nova',
+      collision: variant === 'kolizia',
+      adminUrl: `${origin}/admin/rezervacie`,
+    })
+  } else if (template === 'rozhodnutie') {
+    email = await renderBookingChangeResolved({
+      booking: sampleBookingEmailData(locale),
+      approved: variant !== 'zamietnuta',
+      note: variant === 'zamietnuta' ? (locale === 'en' ? 'The vehicle is already booked for the requested dates.' : 'Vozidlo je v požadovanom termíne už rezervované.') : null,
       accountUrl: `${origin}/moj-ucet`,
     })
   } else if (template === 'zrusena') {

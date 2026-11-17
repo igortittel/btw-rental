@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { BookingNoteForm, BookingQuickActions, CancelBookingForm } from '@/components/admin/booking-actions'
+import { BookingNoteForm, BookingQuickActions, CancelBookingForm, ResolveChangeForm } from '@/components/admin/booking-actions'
 import { PageHeader, Section } from '@/components/admin/section'
 import { hasRole } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
 import { canTransition, isEditable } from '@/lib/booking-status'
+import { describeBookingChange, type ChangeableBooking } from '@/lib/booking/change'
 import { cancellationQuote } from '@/lib/cancellation'
 import { getSettings } from '@/lib/settings'
 import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, STATUS_BADGE_CLASS } from '@/lib/booking/status'
@@ -31,6 +32,9 @@ const EMAIL_LABELS: Record<string, string> = {
   booking_confirmed: 'Rezervácia potvrdená (zákazník)',
   booking_cancelled: 'Rezervácia zrušená (zákazník)',
   booking_cancelled_admin: 'Rezervácia zrušená (BTW)',
+  booking_change_requested: 'Úprava od zákazníka (BTW)',
+  booking_change_approved: 'Úprava schválená (zákazník)',
+  booking_change_rejected: 'Úprava zamietnutá (zákazník)',
 }
 const EMAIL_STATUS: Record<string, string> = { queued: 'čaká', sent: 'odoslaný', delivered: 'doručený', bounced: 'vrátený', failed: 'neodoslaný' }
 
@@ -82,6 +86,15 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   const quote = cancellationQuote(new Date(booking.pickup_at), booking.total_cents, settings.cancellation_tiers)
   const canEdit = hasRole(user.role, 'manager') && isEditable(booking.status)
 
+  // A change requested by the customer: what differs, and whether the new term is free.
+  const pending = booking.status === 'modified' ? (booking.pending_change as { booking?: ChangeableBooking & { vehicle_id: string }; extras?: { name_snapshot: unknown; quantity: number }[]; requested_at?: string } | null) : null
+  const changes = pending?.booking ? describeBookingChange(booking, extras ?? [], pending.booking, pending.extras ?? []) : []
+  let collision = false
+  if (pending?.booking) {
+    const { data: free } = await supabase.rpc('is_vehicle_available', { p_vehicle_id: pending.booking.vehicle_id, p_pickup_at: pending.booking.pickup_at, p_return_at: pending.booking.return_at, p_exclude_booking_id: booking.id })
+    collision = free === false
+  }
+
   return (
     <div>
       <PageHeader title={`Rezervácia ${booking.number}`} back={{ href: '/admin/rezervacie', label: 'Rezervácie' }} />
@@ -104,6 +117,38 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             </p>
           ) : null}
         </div>
+        {pending ? (
+          <Section id="uprava" title="Úprava od zákazníka" description={`Rezervácia platí v pôvodnom znení, kým nerozhodnete.${pending.requested_at ? ` Žiadosť: ${formatDateTime(pending.requested_at)}.` : ''}`}>
+            {collision ? (
+              <p role="alert" className="mb-4 rounded-lg border border-red-400/60 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                Navrhovaný termín koliduje s inou potvrdenou rezerváciou alebo blokáciou. Úpravu nie je možné schváliť.
+              </p>
+            ) : null}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] text-left text-sm">
+                <thead className="text-xs uppercase tracking-wider text-muted2">
+                  <tr>
+                    <th scope="col" className="py-2 pr-4 font-semibold" />
+                    <th scope="col" className="py-2 pr-4 font-semibold">Pôvodne</th>
+                    <th scope="col" className="py-2 font-semibold">Navrhované</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {changes.map((change) => (
+                    <tr key={change.label} className="align-top">
+                      <th scope="row" className="py-2 pr-4 font-normal text-muted2">{change.label}</th>
+                      <td className="py-2 pr-4 text-muted2">{change.before}</td>
+                      <td className="py-2 font-semibold text-white">{change.after}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 border-t border-line pt-4">
+              <ResolveChangeForm id={booking.id} collision={collision} />
+            </div>
+          </Section>
+        ) : null}
         {snapshot.delivery_outside_city ? (
           <p className="rounded-xl border border-amber-400/60 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
             Zákazník žiada pristavenie mimo Bratislavy. Kontaktujte ho a dohodnite podmienky pred potvrdením; prípadný poplatok zatiaľ nie je v cene.
