@@ -3,7 +3,7 @@
 Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 
 - **Zadanie:** [`docs/ZADANIE.md`](docs/ZADANIE.md) – čítaj ako prvé, najmä sekciu 14 (fázy).
-- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-7.md`.
+- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-8.md`.
 
 ## Stav
 
@@ -16,9 +16,10 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 4 Verejný katalóg, detail, kalendár dostupnosti | hotová, schválená |
 | 5 Rezervačný formulár, `calculatePrice`, testy, emaily 1–2 | hotová, schválená |
 | 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
-| 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, **čaká na schválenie** |
-| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie | **ďalšia na rade** |
-| 9–10 | nezačaté |
+| 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
+| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, **čaká na schválenie** |
+| 9 Faktúry/dokumenty, platby a depozit, cron, zákazníci + GDPR, audit log | **ďalšia na rade** |
+| 10 | nezačatá |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
@@ -26,7 +27,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - **Po každej fáze sa zastav**, zhrň zmeny, napíš, ako to otestovať na preview, a počkaj na schválenie.
 - Komunikácia a UI texty po slovensky; kód, tabuľky a premenné po anglicky.
-- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–6 sú zlúčené v `main` (PR #1, #2); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
+- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–7 sú zlúčené v `main` (PR #1–#3); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
 - Repo `igortittel/btw-web` nečítaj ani neupravuj.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
@@ -57,11 +58,17 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Server akcie, po ktorých sa má prejsť inam, vracajú `redirectTo`** a klient urobí `window.location.assign`. `redirect()` v akcii volanej cez `await` s `.catch` sa na klientovi prejaví ako zamietnutý promise a navigácia sa stratí (chyba z Fázy 5).
 - **Odkazy s kotvou (`#sekcia`) na inú stránku píš ako `<a href>`**, nie `next/link` – klientska navigácia na prednačítanú trasu s kotvou nedobehne.
 - **`useFormAction` posiela aj stlačené tlačidlo** (`name`/`value`); formuláre s viacerými tlačidlami sa na to spoliehajú. Server pri neznámej hodnote musí vrátiť chybu, nie zvoliť predvolenú vetvu.
+- **Protokol mení stav rezervácie:** podpis odovzdávacieho → Prebiehajúca, preberacieho → Ukončená (`sign_protocol`). Rýchle akcie „Odovzdať / Prevziať vozidlo“ otvárajú protokol; zmena stavu bez protokolu je len výnimka v detaile. Opravná verzia stav nemení.
+- **Podpísaný protokol je nemenný** (triggery z Fázy 1); oprava = nová verzia so `supersedes_id`, platná je najvyššia podpísaná. Po podpise sa smie len raz pripojiť `pdf_path`.
+- **PDF protokolu** cez `@react-pdf/renderer` (`lib/pdf/`), písmo a logo vložené v `lib/pdf/assets.generated.ts`. pdfkit treba na Verceli pribaliť cez `outputFileTracingIncludes` v `next.config.js`, inak PDF zlyhá.
+- **Palivo** sa zadáva v osminách, ukladá v % (`eighthsToPercent`).
+- **Vyúčtovanie:** meškanie = každý ďalší začatý deň po tolerancii × denná sadzba rezervácie (rovnaké počítanie dní ako cena); palivo zadáva zamestnanec; každé nové poškodenie má vlastnú sumu (`settlements.damage_items`). Zákazník vidí len potvrdené (`approved_at`); upravuje a potvrdzuje manager+.
+- **E-mail 10 má dve časti:** preberací protokol s PDF hneď po podpise, vyúčtovanie až po jeho potvrdení.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
 
-- `RESEND_API_KEY` + overená doména `rental.btw.sk` v Resend → dovtedy sa e-maily neodosielajú (zapíšu sa do `email_log` ako `failed`; zamestnancom vie odkaz na heslo vygenerovať owner v admine).
+- `RESEND_API_KEY` vo Verceli (Production + Preview, Sensitive) – doménu `rental.btw.sk` má klient v Resend overenú. Bez kľúča sa e-maily neodosielajú (zapíšu sa do `email_log` ako `failed`).
 - Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit.
 - IBAN / SWIFT (v Nastaveniach je placeholder – kým ním je, potvrdzujúci e-mail bankové údaje neukáže), DNS pre `rental.btw.sk`.
 - Odložené zo skorších fáz: 2FA pre zamestnancov, úprava číselníka výbavy, alt texty fotiek, obrazovka audit logu (Fáza 9), EN preklady obsahu a Lighthouse (Fáza 10).
@@ -116,6 +123,7 @@ npm run build
 - **Service role klient** (`lib/supabase/admin.ts`) len v serverovom kóde a až po kontrole oprávnení.
 - **URL vozidla** cez `lib/vehicle-url.ts`; vozidlo sa hľadá podľa VIN.
 - **Cena** vždy cez `calculatePrice()` z `lib/pricing.ts` (aj pre manuálnu rezerváciu v admine); klient cenu neposiela.
+- **Protokoly:** model a pravidlá `lib/protocol/model.ts`, načítanie `lib/protocol/load.ts`, akcie `lib/protocol/actions.ts`, sprievodca `components/admin/protocol/`. Súbory v `protocol-media` vždy pod `<booking_id>/`, inak ich databáza odmietne.
 - **E-maily** sú React Email šablóny v `emails/`, odosielanie cez `lib/email/booking-emails.ts` → `sendEmail` (zápis do `email_log`). E-maily k uloženej rezervácii skladá `lib/booking/notify.ts` z jej snapshotu. Náhľad: `/admin/emaily` – novú šablónu tam vždy pridaj.
 - **Záznam rezervácie** (stĺpce + cenový snapshot) vždy cez `buildBookingRecord()` z `lib/booking/record.ts` – používa ho web, manuálna rezervácia aj úprava.
 - **Zoznam rezervácií a export** zdieľajú filtre v `lib/booking/list-query.ts`.
