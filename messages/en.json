@@ -40,6 +40,7 @@
       "password_too_long": "The password can have at most 72 characters.",
       "passwords_do_not_match": "The passwords do not match.",
       "password_rejected": "This password cannot be used. Please choose a different one.",
+      "password_pwned": "This password has appeared in known data breaches and is easy to guess. Please choose a different one.",
       "token_invalid": "This link is no longer valid. Please request a new one.",
       "unknown": "Something went wrong. Please try again.",
       "captcha_failed": "The anti-robot check failed. Please try again."
@@ -205,7 +206,8 @@
       "password_too_short": "The password must have at least 10 characters.",
       "password_too_long": "The password can have at most 72 characters.",
       "passwords_do_not_match": "The passwords do not match.",
-      "password_rejected": "This password cannot be used. Please choose another one."
+      "password_rejected": "This password cannot be used. Please choose another one.",
+      "password_pwned": "This password has appeared in known data breaches and is easy to guess. Please choose a different one."
     },
     "protocolsTitle": "Reports",
     "protocolPickup": "Handover report",

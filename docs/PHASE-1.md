@@ -61,7 +61,7 @@ Storage: `vehicle-images` verejný; `protocols`, `protocol-media`, `documents` p
 
 ## Hlásenia Supabase Security Advisor (zámerné)
 
-- **Security Definer View** (5× `public_*`): zámer – views sprístupňujú whitelist stĺpcov bez prístupu `anon` k tabuľkám (požiadavka zadania „verejné čítanie cez views / RPC“).
+- **Security Definer View** (5× `public_*`): zámer – views sprístupňujú whitelist stĺpcov bez prístupu `anon` k tabuľkám (požiadavka zadania „verejné čítanie cez views / RPC“). Od 17. 11. 2026 majú API roly na views len SELECT (`20261120090000_read_only_public_views.sql`, pozri `docs/SECURITY.md`).
 - **Security definer funkcie volateľné anon/authenticated**: `vehicle_availability`, `is_vehicle_available` vracajú len obsadené intervaly bez osobných údajov; `change_booking_status` si rolu overuje vnútri.
 - **Leaked password protection vypnutá**: zapnúť v Supabase → Authentication (rieši Fáza 2).
 

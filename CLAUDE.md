@@ -17,7 +17,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 5 Rezervačný formulár, `calculatePrice`, testy, emaily 1–2 | hotová, schválená |
 | 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
-| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, **čaká na schválenie** |
+| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, schválená, v `main` (klient ešte testuje preberací protokol a vyúčtovanie) |
 | 9 Faktúry/dokumenty, platby a depozit, cron, zákazníci + GDPR, audit log | **ďalšia na rade** |
 | 10 | nezačatá |
 
@@ -27,7 +27,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - **Po každej fáze sa zastav**, zhrň zmeny, napíš, ako to otestovať na preview, a počkaj na schválenie.
 - Komunikácia a UI texty po slovensky; kód, tabuľky a premenné po anglicky.
-- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–7 sú zlúčené v `main` (PR #1–#3); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
+- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–8 sú zlúčené v `main` (PR #1–#4); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
 - Repo `igortittel/btw-web` nečítaj ani neupravuj.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
@@ -64,14 +64,21 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Palivo** sa zadáva v osminách, ukladá v % (`eighthsToPercent`).
 - **Vyúčtovanie:** meškanie = každý ďalší začatý deň po tolerancii × denná sadzba rezervácie (rovnaké počítanie dní ako cena); palivo zadáva zamestnanec; každé nové poškodenie má vlastnú sumu (`settlements.damage_items`). Zákazník vidí len potvrdené (`approved_at`); upravuje a potvrdzuje manager+.
 - **E-mail 10 má dve časti:** preberací protokol s PDF hneď po podpise, vyúčtovanie až po jeho potvrdení.
+- **Uniknuté heslá** kontroluje aplikácia (`lib/auth/pwned.ts`, HIBP k-anonymita, pri výpadku prijme), lebo Supabase „Leaked password protection“ nie je na pláne dostupná. Každé nové miesto, kde sa nastavuje heslo, ju musí volať. Verejná registrácia v Supabase Auth je vypnutá.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
 
-- `RESEND_API_KEY` vo Verceli (Production + Preview, Sensitive) – doménu `rental.btw.sk` má klient v Resend overenú. Bez kľúča sa e-maily neodosielajú (zapíšu sa do `email_log` ako `failed`).
 - Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit.
-- IBAN / SWIFT (v Nastaveniach je placeholder – kým ním je, potvrdzujúci e-mail bankové údaje neukáže), DNS pre `rental.btw.sk`.
+- **Reálny IBAN pred spustením:** v Nastaveniach je testovací `SK73 1100 0000 0029 0000 0042` (TATRSKBX, `is_placeholder: false`, aby sa dali testovať platobné pokyny). DNS pre `rental.btw.sk`.
+- `CRON_SECRET` vo Verceli – treba pre Vercel Cron (Fáza 9).
 - Odložené zo skorších fáz: 2FA pre zamestnancov, úprava číselníka výbavy, alt texty fotiek, obrazovka audit logu (Fáza 9), EN preklady obsahu a Lighthouse (Fáza 10).
+
+## Údaje od klienta
+
+- **Fakturačný systém je iKros** (nie SuperFaktúra) – vo Fáze 9 len rozhranie, bez napojenia.
+- **Google recenzie:** `settings.google_review_url` = `https://g.page/r/CfK31p1klMkpEBM/review`, e-mail 12 po `review_request_days` (3) dňoch.
+- **Resend:** doména `rental.btw.sk` overená, `RESEND_API_KEY` je vo Verceli (Production + Preview).
 
 ## Infraštruktúra
 
@@ -79,7 +86,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 |---|---|
 | Supabase projekt | `btw`, ref `wlkdhdkflbswjjdobsfs`, eu-west-1 (cez Supabase MCP konektor) |
 | Vercel | tím `igortittels-projects` (`team_tKyxRtkRIInsaFXlnwp9EpJf`), projekt `btw-rental` |
-| Vercel env | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SEED_OWNER_PASSWORD` |
+| Vercel env | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SEED_OWNER_PASSWORD`, `RESEND_API_KEY` |
 | Owner účet | firemný e-mail BTW (hodnota je v `scripts/seed-owner.ts`) |
 | Cloud prostredie | `btw-rental` – povolené hosty: `www.btw.sk`, `btw.sk`, `wp.btw.sk`, `wlkdhdkflbswjjdobsfs.supabase.co` |
 
@@ -109,6 +116,7 @@ npm run build
 - Seed: `supabase/seed.sql` sa generuje (`python3 scripts/build-seed.py`), ručne ho neupravuj.
 - SQL testy správania: `supabase/tests/` – bežia na lokálnom Postgrese so stubom Supabase, postup je v `docs/PHASE-1.md` (Postgres 16 je v cloud prostredí v `/usr/lib/postgresql/16/bin`; dátový adresár musí vlastniť používateľ `postgres`). Ak je výstup `generate_typescript_types` príliš veľký, doplň novú funkciu do `types/database.ts` ručne v rovnakom tvare. Zmenu existujúcej funkcie možno na Supabase aplikovať aj `do` blokom, ktorý upraví `pg_get_functiondef()` a overí, že hľadaný text našiel; v repe musí byť vždy celá definícia.
 - Roly sa overujú cez `private.is_staff(min_role)` nad tabuľkou `staff_roles`, nikdy cez JWT metadáta.
+- **Views v `public` sú len na čítanie:** predvolené práva Supabase dávajú `anon` aj zápis a views `public_*` obchádzajú RLS. Každý nový view musí mať `revoke insert, update, delete, truncate … from anon, authenticated` (vzor v `20261120090000_read_only_public_views.sql`, stráži `supabase/tests/05_security.sql`). Bezpečnostný audit: `docs/SECURITY.md`.
 - Verejný web číta len views `public_*` a RPC (`lib/catalog.ts`); na verejné endpointy nesmie ísť ŠPZ, interné poznámky ani blacklist.
 
 ## Konvencie v kóde
@@ -143,3 +151,5 @@ Lokálne nie je `SUPABASE_SERVICE_ROLE_KEY` (vo Verceli je Sensitive a nedá sa 
 4. Preview nasadenia sú za Vercel prihlásením, Playwrightom sa na ne nedostaneš.
 
 Audit log je nemazateľný; testovacie zápisy v ňom ostávajú.
+
+**Čísla rezervácií (`booking_counters`) pri mazaní testovacích dát nevracaj späť**, ak po testovacej vznikli ďalšie rezervácie – nové číslo by kolidovalo s existujúcim. Medzera v číslovaní nevadí.
