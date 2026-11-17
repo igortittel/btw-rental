@@ -40,6 +40,7 @@
       "password_too_long": "Heslo môže mať najviac 72 znakov.",
       "passwords_do_not_match": "Heslá sa nezhodujú.",
       "password_rejected": "Toto heslo nie je možné použiť. Zvoľte prosím iné.",
+      "password_pwned": "Toto heslo sa objavilo v známych únikoch dát a dá sa ľahko uhádnuť. Zvoľte prosím iné.",
       "token_invalid": "Odkaz už nie je platný. Vyžiadajte si prosím nový.",
       "unknown": "Niečo sa nepodarilo. Skúste to prosím znova.",
       "captcha_failed": "Overenie proti robotom sa nepodarilo. Skúste to prosím znova."
@@ -205,7 +206,8 @@
       "password_too_short": "Heslo musí mať najmenej 10 znakov.",
       "password_too_long": "Heslo môže mať najviac 72 znakov.",
       "passwords_do_not_match": "Heslá sa nezhodujú.",
-      "password_rejected": "Toto heslo nie je možné použiť. Zvoľte prosím iné."
+      "password_rejected": "Toto heslo nie je možné použiť. Zvoľte prosím iné.",
+      "password_pwned": "Toto heslo sa objavilo v známych únikoch dát a dá sa ľahko uhádnuť. Zvoľte prosím iné."
     },
     "protocolsTitle": "Protokoly",
     "protocolPickup": "Odovzdávací protokol",

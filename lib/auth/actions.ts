@@ -10,6 +10,7 @@ import { consumeAuthToken, peekAuthToken } from '@/lib/auth/tokens'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { verifyTurnstile } from '@/lib/turnstile'
+import { isPwnedPassword } from '@/lib/auth/pwned'
 
 export type AuthFormState = { error?: string; ok?: boolean }
 
@@ -116,6 +117,7 @@ export async function setPasswordAction(_prev: AuthFormState, formData: FormData
     .eq('id', peeked.profileId)
     .maybeSingle()
   if (!profile?.email || profile.anonymized_at) return { error: 'token_invalid' }
+  if (await isPwnedPassword(parsed.data.password)) return { error: 'password_pwned' }
 
   // Set the password first; the token is burnt only once that has worked, so a
   // rejected password (e.g. a leaked one) does not waste the link.

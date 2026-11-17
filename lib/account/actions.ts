@@ -17,6 +17,7 @@ import { calculatePrice } from '@/lib/pricing'
 import { createAdminClient, createStatelessClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
+import { isPwnedPassword } from '@/lib/auth/pwned'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -248,6 +249,7 @@ export async function changeMyPasswordAction(_prev: AccountState, formData: Form
   const current = formData.get('currentPassword')
   const check = await createStatelessClient().auth.signInWithPassword({ email: user.email, password: typeof current === 'string' ? current : '' })
   if (check.error) return { error: 'current_password_wrong' }
+  if (await isPwnedPassword(parsed.data.password)) return { error: 'password_pwned' }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password })

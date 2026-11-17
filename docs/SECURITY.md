@@ -29,14 +29,17 @@ CSP zámerne neobmedzuje skripty – to by vyžadovalo nonce a dynamické render
 - Service role kľúč len v serverovom kóde (`server-only`); v `NEXT_PUBLIC_*` nie je žiadne tajomstvo.
 - `create_booking` a ostatné zapisujúce RPC nie sú dostupné pre `anon`.
 
-## Treba nastaviť v dashboardoch (klient)
+## Nastavenia v dashboardoch (klient)
 
-| Kde | Čo | Prečo |
+| Kde | Čo | Stav |
 |---|---|---|
-| Supabase → Authentication → Sign In / Providers | vypnúť **Allow new users to sign up** | Účty vytvára len aplikácia (service role). Dnes sa dá cez API obísť Turnstile a založiť účet na cudzí e-mail, čo môže zablokovať neskoršiu rezerváciu majiteľa e-mailu. |
-| Supabase → Authentication → Attack Protection | zapnúť **Leaked password protection** | Odmietne heslá z únikov (HaveIBeenPwned). Podľa plánu môže byť dostupné len pri platenom pláne. |
-| Supabase, Vercel, GitHub, Resend, Cloudflare | **2FA na všetkých účtoch** s prístupom | Najčastejší únik je cez ukradnuté heslo k dashboardu, nie cez aplikáciu. |
-| Supabase → Storage | zmazať prázdny bucket `booking-documents` (pozostatok prototypu) | Nepoužíva sa, nemá limity veľkosti ani typu. |
+| Supabase → Authentication → Sign In / Providers | vypnúť **Allow new users to sign up** – účty vytvára len aplikácia (service role) | ✅ hotovo, overené (`disable_signup: true`) |
+| Supabase → Authentication → Attack Protection | **Leaked password protection** | ❌ na pláne nedostupné → nahradené v aplikácii (nižšie) |
+| Supabase, Vercel, GitHub, Resend, Cloudflare | **2FA na všetkých účtoch** s prístupom – najčastejší únik je cez ukradnuté heslo k dashboardu | ⏳ pripravuje klient |
+| Supabase → Storage | zmazať prázdny bucket `booking-documents` (pozostatok prototypu) | ✅ hotovo, overené |
+
+### Kontrola uniknutých hesiel v aplikácii
+Náhrada za Supabase „Leaked password protection“: `lib/auth/pwned.ts` overí nové heslo cez Have I Been Pwned (Pwned Passwords) pri nastavení hesla cez odkaz (`setPasswordAction`) aj pri zmene v profile (`changeMyPasswordAction`) – iné cesty k nastaveniu hesla nie sú, verejná registrácia je vypnutá. Zo servera odchádza len prvých 5 znakov SHA-1 hashu (k-anonymita), heslo ani celý hash nie. Pri výpadku služby (timeout 3 s) sa heslo prijme. Chyba pre používateľa: `password_pwned`.
 
 ## Ešte v pláne (aplikácia)
 

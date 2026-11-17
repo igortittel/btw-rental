@@ -64,6 +64,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Palivo** sa zadáva v osminách, ukladá v % (`eighthsToPercent`).
 - **Vyúčtovanie:** meškanie = každý ďalší začatý deň po tolerancii × denná sadzba rezervácie (rovnaké počítanie dní ako cena); palivo zadáva zamestnanec; každé nové poškodenie má vlastnú sumu (`settlements.damage_items`). Zákazník vidí len potvrdené (`approved_at`); upravuje a potvrdzuje manager+.
 - **E-mail 10 má dve časti:** preberací protokol s PDF hneď po podpise, vyúčtovanie až po jeho potvrdení.
+- **Uniknuté heslá** kontroluje aplikácia (`lib/auth/pwned.ts`, HIBP k-anonymita, pri výpadku prijme), lebo Supabase „Leaked password protection“ nie je na pláne dostupná. Každé nové miesto, kde sa nastavuje heslo, ju musí volať. Verejná registrácia v Supabase Auth je vypnutá.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
