@@ -109,6 +109,7 @@ npm run build
 - Seed: `supabase/seed.sql` sa generuje (`python3 scripts/build-seed.py`), ručne ho neupravuj.
 - SQL testy správania: `supabase/tests/` – bežia na lokálnom Postgrese so stubom Supabase, postup je v `docs/PHASE-1.md` (Postgres 16 je v cloud prostredí v `/usr/lib/postgresql/16/bin`; dátový adresár musí vlastniť používateľ `postgres`). Ak je výstup `generate_typescript_types` príliš veľký, doplň novú funkciu do `types/database.ts` ručne v rovnakom tvare. Zmenu existujúcej funkcie možno na Supabase aplikovať aj `do` blokom, ktorý upraví `pg_get_functiondef()` a overí, že hľadaný text našiel; v repe musí byť vždy celá definícia.
 - Roly sa overujú cez `private.is_staff(min_role)` nad tabuľkou `staff_roles`, nikdy cez JWT metadáta.
+- **Views v `public` sú len na čítanie:** predvolené práva Supabase dávajú `anon` aj zápis a views `public_*` obchádzajú RLS. Každý nový view musí mať `revoke insert, update, delete, truncate … from anon, authenticated` (vzor v `20261120090000_read_only_public_views.sql`, stráži `supabase/tests/05_security.sql`). Bezpečnostný audit: `docs/SECURITY.md`.
 - Verejný web číta len views `public_*` a RPC (`lib/catalog.ts`); na verejné endpointy nesmie ísť ŠPZ, interné poznámky ani blacklist.
 
 ## Konvencie v kóde
