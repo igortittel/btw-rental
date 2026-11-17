@@ -17,7 +17,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 5 Rezervačný formulár, `calculatePrice`, testy, emaily 1–2 | hotová, schválená |
 | 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
-| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, **čaká na schválenie** |
+| 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, v `main` (PR #4), **klient ju testuje** |
 | 9 Faktúry/dokumenty, platby a depozit, cron, zákazníci + GDPR, audit log | **ďalšia na rade** |
 | 10 | nezačatá |
 
@@ -27,7 +27,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - **Po každej fáze sa zastav**, zhrň zmeny, napíš, ako to otestovať na preview, a počkaj na schválenie.
 - Komunikácia a UI texty po slovensky; kód, tabuľky a premenné po anglicky.
-- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–7 sú zlúčené v `main` (PR #1–#3); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
+- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–8 sú zlúčené v `main` (PR #1–#4); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
 - Repo `igortittel/btw-web` nečítaj ani neupravuj.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
@@ -70,7 +70,9 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - `RESEND_API_KEY` vo Verceli (Production + Preview, Sensitive) – doménu `rental.btw.sk` má klient v Resend overenú. Bez kľúča sa e-maily neodosielajú (zapíšu sa do `email_log` ako `failed`).
 - Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit.
-- IBAN / SWIFT (v Nastaveniach je placeholder – kým ním je, potvrdzujúci e-mail bankové údaje neukáže), DNS pre `rental.btw.sk`.
+- **IBAN / SWIFT sú testovacie** (`SK73 1100 0000 0029 0000 0042`, `TATRSKBX`, `is_placeholder: false`, aby sa dali testovať platobné pokyny v e-maile 3). **Pred spustením ich musí klient nahradiť skutočnými** v Admin → Nastavenia. DNS pre `rental.btw.sk`.
+- Google recenzie: `https://g.page/r/CfK31p1klMkpEBM/review` (už v Nastaveniach, `google_review_url`).
+- **Fakturačný systém klienta je iKros** (nie SuperFaktúra) – vo Fáze 9 pripraviť rozhranie pre iKros, neimplementovať napojenie.
 - Odložené zo skorších fáz: 2FA pre zamestnancov, úprava číselníka výbavy, alt texty fotiek, obrazovka audit logu (Fáza 9), EN preklady obsahu a Lighthouse (Fáza 10).
 
 ## Infraštruktúra
