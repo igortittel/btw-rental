@@ -1,3 +1,5 @@
+import { loadBlacklist, matchBlacklist } from '@/lib/customers/blacklist'
+import { missingPayments } from '@/lib/payment'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BookingQuickActions } from '@/components/admin/booking-actions'
@@ -13,7 +15,7 @@ import { formatDateTime } from '@/lib/time'
 
 export const metadata: Metadata = { title: 'Rezervácie' }
 
-type Snapshot = { first_name?: string; last_name?: string; phone?: string; company_name?: string | null }
+type Snapshot = { first_name?: string; last_name?: string; email?: string; phone?: string; company_name?: string | null }
 type Props = { searchParams: Promise<Record<string, string | undefined>> }
 
 const control = 'h-11 w-full rounded-lg border border-line bg-[#141414] px-3 text-sm text-white focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40'
@@ -25,10 +27,11 @@ export default async function BookingsPage({ searchParams }: Props) {
   const { status, vehicleId, from, to, q } = filters
 
   const supabase = await createClient()
-  const [{ data: bookings }, { data: vehicles }, { data: allStatuses }] = await Promise.all([
+  const [{ data: bookings }, { data: vehicles }, { data: allStatuses }, blacklist] = await Promise.all([
     bookingListQuery(supabase, filters, 200),
     supabase.from('vehicles').select('id, name, license_plate').order('sort_order'),
     supabase.from('bookings').select('status'),
+    loadBlacklist(supabase),
   ])
   const list = bookings ?? []
   const counts = (allStatuses ?? []).reduce<Record<string, number>>((acc, row) => ({ ...acc, [row.status]: (acc[row.status] ?? 0) + 1 }), {})
@@ -137,6 +140,8 @@ export default async function BookingsPage({ searchParams }: Props) {
         {list.map((booking) => {
           const customer = (booking.customer_snapshot ?? {}) as Snapshot
           const delivery = booking.pickup_custom_address || booking.return_custom_address
+          const flagged = matchBlacklist(blacklist, { customerId: booking.customer_id, email: customer.email, phone: customer.phone }).length > 0
+          const unpaid = ['confirmed', 'modified'].includes(booking.status) ? missingPayments(booking) : []
           return (
             <li key={booking.id} className="flex flex-col rounded-xl border border-gold/40 bg-surface p-4">
               <div className="flex items-start justify-between gap-3">
@@ -169,6 +174,12 @@ export default async function BookingsPage({ searchParams }: Props) {
                 <strong>{booking.total_cents !== null ? formatEuro(booking.total_cents) : 'Individuálna cena – doplniť'}</strong>
                 {delivery ? booking.outside === true ? <span className="text-amber-200"> · pristavenie mimo BA – kontaktovať</span> : <span className="text-muted2"> · pristavenie v BA</span> : null}
               </p>
+              {flagged || unpaid.length > 0 ? (
+                <p className="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                  {flagged ? <span className="rounded-full border border-red-400/60 bg-red-500/10 px-2.5 py-0.5 text-red-200">Blacklist</span> : null}
+                  {unpaid.length > 0 ? <span className="rounded-full border border-amber-400/60 bg-amber-400/10 px-2.5 py-0.5 text-amber-100">Neuhradené: {unpaid.map((k) => (k === 'rental' ? 'prenájom' : 'depozit')).join(', ')}</span> : null}
+                </p>
+              ) : null}
               <div className="mt-auto pt-4">
                 <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref={`/admin/rezervacie/${booking.id}#storno`} detailHref={`/admin/rezervacie/${booking.id}`} />
               </div>

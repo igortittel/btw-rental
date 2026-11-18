@@ -3,18 +3,13 @@ import { getStaff } from '@/lib/auth/session'
 import { bookingListQuery, parseBookingFilters } from '@/lib/booking/list-query'
 import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/lib/booking/status'
 import { createClient } from '@/lib/supabase/server'
+import { csvCell as cell } from '@/lib/csv'
 import { formatDateTime } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
 
 type Snapshot = { first_name?: string; last_name?: string; email?: string; phone?: string; company_name?: string | null }
 
-/** Values starting with = + - @ would be run as formulas by spreadsheets; neutralise them. */
-function cell(value: string | number | null | undefined): string {
-  let text = value === null || value === undefined ? '' : String(value)
-  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
-  return `"${text.replace(/"/g, '""')}"`
-}
 
 /** CSV export of the bookings matching the same filters as the list (semicolon-separated, UTF-8 with BOM for Excel). */
 export async function GET(request: NextRequest) {

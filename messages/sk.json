@@ -190,7 +190,10 @@
       "deleteLead": "Požiadať môžete o vymazanie účtu a osobných údajov. Doklady k uskutočneným prenájmom musíme zo zákona uchovať 10 rokov; v takom prípade údaje anonymizujeme.",
       "deleteConfirm": "Žiadam o vymazanie svojho účtu.",
       "deleteSubmit": "Odoslať žiadosť",
-      "deleteRequested": "Žiadosť o vymazanie účtu sme prijali {date}. Ozveme sa vám."
+      "deleteRequested": "Žiadosť o vymazanie účtu sme prijali {date}. Ozveme sa vám.",
+      "refundTitle": "Vrátenie depozitu",
+      "refundHint": "Číslo účtu, na ktorý vám vrátime depozit, ak ste ho platili prevodom. Nepovinné.",
+      "refundIban": "IBAN"
     },
     "errors": {
       "forbidden": "Prihláste sa prosím znova.",
@@ -207,7 +210,8 @@
       "password_too_long": "Heslo môže mať najviac 72 znakov.",
       "passwords_do_not_match": "Heslá sa nezhodujú.",
       "password_rejected": "Toto heslo nie je možné použiť. Zvoľte prosím iné.",
-      "password_pwned": "Toto heslo sa objavilo v známych únikoch dát a dá sa ľahko uhádnuť. Zvoľte prosím iné."
+      "password_pwned": "Toto heslo sa objavilo v známych únikoch dát a dá sa ľahko uhádnuť. Zvoľte prosím iné.",
+      "iban_invalid": "Toto nie je platný IBAN. Skontrolujte ho prosím."
     },
     "protocolsTitle": "Protokoly",
     "protocolPickup": "Odovzdávací protokol",
@@ -222,7 +226,23 @@
     "settlementDeposit": "Depozit",
     "settlementRefund": "Vrátime vám",
     "settlementDue": "Doplatok nad rámec depozitu",
-    "settlementNote": "Poznámka"
+    "settlementNote": "Poznámka",
+    "paidOn": "prijaté {date}",
+    "depositReturnedOn": "Vrátili sme {amount} ({date})",
+    "rentalRefundedOn": "Vrátili sme {amount} ({date})",
+    "bankIban": "IBAN",
+    "bankAmount": "Suma",
+    "transferInstructions": "Pokyny k platbe prevodom",
+    "paymentBeforePickup": "Prenájom aj depozit je potrebné uhradiť najneskôr pri vyzdvihnutí vozidla; pri prevode tak, aby platba prišla vopred.",
+    "documentsTitle": "Doklady",
+    "documentIssued": "vystavený {date}",
+    "documentDownload": "Stiahnuť PDF",
+    "documentTypes": {
+      "proforma": "Zálohová faktúra",
+      "invoice": "Faktúra",
+      "credit_note": "Dobropis",
+      "settlement": "Doúčtovanie"
+    }
   },
   "catalog": {
     "title": "Prenájom vozidiel",

@@ -73,7 +73,7 @@ export async function saveBankAction(_prev: ActionState, formData: FormData): Pr
     return saveSettings(
       supabase,
       userId,
-      { bank: { iban: formatIban(iban), swift, account_name: accountName, is_placeholder: false }, payment_methods: methods, payment_due_days: due },
+      { bank: { iban: formatIban(iban), swift, account_name: accountName, is_placeholder: false }, payment_methods: methods, payment_due_days: due, require_payment_before_pickup: checkbox(formData, 'require_payment_before_pickup') },
       'Bankové údaje a platby uložené.',
     )
   })

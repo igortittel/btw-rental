@@ -18,7 +18,9 @@ import type { PriceBreakdown } from '@/lib/pricing'
 import { depositOutcome, settlementLines } from '@/lib/settlement'
 import { vehicleImageUrl } from '@/lib/storage'
 import { createClient } from '@/lib/supabase/server'
-import { formatDateTime } from '@/lib/time'
+import { formatDate, formatDateTime } from '@/lib/time'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { formatIban } from '@/lib/iban'
 
 type Props = { params: Promise<{ locale: string; id: string }>; searchParams: Promise<{ zmena?: string }> }
 type Localized = { sk?: string; en?: string }
@@ -50,8 +52,22 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
     getTranslations('catalog'),
   ])
   if (!booking) notFound()
+  const { data: documents } = await supabase.from('documents').select('id, type, number, amount_cents, issued_at').eq('booking_id', id).order('created_at')
 
   const { settings } = catalog
+  // Bank details for an unpaid transfer (company data, not personal; customers cannot read
+  // the settings table, so the server reads just this key).
+  const transferDue = (booking.status === 'confirmed' || booking.status === 'modified') && booking.rental_payment_method === 'transfer' && booking.rental_payment_status === 'unpaid' && booking.total_cents !== null
+  let bank: { iban: string; swift: string } | null = null
+  if (transferDue) {
+    try {
+      const { data } = await createAdminClient().from('settings').select('value').eq('key', 'bank').maybeSingle()
+      const value = data?.value as { iban?: string; swift?: string; is_placeholder?: boolean } | null
+      if (value?.iban && !value.is_placeholder) bank = { iban: formatIban(value.iban), swift: value.swift ?? '' }
+    } catch {
+      bank = null
+    }
+  }
   const snapshot = (booking.price_snapshot ?? {}) as Snapshot
   const vehicle = catalog.vehicles.find((v) => v.id === booking.vehicle_id)
   const vehicleName = vehicle?.name ?? snapshot.vehicle?.name ?? ''
@@ -280,12 +296,16 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               <dt className="text-muted2">{t('paymentRental')}</dt>
               <dd className="text-right text-white">
                 {t(`methods.${booking.rental_payment_method}`)} · <strong>{t(`rentalStatus.${booking.rental_payment_status}`)}</strong>
+                {booking.rental_paid_at && booking.rental_payment_status === 'paid' ? <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.rental_paid_at, locale) })}</span> : null}
+                {booking.rental_refunded_cents && booking.rental_refunded_at ? <span className="block text-sm text-muted2">{t('rentalRefundedOn', { amount: euro(booking.rental_refunded_cents), date: formatDate(booking.rental_refunded_at, locale) })}</span> : null}
               </dd>
             </div>
             <div className={row}>
               <dt className="text-muted2">{t('paymentDeposit')}</dt>
               <dd className="text-right text-white">
                 {t(`methods.${booking.deposit_payment_method}`)} · <strong>{t(`depositStatus.${booking.deposit_status}`)}</strong>
+                {booking.deposit_received_at && booking.deposit_status === 'received' ? <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.deposit_received_at, locale) })}</span> : null}
+                {booking.deposit_returned_cents !== null && booking.deposit_returned_at ? <span className="block text-sm text-muted2">{t('depositReturnedOn', { amount: euro(booking.deposit_returned_cents), date: formatDate(booking.deposit_returned_at, locale) })}</span> : null}
               </dd>
             </div>
             {status !== 'new' && (booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer') ? (
@@ -295,7 +315,50 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               </div>
             ) : null}
           </dl>
-          <p className="mt-3 text-sm text-muted2">{status === 'new' ? t('paymentAfterConfirm') : booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer' ? t('transferNote') : ''}</p>
+          {transferDue && bank ? (
+            <div className="mt-4 rounded-lg border border-gold/60 p-4">
+              <p className="font-semibold text-white">{t('transferInstructions')}</p>
+              <dl className="mt-2">
+                <div className={row}>
+                  <dt className="text-muted2">{t('bankIban')}</dt>
+                  <dd className="font-semibold tracking-wide text-white">{bank.iban}</dd>
+                </div>
+                <div className={row}>
+                  <dt className="text-muted2">{t('variableSymbol')}</dt>
+                  <dd className="font-semibold tracking-wider text-white">{variableSymbol(booking.number)}</dd>
+                </div>
+                <div className={row}>
+                  <dt className="text-muted2">{t('bankAmount')}</dt>
+                  <dd className="font-semibold text-white">{euro(booking.total_cents ?? 0)}</dd>
+                </div>
+              </dl>
+            </div>
+          ) : null}
+          <p className="mt-3 text-sm text-muted2">
+            {status === 'new' ? t('paymentAfterConfirm') : transferDue && bank ? t('paymentBeforePickup') : booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer' ? t('transferNote') : ''}
+          </p>
+        </div>
+      ) : null}
+
+      {(documents ?? []).length > 0 ? (
+        <div className={card}>
+          <h2 className={h2}>{t('documentsTitle')}</h2>
+          <ul className="mt-3">
+            {(documents ?? []).map((doc) => (
+              <li key={doc.id} className={row}>
+                <span className="text-white">
+                  {t(`documentTypes.${doc.type}`)}
+                  {doc.number ? ` ${doc.number}` : ''}
+                  <span className="block text-sm text-muted2">
+                    {[doc.amount_cents !== null ? euro(doc.amount_cents) : null, doc.issued_at ? t('documentIssued', { date: formatDate(`${doc.issued_at}T12:00:00Z`, locale) }) : null].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+                <a href={`/api/documents/${doc.id}`} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
+                  {t('documentDownload')}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 

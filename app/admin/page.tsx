@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { formatEuro } from '@/lib/format'
+import { missingPayments, unpaidCents } from '@/lib/payment'
+import { requireStaff } from '@/lib/auth/session'
+import { hasRole } from '@/lib/auth/roles'
 import { computeKpi } from '@/lib/kpi'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateTime, utcToZonedLocal, zonedLocalToUtc } from '@/lib/time'
@@ -58,6 +61,30 @@ export default async function AdminHomePage({ searchParams }: Props) {
   const settled = new Set((approved ?? []).map((row) => row.booking_id))
   const toSettle = (returned ?? []).filter((row, index, all) => !settled.has(row.booking_id) && all.findIndex((other) => other.booking_id === row.booking_id) === index)
 
+  // ── Phase 9: payments, deposits, GDPR requests, missed handovers, cron ──
+  const user = await requireStaff('operator')
+  const now = new Date()
+  const horizon = new Date(now.getTime() + 14 * 86_400_000).toISOString()
+  const paySelect = 'id, number, status, pickup_at, return_at, total_cents, deposit_cents, rental_payment_status, deposit_status, rental_payment_method, deposit_payment_method, customer_snapshot, vehicles(name)'
+  const [{ data: upcoming }, { data: finished }, { data: deletionRequests }, { data: lastRun }] = await Promise.all([
+    supabase.from('bookings').select(paySelect).in('status', ['confirmed', 'modified']).lte('pickup_at', horizon).order('pickup_at').limit(200),
+    supabase.from('bookings').select(`${paySelect}, settlements(total_cents, approved_at)`).in('status', ['completed', 'cancelled']).eq('deposit_status', 'received').order('return_at').limit(100),
+    hasRole(user.role, 'manager')
+      ? supabase.from('profiles').select('id, first_name, last_name, email, deletion_requested_at').not('deletion_requested_at', 'is', null).is('anonymized_at', null).order('deletion_requested_at')
+      : Promise.resolve({ data: [] as { id: string; first_name: string; last_name: string; email: string | null; deletion_requested_at: string | null }[] }),
+    supabase.from('cron_runs').select('started_at, finished_at, ok, result, error').eq('job', 'daily').order('started_at', { ascending: false }).limit(1).maybeSingle(),
+  ])
+  const unpaid = (upcoming ?? []).filter((b) => missingPayments(b).length > 0)
+  const unpaidSum = unpaid.reduce((sum, b) => sum + unpaidCents(b), 0)
+  const missedPickups = (upcoming ?? []).filter((b) => new Date(b.pickup_at).getTime() < now.getTime() - 60 * 60_000)
+  const deposits = (finished ?? []).map((b) => {
+    const settlement = Array.isArray(b.settlements) ? b.settlements[0] : b.settlements
+    const ready = b.status === 'cancelled' || !!settlement?.approved_at
+    return { ...b, ready, refundCents: ready ? Math.max(0, b.deposit_cents - (settlement?.total_cents ?? 0)) : null }
+  })
+  const depositsReadySum = deposits.reduce((sum, d) => sum + (d.refundCents ?? 0), 0)
+  const cronResult = (lastRun?.result ?? null) as { pickup?: { sent: number; failed: number }; return?: { sent: number; failed: number }; review?: { sent: number; failed: number } } | null
+
   const kpi = computeKpi(kpiBookings.data ?? [], new Date(iso(periodFrom, '00:00')), new Date(iso(periodTo, '00:00')), vehicles.count ?? 0)
 
   const tiles = [
@@ -66,6 +93,15 @@ export default async function AdminHomePage({ searchParams }: Props) {
     { label: 'Vozidlá v prenájme', value: active.count ?? 0, href: '/admin/rezervacie?stav=active', highlight: false },
     { label: 'Dnes vyzdvihnutia / odovzdania', value: `${pickupsToday.data?.length ?? 0} / ${returnsToday.data?.length ?? 0}`, href: `/admin/rezervacie?od=${today}&do=${today}`, highlight: false },
   ]
+  const paymentTiles = [
+    { label: 'Neuhradené pred vyzdvihnutím', value: unpaid.length, sub: unpaid.length > 0 ? `spolu ${formatEuro(unpaidSum)} · najbližších 14 dní` : 'najbližších 14 dní', href: '#neuhradene', highlight: unpaid.length > 0 },
+    { label: 'Depozity na vrátenie', value: deposits.length, sub: deposits.length > 0 ? `${formatEuro(depositsReadySum)} pripravené${deposits.some((d) => !d.ready) ? ` · ${deposits.filter((d) => !d.ready).length} čaká na vyúčtovanie` : ''}` : 'žiadne', href: '#depozity', highlight: deposits.some((d) => d.ready) },
+    ...(hasRole(user.role, 'manager') ? [{ label: 'Žiadosti o vymazanie účtu', value: (deletionRequests ?? []).length, sub: (deletionRequests ?? []).length > 0 ? `najstaršia ${formatDateTime((deletionRequests ?? [])[0].deletion_requested_at!).split(' ')[0]} · lehota 30 dní` : 'žiadne', href: '/admin/zakaznici?filter=vymazanie', highlight: (deletionRequests ?? []).length > 0 }] : []),
+  ]
+  const customerName = (snapshot: unknown) => {
+    const c = (snapshot ?? {}) as Snapshot & { company_name?: string | null }
+    return c.company_name || `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim()
+  }
   const lists = [
     { title: 'Dnešné vyzdvihnutia', rows: pickupsToday.data ?? [], time: 'pickup_at' as const },
     { title: 'Dnešné odovzdania', rows: returnsToday.data ?? [], time: 'return_at' as const },
@@ -89,6 +125,139 @@ export default async function AdminHomePage({ searchParams }: Props) {
           </Link>
         ))}
       </div>
+
+      <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${paymentTiles.length === 3 ? 'lg:grid-cols-3' : ''}`}>
+        {paymentTiles.map((tile) => (
+          <a key={tile.label} href={tile.href} className={`rounded-xl border bg-surface p-4 transition-colors hover:border-gold sm:p-5 ${tile.highlight ? 'border-gold' : 'border-gold/40'}`}>
+            <p className="text-xs text-muted2 sm:text-sm">{tile.label}</p>
+            <p className={`mt-1 text-3xl font-bold ${tile.highlight ? 'text-gold' : 'text-white'}`}>{tile.value}</p>
+            <p className="mt-1 text-xs text-muted2">{tile.sub}</p>
+          </a>
+        ))}
+      </div>
+
+      {missedPickups.length > 0 ? (
+        <section className="rounded-xl border border-red-400/60 bg-surface p-4 sm:p-5">
+          <h2 className="text-base font-bold text-white">Termín vyzdvihnutia uplynul, vozidlo nie je odovzdané ({missedPickups.length})</h2>
+          <p className="mt-1 text-xs text-muted2">Stav mení podpis odovzdávacieho protokolu. Ak zákazník neprišiel, rezerváciu zrušte.</p>
+          <ul className="mt-2 divide-y divide-line">
+            {missedPickups.map((b) => (
+              <li key={b.id}>
+                <Link href={`/admin/rezervacie/${b.id}`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold">
+                  <span><strong>{b.number}</strong> · {b.vehicles?.name}</span>
+                  <span className="text-muted2">{customerName(b.customer_snapshot)} · vyzdvihnutie {formatDateTime(b.pickup_at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section id="neuhradene" className={`scroll-mt-24 rounded-xl border bg-surface p-4 sm:p-5 ${unpaid.length > 0 ? 'border-gold' : 'border-gold/40'}`}>
+        <h2 className="text-base font-bold text-white">Neuhradené platby pred vyzdvihnutím ({unpaid.length})</h2>
+        <p className="mt-1 text-xs text-muted2">Potvrdené rezervácie s vyzdvihnutím do 14 dní bez zaznamenanej úhrady prenájmu alebo prijatia depozitu.</p>
+        {unpaid.length === 0 ? (
+          <p className="mt-3 text-sm text-muted2">Všetko uhradené.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-line">
+            {unpaid.map((b) => {
+              const missing = missingPayments(b)
+              const soon = new Date(b.pickup_at).getTime() - now.getTime() < 36 * 3600_000
+              return (
+                <li key={b.id}>
+                  <a href={`/admin/rezervacie/${b.id}#platby`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-sm text-white hover:text-gold">
+                    <span>
+                      <strong>{b.number}</strong> · {b.vehicles?.name}
+                      <span className="block text-muted2">{customerName(b.customer_snapshot)} · vyzdvihnutie {formatDateTime(b.pickup_at)}</span>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span>
+                        {missing.map((k) => (k === 'rental' ? `prenájom ${formatEuro(b.total_cents)} (${b.rental_payment_method === 'transfer' ? 'prevod' : b.rental_payment_method === 'terminal' ? 'terminál' : 'hotovosť'})` : `depozit ${formatEuro(b.deposit_cents)} (${b.deposit_payment_method === 'transfer' ? 'prevod' : b.deposit_payment_method === 'terminal' ? 'terminál' : 'hotovosť'})`)).join(' + ')}
+                      </span>
+                      {soon ? <span className="rounded-full border border-red-400/60 bg-red-500/10 px-2 py-0.5 text-xs font-semibold text-red-200">čoskoro</span> : null}
+                    </span>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section id="depozity" className="scroll-mt-24 rounded-xl border border-gold/40 bg-surface p-4 sm:p-5">
+          <h2 className="text-base font-bold text-white">Depozity na vrátenie ({deposits.length})</h2>
+          {deposits.length === 0 ? (
+            <p className="mt-3 text-sm text-muted2">Žiadne.</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-line">
+              {deposits.map((d) => (
+                <li key={d.id}>
+                  <a href={d.ready ? `/admin/rezervacie/${d.id}#platby` : `/admin/rezervacie/${d.id}/vyuctovanie`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-sm text-white hover:text-gold">
+                    <span>
+                      <strong>{d.number}</strong> · {d.vehicles?.name}
+                      <span className="block text-muted2">{customerName(d.customer_snapshot)} · {d.status === 'cancelled' ? 'zrušená' : `vrátené ${formatDateTime(d.return_at).split(' ')[0]}`}</span>
+                    </span>
+                    {d.ready ? <strong className="text-gold">vrátiť {formatEuro(d.refundCents)}</strong> : <span className="text-muted2">najprv potvrďte vyúčtovanie</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-gold/40 bg-surface p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-bold text-white">Automatické e-maily</h2>
+            {lastRun ? (
+              <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${lastRun.ok ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-200' : 'border-red-400/60 bg-red-500/10 text-red-200'}`}>
+                {lastRun.ok ? 'v poriadku' : lastRun.finished_at ? 's chybami' : 'nedokončený'}
+              </span>
+            ) : null}
+          </div>
+          {lastRun ? (
+            <>
+              <p className="mt-1 text-xs text-muted2">Posledný beh {formatDateTime(lastRun.started_at)} · beží každé ráno</p>
+              <dl className="mt-3 space-y-1 text-sm">
+                {(
+                  [
+                    ['Pripomienka vyzdvihnutia (7)', cronResult?.pickup],
+                    ['Pripomienka vrátenia (9)', cronResult?.return],
+                    ['Poďakovanie a recenzia (12)', cronResult?.review],
+                  ] as const
+                ).map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-4">
+                    <dt className="text-muted2">{label}</dt>
+                    <dd className="text-white">
+                      {value?.sent ?? 0} odoslané{value?.failed ? <span className="text-red-200"> · {value.failed} zlyhalo</span> : null}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              {lastRun.error ? <p className="mt-2 text-xs text-red-200">{lastRun.error}</p> : null}
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-muted2">Zatiaľ neprebehol žiadny automatický beh.</p>
+          )}
+          <p className="mt-3 text-xs text-muted2">Každý e-mail ide k rezervácii najviac raz. Zlyhané sa skúsia pri ďalšom behu.</p>
+        </section>
+      </div>
+
+      {(deletionRequests ?? []).length > 0 ? (
+        <section className="rounded-xl border border-amber-400/60 bg-surface p-4 sm:p-5">
+          <h2 className="text-base font-bold text-white">Žiadosti o vymazanie účtu ({(deletionRequests ?? []).length})</h2>
+          <ul className="mt-2 divide-y divide-line">
+            {(deletionRequests ?? []).map((p) => (
+              <li key={p.id}>
+                <Link href={`/admin/zakaznici/${p.id}`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold">
+                  <span><strong>{`${p.first_name} ${p.last_name}`.trim()}</strong> · {p.email}</span>
+                  <span className="text-muted2">žiadosť {formatDateTime(p.deletion_requested_at!)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {toSettle.length > 0 ? (
         <section className="rounded-xl border border-gold bg-surface p-4 sm:p-5">

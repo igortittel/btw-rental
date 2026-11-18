@@ -32,7 +32,7 @@ export function bookingFilterParams(filters: BookingFilters, override: Partial<R
 }
 
 export const BOOKING_LIST_COLUMNS =
-  'id, number, status, pickup_at, return_at, days, total_cents, pickup_custom_address, return_custom_address, outside:price_snapshot->delivery_outside_city, customer_snapshot, rental_payment_method, deposit_payment_method, created_at, vehicles(name, license_plate)' as const
+  'id, number, status, pickup_at, return_at, days, total_cents, pickup_custom_address, return_custom_address, outside:price_snapshot->delivery_outside_city, customer_id, customer_snapshot, rental_payment_method, deposit_payment_method, rental_payment_status, deposit_status, deposit_cents, created_at, vehicles(name, license_plate)' as const
 
 /** Bookings matching the filters. The date range matches bookings that overlap it; the search covers number, name, email, phone and company. */
 export function bookingListQuery(supabase: SupabaseClient<Database>, filters: BookingFilters, limit: number) {

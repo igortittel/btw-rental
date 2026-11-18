@@ -48,3 +48,8 @@ export async function getSiteOrigin(): Promise<string> {
   }
   return fallbackOrigin()
 }
+
+/** Configured origin without looking at the request (background jobs such as the cron). */
+export function getConfiguredOrigin(): string {
+  return fallbackOrigin()
+}

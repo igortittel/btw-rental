@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { BookingNoteForm, BookingQuickActions, CancelBookingForm, ResolveChangeForm, StatusWithoutProtocol } from '@/components/admin/booking-actions'
 import { PageHeader, Section } from '@/components/admin/section'
+import { PaymentsPanel } from '@/components/admin/payments-panel'
+import { DocumentsPanel } from '@/components/admin/documents-panel'
+import { loadBlacklist, matchBlacklist } from '@/lib/customers/blacklist'
+import { variableSymbol } from '@/lib/payment'
 import { hasRole } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
 import { canTransition, isEditable } from '@/lib/booking-status'
@@ -15,7 +19,7 @@ import { BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, STATUS_BADGE_CLASS } from
 import { formatEuro } from '@/lib/format'
 import type { PriceBreakdown } from '@/lib/pricing'
 import { createClient } from '@/lib/supabase/server'
-import { formatDate, formatDateTime } from '@/lib/time'
+import { formatDate, formatDateTime, utcToZonedLocal } from '@/lib/time'
 
 export const metadata: Metadata = { title: 'Rezervácia' }
 
@@ -40,6 +44,10 @@ const EMAIL_LABELS: Record<string, string> = {
   protocol_pickup: 'Odovzdávací protokol (zákazník)',
   protocol_return: 'Preberací protokol (zákazník)',
   settlement_approved: 'Vyúčtovanie (zákazník)',
+  document_available: 'Doklad k dispozícii (zákazník)',
+  pickup_reminder: 'Pripomienka vyzdvihnutia (automaticky)',
+  return_reminder: 'Pripomienka vrátenia (automaticky)',
+  review_request: 'Poďakovanie a recenzia (automaticky)',
 }
 const EMAIL_STATUS: Record<string, string> = { queued: 'čaká', sent: 'odoslaný', delivered: 'doručený', bounced: 'vrátený', failed: 'neodoslaný' }
 
@@ -82,7 +90,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   const place = (location?: { name: Name; address: string }) => (location ? `${location.name.sk ?? ''} (${location.address})` : '')
 
   // Names of the people in the history and notes (staff can read profiles).
-  const personIds = [...new Set([...(history ?? []).map((h) => h.changed_by), ...(notes ?? []).map((n) => n.author_id)].filter((v): v is string => !!v))]
+  const personIds = [...new Set([...(history ?? []).map((h) => h.changed_by), ...(notes ?? []).map((n) => n.author_id), booking.rental_paid_marked_by, booking.deposit_received_marked_by, booking.deposit_returned_marked_by].filter((v): v is string => !!v))]
   const { data: people } = personIds.length > 0 ? await supabase.from('profiles').select('id, first_name, last_name, type').in('id', personIds) : { data: [] }
   const personName = (personId: string | null) => {
     if (!personId) return 'systém'
@@ -90,6 +98,20 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     const person = (people ?? []).find((p) => p.id === personId)
     return person ? `${person.first_name} ${person.last_name}`.trim() || 'zamestnanec' : 'zamestnanec'
   }
+  const [{ data: customerProfile }, { data: documents }, blacklist] = await Promise.all([
+    supabase.from('profiles').select('refund_iban').eq('id', booking.customer_id).maybeSingle(),
+    supabase.from('documents').select('id, type, number, amount_cents, issued_at, uploaded_by, emailed_at').eq('booking_id', id).order('created_at'),
+    loadBlacklist(supabase),
+  ])
+  const blacklistHits = matchBlacklist(blacklist, { customerId: booking.customer_id, email: customer.email, phone: customer.phone })
+  const uploaderIds = [...new Set((documents ?? []).map((d) => d.uploaded_by).filter((v): v is string => !!v && !personIds.includes(v)))]
+  const { data: uploaders } = uploaderIds.length > 0 ? await supabase.from('profiles').select('id, first_name, last_name').in('id', uploaderIds) : { data: [] }
+  const uploaderName = (uid: string | null) => {
+    if (!uid) return null
+    const extra = (uploaders ?? []).find((p) => p.id === uid)
+    return extra ? `${extra.first_name} ${extra.last_name}`.trim() : personName(uid)
+  }
+  const day = (value: string | null) => (value ? formatDate(value) : undefined)
   const quote = cancellationQuote(new Date(booking.pickup_at), booking.total_cents, settings.cancellation_tiers)
   const canEdit = hasRole(user.role, 'manager') && isEditable(booking.status)
 
@@ -106,6 +128,16 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
     <div>
       <PageHeader title={`Rezervácia ${booking.number}`} back={{ href: '/admin/rezervacie', label: 'Rezervácie' }} />
       <div className="space-y-4">
+        {blacklistHits.map((hit) => (
+          <p key={hit.profileId} role="alert" className="rounded-xl border border-red-400/60 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            <strong>Problémový zákazník (blacklist)</strong>
+            {hit.via === 'account' ? '' : hit.via === 'email' ? ` – rovnaký e-mail ako ${hit.name}` : ` – rovnaký telefón ako ${hit.name}`}
+            {hit.note ? `: ${hit.note}` : '.'}{' '}
+            <a href={`/admin/zakaznici/${hit.profileId}`} className="font-semibold text-white underline underline-offset-4">
+              Detail zákazníka
+            </a>
+          </p>
+        ))}
         <div className="rounded-xl border border-gold/60 bg-surface p-4">
           <p className="mb-3 flex flex-wrap items-center gap-3 text-sm text-white">
             <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE_CLASS[booking.status]}`}>{BOOKING_STATUS_LABELS[booking.status]}</span>
@@ -230,7 +262,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         <Section title="Zákazník">
           <Rows
             rows={[
-              ['Meno', `${customer.first_name ?? ''} ${customer.last_name ?? ''}`],
+              ['Meno', <a key="n" href={`/admin/zakaznici/${booking.customer_id}`} className="text-gold hover:underline">{`${customer.first_name ?? ''} ${customer.last_name ?? ''}`.trim() || 'zákazník'}</a>],
               ['E-mail', customer.email ? <a href={`mailto:${customer.email}`} className="text-gold hover:underline">{customer.email}</a> : ''],
               ['Telefón', customer.phone ? <a href={`tel:${customer.phone}`} className="text-gold hover:underline">{customer.phone}</a> : ''],
               ['Dátum narodenia', customer.date_of_birth ? formatDate(`${customer.date_of_birth}T12:00:00Z`) : ''],
@@ -257,6 +289,61 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
               ['Depozit', `${formatEuro(booking.deposit_cents)} · ${PAYMENT_METHOD_LABELS[booking.deposit_payment_method]}`],
               ['Limit km', `${booking.km_limit_per_day} km / deň, nad limit ${formatEuro(booking.extra_km_cents)} / km`],
             ]}
+          />
+        </Section>
+
+        <Section id="platby" title="Platby" description="Prenájom a depozit sú dve samostatné platby. Prijatie aj vrátenie sa zapíše s dátumom a menom zamestnanca.">
+          <PaymentsPanel
+            id={booking.id}
+            bookingStatus={booking.status}
+            canManage={hasRole(user.role, 'manager')}
+            today={utcToZonedLocal(new Date()).slice(0, 10)}
+            variableSymbol={variableSymbol(booking.number)}
+            totalCents={booking.total_cents}
+            depositCents={booking.deposit_cents}
+            rental={{
+              status: booking.rental_payment_status,
+              method: booking.rental_payment_method,
+              paidAt: booking.rental_paid_at,
+              paidBy: booking.rental_paid_marked_by ? personName(booking.rental_paid_marked_by) : null,
+              refundedCents: booking.rental_refunded_cents,
+              refundedAt: booking.rental_refunded_at,
+              refundMethod: booking.rental_refund_method,
+              refundNote: booking.rental_refund_note,
+            }}
+            deposit={{
+              status: booking.deposit_status,
+              method: booking.deposit_payment_method,
+              receivedAt: booking.deposit_received_at,
+              receivedBy: booking.deposit_received_marked_by ? personName(booking.deposit_received_marked_by) : null,
+              returnedCents: booking.deposit_returned_cents,
+              returnedAt: booking.deposit_returned_at,
+              returnMethod: booking.deposit_return_method,
+              returnNote: booking.deposit_return_note,
+              returnedBy: booking.deposit_returned_marked_by ? personName(booking.deposit_returned_marked_by) : null,
+            }}
+            settlementCents={settlement?.total_cents ?? null}
+            settlementApproved={!!settlement?.approved_at}
+            refundIban={customerProfile?.refund_iban ?? null}
+            dates={{ rentalPaid: day(booking.rental_paid_at), rentalRefunded: day(booking.rental_refunded_at), depositReceived: day(booking.deposit_received_at), depositReturned: day(booking.deposit_returned_at) }}
+          />
+        </Section>
+
+        <Section id="doklady" title="Doklady" description="Faktúry vystavuje BTW v iKros; sem sa nahrá PDF. Zákazník doklad uvidí v Mojom účte.">
+          <DocumentsPanel
+            bookingId={booking.id}
+            canManage={hasRole(user.role, 'manager')}
+            hasEmail={!!customer.email}
+            today={utcToZonedLocal(new Date()).slice(0, 10)}
+            documents={(documents ?? []).map((doc) => ({
+              id: doc.id,
+              type: doc.type,
+              number: doc.number,
+              amount: doc.amount_cents === null ? null : formatEuro(doc.amount_cents),
+              issuedAt: doc.issued_at ? formatDate(`${doc.issued_at}T12:00:00Z`) : null,
+              uploadedBy: uploaderName(doc.uploaded_by),
+              emailedAt: doc.emailed_at ? formatDateTime(doc.emailed_at) : null,
+            }))}
           />
         </Section>
 

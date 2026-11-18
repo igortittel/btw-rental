@@ -22,6 +22,7 @@ import {
 } from '@/lib/booking/schema'
 import { createPublicClient, getCatalog, loadCatalog } from '@/lib/catalog'
 import { sendBookingAdminNotification, sendBookingReceived } from '@/lib/email/booking-emails'
+import { loadBlacklist, matchBlacklist } from '@/lib/customers/blacklist'
 import { calculatePrice } from '@/lib/pricing'
 import { getSettings } from '@/lib/settings'
 import { getSiteOrigin } from '@/lib/site-url'
@@ -258,6 +259,8 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         const { token } = await issueAuthToken(customerId, 'set_password')
         account = { kind: 'set_password', url: `${origin}${localizedPath(locale, '/nastavit-heslo')}?${new URLSearchParams({ token, next: accountPath })}` }
       }
+      // Blacklist: the account itself (create_booking) or another account with the same e-mail / phone.
+      const blacklisted = result.is_blacklisted || matchBlacklist(await loadBlacklist(createAdminClient()), { customerId, email: data.email, phone }).length > 0
       await Promise.all([
         sendBookingReceived({ booking: buildBookingEmailData(emailInput), account, termsUrl: settings.terms_url }, { bookingId: result.id, profileId: customerId }),
         sendBookingAdminNotification(
@@ -265,7 +268,7 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
             booking: buildBookingEmailData(emailInput, 'sk'),
             adminUrl: `${origin}/admin/rezervacie/${result.id}`,
             pendingOverlaps: result.pending_overlaps,
-            isBlacklisted: result.is_blacklisted,
+            isBlacklisted: blacklisted,
             isNewCustomer: createdAccount,
           },
           settings.admin_notification_emails,

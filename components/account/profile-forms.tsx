@@ -45,7 +45,7 @@ export function ProfileForm({ email, initial: start }: { email: string; initial:
     if (!code) return undefined
     return a.has(`errors.${code}`) ? a(`errors.${code}`) : b(`errors.${b.has(`errors.${code}`) ? code : 'unknown'}`, { hours: 0, days: 1, age: 21, digits: 9 })
   }
-  const text = (key: 'firstName' | 'lastName' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip', label: string, props: React.ComponentProps<'input'> = {}, className?: string) => (
+  const text = (key: 'firstName' | 'lastName' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'refundIban', label: string, props: React.ComponentProps<'input'> = {}, className?: string) => (
     <Field id={key} label={label} error={err(key)} className={className}>
       <TextInput id={key} value={values[key]} onChange={(event) => set(key, event.target.value)} {...describe(key, err(key))} {...props} />
     </Field>
@@ -108,6 +108,11 @@ export function ProfileForm({ email, initial: start }: { email: string; initial:
             </SelectInput>
           </Field>
         </div>
+      </Card>
+
+      <Card title={t('refundTitle')}>
+        <p className="mb-3 text-sm text-muted2">{t('refundHint')}</p>
+        {text('refundIban', t('refundIban'), { autoComplete: 'off', spellCheck: false, maxLength: 42, placeholder: 'SK00 0000 0000 0000 0000 0000' })}
       </Card>
 
       <Notice state={{ error: result.errors.form, ok: result.ok }} okText={t('saved')} />

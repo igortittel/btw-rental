@@ -21,11 +21,19 @@ const PREVIEWS = [
   { title: '5 · Úprava zamietnutá', query: 'sablona=rozhodnutie&jazyk=sk&varianta=zamietnuta' },
   { title: '6 · Rezervácia zrušená – zákazník, so storno poplatkom', query: 'sablona=zrusena&jazyk=sk&varianta=poplatok' },
   { title: '6 · Rezervácia zrušená – notifikácia pre BTW', query: 'sablona=zrusena&varianta=btw' },
+  { title: '7 · Pripomienka vyzdvihnutia (automaticky deň vopred)', query: 'sablona=pripomienka&jazyk=sk' },
+  { title: '7 · Pripomienka vyzdvihnutia – neuhradený prenájom', query: 'sablona=pripomienka&jazyk=sk&varianta=neuhradene' },
+  { title: '7 · Pick-up reminder (EN)', query: 'sablona=pripomienka&jazyk=en' },
   { title: '8 · Odovzdávací protokol (PDF v prílohe)', query: 'sablona=protokol&jazyk=sk' },
   { title: '10 · Preberací protokol (PDF v prílohe)', query: 'sablona=protokol&jazyk=sk&varianta=preberaci' },
   { title: '10 · Return report (EN)', query: 'sablona=protokol&jazyk=en&varianta=preberaci' },
   { title: '10 · Vyúčtovanie – s doúčtovaním', query: 'sablona=vyuctovanie&jazyk=sk' },
   { title: '10 · Vyúčtovanie – bez doúčtovania', query: 'sablona=vyuctovanie&jazyk=sk&varianta=bez' },
+  { title: '9 · Pripomienka vrátenia (automaticky deň vopred)', query: 'sablona=pripomienka&jazyk=sk&varianta=vratenie' },
+  { title: '11 · Doklad k dispozícii (faktúra, PDF v prílohe)', query: 'sablona=doklad&jazyk=sk' },
+  { title: '11 · Document available (EN)', query: 'sablona=doklad&jazyk=en' },
+  { title: '12 · Poďakovanie a žiadosť o recenziu', query: 'sablona=recenzia&jazyk=sk' },
+  { title: '12 · Thank you and review (EN)', query: 'sablona=recenzia&jazyk=en' },
 ]
 
 export default async function EmailsPage() {

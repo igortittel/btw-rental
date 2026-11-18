@@ -10,7 +10,9 @@ import { accessoriesOf, cleanlinessOf, draftOf, latestSigned, loadProtocols, pro
 import { CLEANLINESS_LABEL, PROTOCOL_TITLE, defaultAccessories, fuelLabel, missingAccessories, protocolTypeFromSlug, returnAccessories, usesCharge, usesFuel, type DamageKind, type DamageView, type PhotoAngle } from '@/lib/protocol/model'
 import { getSettings } from '@/lib/settings'
 import { createClient } from '@/lib/supabase/server'
-import { formatDateTime } from '@/lib/time'
+import { formatEuro } from '@/lib/format'
+import { missingPayments } from '@/lib/payment'
+import { formatDateTime, utcToZonedLocal } from '@/lib/time'
 
 export const metadata: Metadata = { title: 'Protokol' }
 // Signing renders the PDF (photos included) inside the server action of this page.
@@ -102,6 +104,15 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
             kmLimitPerDay: booking.km_limit_per_day,
             plannedReturnAt: booking.return_at,
             toleranceMinutes: settings.return_tolerance_minutes,
+            unpaid:
+              type === 'pickup' && !draft.supersedes_id && settings.require_payment_before_pickup
+                ? missingPayments(booking).map((kind) =>
+                    kind === 'rental'
+                      ? { kind, label: `Prenájom ${formatEuro(booking.total_cents)}`, method: booking.rental_payment_method }
+                      : { kind, label: `Depozit ${formatEuro(booking.deposit_cents)}`, method: booking.deposit_payment_method },
+                  )
+                : [],
+            today: utcToZonedLocal(new Date()).slice(0, 10),
           }}
         />
         <div className="mt-10 border-t border-line pt-4">

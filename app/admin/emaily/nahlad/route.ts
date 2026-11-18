@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getStaff } from '@/lib/auth/session'
-import { renderBookingAdminNotification, renderBookingCancelled, renderBookingChangeRequested, renderBookingChangeResolved, renderBookingConfirmed, renderBookingReceived, renderProtocolSigned, renderSettlement } from '@/lib/email/booking-emails'
+import { renderBookingAdminNotification, renderBookingCancelled, renderBookingChangeRequested, renderBookingChangeResolved, renderBookingConfirmed, renderBookingReceived, renderBookingReminder, renderDocumentAvailable, renderProtocolSigned, renderReviewRequest, renderSettlement } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
 
@@ -91,6 +91,28 @@ export async function GET(request: NextRequest) {
       note: clean ? null : locale === 'en' ? 'Thank you for letting us know about the delay in advance.' : 'Ďakujeme, že ste nám meškanie vopred oznámili.',
       accountUrl: `${origin}/moj-ucet`,
     })
+  } else if (template === 'pripomienka') {
+    const booking = sampleBookingEmailData(locale)
+    email = await renderBookingReminder({
+      booking,
+      kind: variant === 'vratenie' ? 'return' : 'pickup',
+      unpaid: { rental: variant === 'neuhradene' ? `${booking.total} · ${booking.rentalPayment}` : null, deposit: `${booking.deposit} · ${booking.depositPayment}` },
+      toleranceMinutes: DEFAULT_SETTINGS.return_tolerance_minutes,
+      assistancePhone: DEFAULT_SETTINGS.assistance.phone,
+      accountUrl: `${origin}/moj-ucet`,
+    })
+  } else if (template === 'doklad') {
+    email = await renderDocumentAvailable({
+      booking: sampleBookingEmailData(locale),
+      typeLabel: locale === 'en' ? 'Invoice' : 'Faktúra',
+      number: 'FA2027-0102',
+      amount: locale === 'en' ? '€460.00' : '460,00 €',
+      issuedAt: locale === 'en' ? '19/06/2027' : '19. 6. 2027',
+      hasAttachment: true,
+      accountUrl: `${origin}/moj-ucet`,
+    })
+  } else if (template === 'recenzia') {
+    email = await renderReviewRequest({ booking: sampleBookingEmailData(locale), reviewUrl: 'https://g.page/r/CfK31p1klMkpEBM/review', siteUrl: origin })
   } else if (template === 'admin') {
     email = await renderBookingAdminNotification({
       booking: sampleBookingEmailData('sk', individual),

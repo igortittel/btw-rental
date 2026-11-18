@@ -95,6 +95,11 @@ select public.save_protocol_draft((select id from ids where name = 'pickup'), pg
   jsonb_build_array(jsonb_build_object('view', 'left', 'x', 63, 'y', 62, 'kind', 'scratch', 'description', 'zadné dvere'))));
 select pg_temp.expect((select count(*) = 1 and bool_and(not is_new) from public.protocol_damages where protocol_id = (select id from ids where name = 'pickup')), 'saving replaces damages; pickup damages are not new');
 select pg_temp.expect_error($$select public.sign_protocol((select id from ids where name = 'pickup'), 'elsewhere/c.png', (select id from b)::text || '/s/s.png')$$, 'protocol_incomplete: signatures', 'signatures must be in the booking folder');
+-- Phase 9: rental paid and deposit received before the car is handed over.
+select pg_temp.expect_error($$select public.sign_protocol((select id from ids where name = 'pickup'), (select id from b)::text || '/s/c.png', (select id from b)::text || '/s/s.png')$$, 'protocol_incomplete: payments', 'pickup needs the payments recorded');
+select public.record_payment((select id from b), 'rental', now(), 'transfer');
+select pg_temp.expect_error($$select public.sign_protocol((select id from ids where name = 'pickup'), (select id from b)::text || '/s/c.png', (select id from b)::text || '/s/s.png')$$, 'protocol_incomplete: payments', 'pickup needs the deposit too');
+select public.record_payment((select id from b), 'deposit', now(), 'terminal');
 select pg_temp.expect((select (public.sign_protocol((select id from ids where name = 'pickup'), (select id from b)::text || '/s/c.png', (select id from b)::text || '/s/s.png')).signed_at is not null), 'operator signs the pickup protocol');
 select pg_temp.expect((select status = 'active' from public.bookings where id = (select id from b)), 'signed pickup protocol -> booking active');
 select pg_temp.expect((select note = 'Odovzdávací protokol podpísaný' and changed_by = '00000000-0000-0000-0000-0000000000c1' from public.booking_status_history where booking_id = (select id from b) and to_status = 'active'), 'status history names the protocol and the staff member');

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { AdminNav } from '@/components/admin/admin-nav'
+import { TwoFactorGate } from '@/components/admin/two-factor-gate'
 import { hasRole, STAFF_ROLE_LABELS } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
 
@@ -15,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const primary = [
     { href: '/admin', label: 'Prehľad' },
     { href: '/admin/rezervacie', label: 'Rezervácie' },
+    { href: '/admin/zakaznici', label: 'Zákazníci' },
     { href: '/admin/vozidla', label: 'Vozidlá' },
   ]
   const secondary = [
@@ -26,9 +28,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       ? [
           { href: '/admin/nastavenia', label: 'Nastavenia' },
           { href: '/admin/zamestnanci', label: 'Zamestnanci' },
+          { href: '/admin/audit', label: 'Audit log' },
         ]
       : []),
   ]
+
+  // Second factor: until the session is verified with TOTP (aal2), the admin shows only
+  // the 2FA step. Server actions and API routes refuse aal1 sessions on their own (getStaff).
+  if (user.aal !== 'aal2') {
+    return (
+      <div className="min-h-screen bg-[#111111] px-4 py-10 sm:py-16">
+        <TwoFactorGate userName={user.firstName} />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#111111]">

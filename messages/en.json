@@ -190,7 +190,10 @@
       "deleteLead": "You can ask us to delete your account and personal data. By law we must keep documents for completed rentals for 10 years; in that case we anonymise your data.",
       "deleteConfirm": "I request the deletion of my account.",
       "deleteSubmit": "Send request",
-      "deleteRequested": "We received your account deletion request on {date}. We will be in touch."
+      "deleteRequested": "We received your account deletion request on {date}. We will be in touch.",
+      "refundTitle": "Deposit refund",
+      "refundHint": "Account to which we return the deposit if you paid it by bank transfer. Optional.",
+      "refundIban": "IBAN"
     },
     "errors": {
       "forbidden": "Please sign in again.",
@@ -207,7 +210,8 @@
       "password_too_long": "The password can have at most 72 characters.",
       "passwords_do_not_match": "The passwords do not match.",
       "password_rejected": "This password cannot be used. Please choose another one.",
-      "password_pwned": "This password has appeared in known data breaches and is easy to guess. Please choose a different one."
+      "password_pwned": "This password has appeared in known data breaches and is easy to guess. Please choose a different one.",
+      "iban_invalid": "This is not a valid IBAN. Please check it."
     },
     "protocolsTitle": "Reports",
     "protocolPickup": "Handover report",
@@ -222,7 +226,23 @@
     "settlementDeposit": "Deposit",
     "settlementRefund": "Refund to you",
     "settlementDue": "Amount due beyond the deposit",
-    "settlementNote": "Note"
+    "settlementNote": "Note",
+    "paidOn": "received {date}",
+    "depositReturnedOn": "We returned {amount} ({date})",
+    "rentalRefundedOn": "We refunded {amount} ({date})",
+    "bankIban": "IBAN",
+    "bankAmount": "Amount",
+    "transferInstructions": "Bank transfer details",
+    "paymentBeforePickup": "The rental and the deposit must be paid at the latest when you pick up the vehicle; a bank transfer must arrive beforehand.",
+    "documentsTitle": "Documents",
+    "documentIssued": "issued {date}",
+    "documentDownload": "Download PDF",
+    "documentTypes": {
+      "proforma": "Advance invoice",
+      "invoice": "Invoice",
+      "credit_note": "Credit note",
+      "settlement": "Additional invoice"
+    }
   },
   "catalog": {
     "title": "Car rental",

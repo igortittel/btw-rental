@@ -1,3 +1,4 @@
+import { formatIban } from '@/lib/iban'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { DeleteAccountForm, PasswordForm, ProfileForm } from '@/components/account/profile-forms'
@@ -22,7 +23,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
   const user = await requireUser(localizedPath(locale, '/moj-ucet/profil'))
   const [t, a] = await Promise.all([getTranslations('account.profile'), getTranslations('account')])
   const supabase = await createClient()
-  const { data: profile } = await supabase.from('profiles').select('first_name, last_name, phone, is_company, company_name, ico, dic, ic_dph, billing_address, deletion_requested_at').eq('id', user.id).maybeSingle()
+  const { data: profile } = await supabase.from('profiles').select('first_name, last_name, phone, is_company, company_name, ico, dic, ic_dph, billing_address, refund_iban, deletion_requested_at').eq('id', user.id).maybeSingle()
   const address = (profile?.billing_address ?? {}) as { street?: string; city?: string; zip?: string; country?: string }
   const initial: ProfileValues = {
     firstName: profile?.first_name ?? '',
@@ -39,6 +40,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
     city: address.city ?? '',
     zip: address.zip ?? '',
     country: (COUNTRY_CODES as readonly string[]).includes(address.country ?? '') ? (address.country as ProfileValues['country']) : 'SK',
+    refundIban: profile?.refund_iban ? formatIban(profile.refund_iban) : '',
   }
   const card = 'rounded-xl border border-gold/40 bg-surface p-5 sm:p-6'
 

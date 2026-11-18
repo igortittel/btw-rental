@@ -75,6 +75,14 @@ export default async function SettingsPage() {
                 <Check key={value} label={label} name={`method_${value}`} defaultChecked={settings.payment_methods.includes(value)} />
               ))}
             </fieldset>
+            <div className="sm:col-span-2 lg:col-span-3">
+              <Check
+                label="Pred odovzdaním vozidla vyžadovať úhradu prenájmu a prijatie depozitu"
+                name="require_payment_before_pickup"
+                defaultChecked={settings.require_payment_before_pickup}
+                hint="Odovzdávací protokol sa dá podpísať, až keď sú obe platby zaznamenané. Zaznamenať ich možno aj priamo v protokole."
+              />
+            </div>
           </div>
           <div className="mt-5">
             <SubmitButton />

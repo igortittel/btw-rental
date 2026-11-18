@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { InviteStaffForm, StaffRowActions } from '@/components/admin/staff-forms'
 import { STAFF_ROLE_LABELS } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
+import { ResetMfaButton } from '@/components/admin/reset-mfa-button'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Zamestnanci' }
@@ -13,6 +15,20 @@ export default async function StaffPage() {
     .from('staff_roles')
     .select('user_id, role, is_active, created_at, profiles!staff_roles_user_id_fkey(first_name, last_name, email, password_set)')
     .order('created_at')
+
+  // 2FA status of each staff member (Auth admin API; the list is short).
+  const mfa = new Map<string, boolean>()
+  try {
+    const admin = createAdminClient()
+    await Promise.all(
+      (staff ?? []).map(async (member) => {
+        const { data } = await admin.auth.admin.mfa.listFactors({ userId: member.user_id })
+        mfa.set(member.user_id, (data?.factors ?? []).some((f) => f.status === 'verified'))
+      }),
+    )
+  } catch {
+    // Without the service key (local development) the status is simply not shown.
+  }
 
   return (
     <div className="space-y-8">
@@ -40,6 +56,7 @@ export default async function StaffPage() {
                 <p className="text-sm text-muted2">
                   {STAFF_ROLE_LABELS[member.role]} · {member.is_active ? 'aktívny' : 'deaktivovaný'}
                   {profile?.password_set ? '' : ' · heslo ešte nenastavené'}
+                  {mfa.has(member.user_id) ? (mfa.get(member.user_id) ? ' · 2FA zapnuté' : ' · 2FA zatiaľ nenastavené') : ''}
                 </p>
               </div>
               <StaffRowActions
@@ -49,6 +66,11 @@ export default async function StaffPage() {
                 isSelf={member.user_id === owner.id}
                 passwordSet={profile?.password_set ?? false}
               />
+              {member.user_id !== owner.id && mfa.get(member.user_id) ? (
+                <div className="mt-3 border-t border-line pt-3">
+                  <ResetMfaButton userId={member.user_id} name={name} />
+                </div>
+              ) : null}
             </li>
           )
         })}

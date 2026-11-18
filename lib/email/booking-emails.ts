@@ -7,6 +7,9 @@ import BookingConfirmedEmail, { bookingConfirmedSubject, type BookingConfirmedPr
 import BookingReceivedEmail, { bookingReceivedSubject, type BookingReceivedProps } from '@/emails/booking-received'
 import ProtocolSignedEmail, { protocolSignedSubject, type ProtocolSignedProps } from '@/emails/protocol-signed'
 import SettlementEmail, { settlementSubject, type SettlementEmailProps } from '@/emails/settlement'
+import BookingReminderEmail, { bookingReminderSubject, type BookingReminderProps } from '@/emails/booking-reminder'
+import ReviewRequestEmail, { reviewRequestSubject, type ReviewRequestProps } from '@/emails/review-request'
+import DocumentAvailableEmail, { documentAvailableSubject, type DocumentAvailableProps } from '@/emails/document-available'
 import { sendEmail } from '@/lib/email/send'
 
 /** Renders a React Email template to HTML and a plain-text alternative. */
@@ -115,4 +118,42 @@ export async function sendProtocolSigned(props: ProtocolSignedProps, meta: { boo
 export async function sendSettlement(props: SettlementEmailProps, meta: { bookingId: string; profileId: string }) {
   const email = await renderSettlement(props)
   return sendEmail({ type: 'settlement_approved', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...email })
+}
+
+export async function renderDocumentAvailable(props: DocumentAvailableProps) {
+  return { subject: documentAvailableSubject(props), ...(await renderBoth(DocumentAvailableEmail(props))) }
+}
+
+/** Email 11 – a document (invoice, credit note…) was uploaded; the PDF is attached. */
+export async function sendDocumentAvailable(props: DocumentAvailableProps, meta: { bookingId: string; profileId: string; pdf: { filename: string; content: Buffer } | null }) {
+  const email = await renderDocumentAvailable(props)
+  return sendEmail({
+    type: 'document_available',
+    to: props.booking.customer.email,
+    locale: props.booking.locale,
+    bookingId: meta.bookingId,
+    profileId: meta.profileId,
+    attachments: meta.pdf ? [{ filename: meta.pdf.filename, content: meta.pdf.content, contentType: 'application/pdf' }] : undefined,
+    ...email,
+  })
+}
+
+export async function renderBookingReminder(props: BookingReminderProps) {
+  return { subject: bookingReminderSubject(props), ...(await renderBoth(BookingReminderEmail(props))) }
+}
+
+/** Emails 7 and 9 – reminder the day before the pick-up / return (customer, sent by the daily cron). */
+export async function sendBookingReminder(props: BookingReminderProps, meta: { bookingId: string; profileId: string }) {
+  const email = await renderBookingReminder(props)
+  return sendEmail({ type: props.kind === 'pickup' ? 'pickup_reminder' : 'return_reminder', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...email })
+}
+
+export async function renderReviewRequest(props: ReviewRequestProps) {
+  return { subject: reviewRequestSubject(props), ...(await renderBoth(ReviewRequestEmail(props))) }
+}
+
+/** Email 12 – thank you + Google review (customer, sent by the daily cron). */
+export async function sendReviewRequest(props: ReviewRequestProps, meta: { bookingId: string; profileId: string }) {
+  const email = await renderReviewRequest(props)
+  return sendEmail({ type: 'review_request', to: props.booking.customer.email, locale: props.booking.locale, ...meta, ...email })
 }

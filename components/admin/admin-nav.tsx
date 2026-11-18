@@ -6,13 +6,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Popover from '@radix-ui/react-popover'
-import { CalendarCheck, Car, ChevronDown, LayoutDashboard, Menu, X } from 'lucide-react'
+import { CalendarCheck, Car, ChevronDown, LayoutDashboard, Menu, Users, X } from 'lucide-react'
 import { logoutAction } from '@/lib/auth/actions'
 
 export type AdminLink = { href: string; label: string }
 type Props = { primary: AdminLink[]; secondary: AdminLink[]; userName: string; roleLabel: string }
 
-const ICONS: Record<string, typeof Car> = { '/admin': LayoutDashboard, '/admin/rezervacie': CalendarCheck, '/admin/vozidla': Car }
+const ICONS: Record<string, typeof Car> = { '/admin': LayoutDashboard, '/admin/rezervacie': CalendarCheck, '/admin/zakaznici': Users, '/admin/vozidla': Car }
 
 /**
  * Admin navigation. Desktop: a slim top bar with the three main sections, the rest
@@ -95,7 +95,7 @@ export function AdminNav({ primary, secondary, userName, roleLabel }: Props) {
       </header>
 
       {/* Phones: bottom tab bar */}
-      <nav aria-label="Administrácia" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-gold/40 bg-black pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav aria-label="Administrácia" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-gold/40 bg-black pb-[env(safe-area-inset-bottom)] md:hidden">
         {primary.map((link) => {
           const Icon = ICONS[link.href] ?? LayoutDashboard
           const active = isActive(link.href)

@@ -3,7 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { localizedPath } from '@/i18n/routing'
 import { bookingEmailDataFromRow } from '@/lib/booking/email-data'
 import { describeBookingChange, type ChangeableBooking } from '@/lib/booking/change'
-import { sendBookingCancelled, sendBookingChangeRequested, sendBookingChangeResolved, sendBookingConfirmed, sendProtocolSigned, sendSettlement } from '@/lib/email/booking-emails'
+import { sendBookingCancelled, sendBookingChangeRequested, sendBookingChangeResolved, sendBookingConfirmed, sendDocumentAvailable, sendProtocolSigned, sendSettlement } from '@/lib/email/booking-emails'
+import { DOCUMENTS_BUCKET, DOCUMENT_TYPE_LABELS, documentFileName } from '@/lib/documents'
 import { formatEuro } from '@/lib/format'
 import { buildIcs } from '@/lib/ics'
 import { formatIban, paymentDueDate, variableSymbol } from '@/lib/payment'
@@ -210,6 +211,41 @@ export async function notifySettlementApproved(supabase: Client, bookingId: stri
     return result.sent
   } catch (e) {
     console.error('settlement email failed', e)
+    return false
+  }
+}
+
+/**
+ * Email 11 – a document was uploaded; the PDF goes along as an attachment (when it can be
+ * read). Marks the document as e-mailed. Never throws.
+ */
+export async function notifyDocumentAvailable(supabase: Client, documentId: string): Promise<boolean> {
+  try {
+    const { data: document } = await supabase.from('documents').select('*').eq('id', documentId).maybeSingle()
+    if (!document) return false
+    const loaded = await load(supabase, document.booking_id)
+    if (!loaded) return false
+    const { booking, settings, origin, vehicleName } = loaded
+    const data = bookingEmailDataFromRow(booking, vehicleName, settings.company)
+    if (!data.customer.email) return false
+    const { data: file } = await supabase.storage.from(DOCUMENTS_BUCKET).download(document.storage_path)
+    const pdf = file ? { filename: documentFileName(document.type, document.number, 'doklad'), content: Buffer.from(await file.arrayBuffer()) } : null
+    const result = await sendDocumentAvailable(
+      {
+        booking: data,
+        typeLabel: DOCUMENT_TYPE_LABELS[data.locale][document.type],
+        number: document.number,
+        amount: document.amount_cents === null ? null : formatEuro(document.amount_cents, data.locale),
+        issuedAt: document.issued_at ? formatDate(`${document.issued_at}T12:00:00Z`, data.locale) : null,
+        hasAttachment: !!pdf,
+        accountUrl: `${origin}${localizedPath(data.locale, `/moj-ucet/rezervacie/${document.booking_id}`)}`,
+      },
+      { bookingId: document.booking_id, profileId: booking.customer_id, pdf },
+    )
+    if (result.sent) await supabase.from('documents').update({ emailed_at: new Date().toISOString() }).eq('id', documentId)
+    return result.sent
+  } catch (e) {
+    console.error('document email failed', e)
     return false
   }
 }

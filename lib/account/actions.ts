@@ -1,5 +1,6 @@
 'use server'
 
+import { isValidIban, normalizeIban } from '@/lib/iban'
 import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
 import { z } from 'zod'
@@ -199,6 +200,11 @@ const profileSchema = z.object({
   city: z.string().trim().max(100),
   zip: z.string().trim().max(12),
   country: z.enum(COUNTRY_CODES, { message: 'required' }),
+  // Account for returning the deposit; optional, validated as an IBAN when filled in.
+  refundIban: z
+    .string()
+    .transform((v) => normalizeIban(v))
+    .refine((v) => v === '' || isValidIban(v), { message: 'iban_invalid' }),
 })
 export type ProfileValues = z.input<typeof profileSchema>
 export type ProfileResult = { errors: Partial<Record<keyof ProfileValues | 'form', string>>; ok?: boolean }
@@ -226,6 +232,7 @@ export async function updateProfileAction(values: ProfileValues): Promise<Profil
       dic: data.isCompany ? data.dic || null : null,
       ic_dph: data.isCompany ? data.icDph || null : null,
       billing_address: { street: data.street, city: data.city, zip: data.zip, country: data.country },
+      refund_iban: data.refundIban || null,
     })
     .eq('id', user.id)
   if (error) {

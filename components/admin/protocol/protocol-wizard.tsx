@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { RecordPaymentForm } from '@/components/admin/payments-panel'
 import { CarDiagram } from '@/components/admin/protocol/car-diagram'
 import { SignaturePad, type SignaturePadHandle } from '@/components/admin/protocol/signature-pad'
 import { DateField } from '@/components/ui/date-field'
@@ -27,6 +28,10 @@ export type WizardBooking = {
   /** ISO instant of the booked return. */
   plannedReturnAt: string
   toleranceMinutes: number
+  /** Pickup only: payments still to be recorded before signing (Settings: require_payment_before_pickup). */
+  unpaid?: { kind: 'rental' | 'deposit'; label: string; method: 'transfer' | 'terminal' | 'cash' }[]
+  /** YYYY-MM-DD in Bratislava, default date of a recorded payment. */
+  today?: string
 }
 /** The valid pickup protocol, shown for comparison while filling in the return protocol. */
 export type WizardReference = {
@@ -172,7 +177,7 @@ export function ProtocolWizard({
     return all.map((d, index) => ({ ...d, no: index + 1 }))
   }, [referenceDamages, draft.damages, isReturn])
   const selectedDamage = numbered.find((d) => d.id === selected) ?? null
-  const missing = protocolMissing(draft, { fuel, pickupOdometerKm: reference?.odometerKm, customerSigned: signed.customer, staffSigned: signed.staff })
+  const missing = protocolMissing(draft, { fuel, pickupOdometerKm: reference?.odometerKm, customerSigned: signed.customer, staffSigned: signed.staff, unpaid: (booking.unpaid ?? []).map((u) => u.kind) })
   const kmAllowed = booking.kmLimitPerDay * booking.days
   const driven = reference?.odometerKm != null && draft.odometerKm !== null ? draft.odometerKm - reference.odometerKm : null
   const handover = zonedLocalToUtc(draft.handoverAt)
@@ -616,6 +621,19 @@ export function ProtocolWizard({
             </div>
           ))}
         </div>
+        {(booking.unpaid ?? []).length > 0 ? (
+          <div className="space-y-3 rounded-xl border border-amber-400/70 bg-amber-400/10 p-3">
+            <p className="text-sm text-white">
+              <strong>Pred odovzdaním treba zaznamenať platby.</strong> Ak zákazník platí teraz (terminál, hotovosť), zaznamenajte to tu.
+            </p>
+            {(booking.unpaid ?? []).map((u) => (
+              <div key={u.kind} className="space-y-2 border-t border-amber-400/30 pt-3">
+                <p className="text-sm font-semibold text-white">{u.label}</p>
+                <RecordPaymentForm id={booking.id} kind={u.kind} method={u.method} today={booking.today ?? ''} />
+              </div>
+            ))}
+          </div>
+        ) : null}
         {missing.length > 0 ? (
           <div className="rounded-xl border border-red-400/70 bg-red-500/10 px-3 py-2.5 text-sm text-white">
             <strong>Pred uzavretím ešte chýba:</strong>

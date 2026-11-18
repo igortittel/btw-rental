@@ -322,6 +322,13 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_returned_marked_by: string | null
+          pickup_reminder_sent_at: string | null
+          rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note: string | null
+          rental_refunded_at: string | null
+          rental_refunded_cents: number | null
+          return_reminder_sent_at: string | null
           deposit_returned_at: string | null
           deposit_returned_cents: number | null
           deposit_status: Database["public"]["Enums"]["deposit_status"]
@@ -376,6 +383,13 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note?: string | null
+          deposit_returned_marked_by?: string | null
+          pickup_reminder_sent_at?: string | null
+          rental_refund_method?: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note?: string | null
+          rental_refunded_at?: string | null
+          rental_refunded_cents?: number | null
+          return_reminder_sent_at?: string | null
           deposit_returned_at?: string | null
           deposit_returned_cents?: number | null
           deposit_status?: Database["public"]["Enums"]["deposit_status"]
@@ -430,6 +444,13 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note?: string | null
+          deposit_returned_marked_by?: string | null
+          pickup_reminder_sent_at?: string | null
+          rental_refund_method?: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note?: string | null
+          rental_refunded_at?: string | null
+          rental_refunded_cents?: number | null
+          return_reminder_sent_at?: string | null
           deposit_returned_at?: string | null
           deposit_returned_cents?: number | null
           deposit_status?: Database["public"]["Enums"]["deposit_status"]
@@ -591,6 +612,36 @@ export type Database = {
           },
         ]
       }
+      cron_runs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          id: number
+          job: string
+          ok: boolean | null
+          result: Json
+          started_at: string
+        }
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          id?: never
+          job: string
+          ok?: boolean | null
+          result?: Json
+          started_at?: string
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          id?: never
+          job?: string
+          ok?: boolean | null
+          result?: Json
+          started_at?: string
+        }
+        Relationships: []
+      }
       customer_internal: {
         Row: {
           blacklist_note: string | null
@@ -631,6 +682,8 @@ export type Database = {
           amount_cents: number | null
           booking_id: string
           created_at: string
+          emailed_at: string | null
+          file_name: string | null
           id: string
           issued_at: string | null
           number: string | null
@@ -642,6 +695,8 @@ export type Database = {
           amount_cents?: number | null
           booking_id: string
           created_at?: string
+          emailed_at?: string | null
+          file_name?: string | null
           id?: string
           issued_at?: string | null
           number?: string | null
@@ -653,6 +708,8 @@ export type Database = {
           amount_cents?: number | null
           booking_id?: string
           created_at?: string
+          emailed_at?: string | null
+          file_name?: string | null
           id?: string
           issued_at?: string | null
           number?: string | null
@@ -986,6 +1043,7 @@ export type Database = {
       profiles: {
         Row: {
           anonymized_at: string | null
+          refund_iban: string | null
           billing_address: Json
           company_name: string | null
           created_at: string
@@ -1007,6 +1065,7 @@ export type Database = {
         }
         Insert: {
           anonymized_at?: string | null
+          refund_iban?: string | null
           billing_address?: Json
           company_name?: string | null
           created_at?: string
@@ -1028,6 +1087,7 @@ export type Database = {
         }
         Update: {
           anonymized_at?: string | null
+          refund_iban?: string | null
           billing_address?: Json
           company_name?: string | null
           created_at?: string
@@ -1623,6 +1683,27 @@ export type Database = {
       }
     }
     Views: {
+      admin_customers: {
+        Row: {
+          bookings_count: number | null
+          company_name: string | null
+          created_at: string | null
+          deletion_requested_at: string | null
+          email: string | null
+          first_name: string | null
+          ico: string | null
+          id: string | null
+          is_blacklisted: boolean | null
+          is_company: boolean | null
+          last_name: string | null
+          last_pickup_at: string | null
+          password_set: boolean | null
+          phone: string | null
+          revenue_cents: number | null
+          anonymized_at: string | null
+        }
+        Relationships: []
+      }
       public_categories: {
         Row: {
           id: string | null
@@ -1761,6 +1842,10 @@ export type Database = {
       }
     }
     Functions: {
+      anonymize_customer: {
+        Args: { p_profile_id: string }
+        Returns: string
+      }
       change_booking_status: {
         Args: {
           p_booking_id: string
@@ -1791,6 +1876,13 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_returned_marked_by: string | null
+          pickup_reminder_sent_at: string | null
+          rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note: string | null
+          rental_refunded_at: string | null
+          rental_refunded_cents: number | null
+          return_reminder_sent_at: string | null
           deposit_returned_at: string | null
           deposit_returned_cents: number | null
           deposit_status: Database["public"]["Enums"]["deposit_status"]
@@ -1849,6 +1941,233 @@ export type Database = {
         Returns: Database["public"]["Tables"]["bookings"]["Row"]
       }
       my_booking_plate: { Args: { p_booking_id: string }; Returns: string }
+      record_deposit_return: {
+        Args: {
+          p_amount: number
+          p_at: string
+          p_booking_id: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_note?: string
+        }
+        Returns: {
+          abroad_countries: string | null
+          abroad_trip: boolean
+          blocked_until: string
+          buffer_minutes: number
+          cancellation_fee_cents: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: Database["public"]["Enums"]["booking_creator"]
+          created_by_staff_id: string | null
+          customer_id: string
+          customer_note: string | null
+          customer_snapshot: Json
+          days: number
+          deposit_cents: number
+          deposit_payment_method: Database["public"]["Enums"]["payment_method"]
+          deposit_received_at: string | null
+          deposit_received_marked_by: string | null
+          deposit_return_method:
+            | Database["public"]["Enums"]["payment_method"]
+            | null
+          deposit_return_note: string | null
+          deposit_returned_marked_by: string | null
+          pickup_reminder_sent_at: string | null
+          rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note: string | null
+          rental_refunded_at: string | null
+          rental_refunded_cents: number | null
+          return_reminder_sent_at: string | null
+          deposit_returned_at: string | null
+          deposit_returned_cents: number | null
+          deposit_status: Database["public"]["Enums"]["deposit_status"]
+          extra_km_cents: number
+          id: string
+          is_individual_price: boolean
+          km_limit_per_day: number
+          locale: string
+          number: string
+          pending_change: Json | null
+          pickup_at: string
+          pickup_custom_address: string | null
+          pickup_location_id: string
+          price_override_reason: string | null
+          price_snapshot: Json
+          rental_paid_at: string | null
+          rental_paid_marked_by: string | null
+          rental_payment_method: Database["public"]["Enums"]["payment_method"]
+          rental_payment_status: Database["public"]["Enums"]["rental_payment_status"]
+          return_at: string
+          return_custom_address: string | null
+          return_location_id: string
+          review_requested_at: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          subtotal_cents: number | null
+          total_cents: number | null
+          updated_at: string
+          vat_rate: number
+          vehicle_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_payment: {
+        Args: {
+          p_at: string
+          p_booking_id: string
+          p_kind: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+        }
+        Returns: {
+          abroad_countries: string | null
+          abroad_trip: boolean
+          blocked_until: string
+          buffer_minutes: number
+          cancellation_fee_cents: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: Database["public"]["Enums"]["booking_creator"]
+          created_by_staff_id: string | null
+          customer_id: string
+          customer_note: string | null
+          customer_snapshot: Json
+          days: number
+          deposit_cents: number
+          deposit_payment_method: Database["public"]["Enums"]["payment_method"]
+          deposit_received_at: string | null
+          deposit_received_marked_by: string | null
+          deposit_return_method:
+            | Database["public"]["Enums"]["payment_method"]
+            | null
+          deposit_return_note: string | null
+          deposit_returned_marked_by: string | null
+          pickup_reminder_sent_at: string | null
+          rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note: string | null
+          rental_refunded_at: string | null
+          rental_refunded_cents: number | null
+          return_reminder_sent_at: string | null
+          deposit_returned_at: string | null
+          deposit_returned_cents: number | null
+          deposit_status: Database["public"]["Enums"]["deposit_status"]
+          extra_km_cents: number
+          id: string
+          is_individual_price: boolean
+          km_limit_per_day: number
+          locale: string
+          number: string
+          pending_change: Json | null
+          pickup_at: string
+          pickup_custom_address: string | null
+          pickup_location_id: string
+          price_override_reason: string | null
+          price_snapshot: Json
+          rental_paid_at: string | null
+          rental_paid_marked_by: string | null
+          rental_payment_method: Database["public"]["Enums"]["payment_method"]
+          rental_payment_status: Database["public"]["Enums"]["rental_payment_status"]
+          return_at: string
+          return_custom_address: string | null
+          return_location_id: string
+          review_requested_at: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          subtotal_cents: number | null
+          total_cents: number | null
+          updated_at: string
+          vat_rate: number
+          vehicle_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_rental_refund: {
+        Args: {
+          p_amount: number
+          p_at: string
+          p_booking_id: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_note?: string
+        }
+        Returns: {
+          abroad_countries: string | null
+          abroad_trip: boolean
+          blocked_until: string
+          buffer_minutes: number
+          cancellation_fee_cents: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: Database["public"]["Enums"]["booking_creator"]
+          created_by_staff_id: string | null
+          customer_id: string
+          customer_note: string | null
+          customer_snapshot: Json
+          days: number
+          deposit_cents: number
+          deposit_payment_method: Database["public"]["Enums"]["payment_method"]
+          deposit_received_at: string | null
+          deposit_received_marked_by: string | null
+          deposit_return_method:
+            | Database["public"]["Enums"]["payment_method"]
+            | null
+          deposit_return_note: string | null
+          deposit_returned_marked_by: string | null
+          pickup_reminder_sent_at: string | null
+          rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note: string | null
+          rental_refunded_at: string | null
+          rental_refunded_cents: number | null
+          return_reminder_sent_at: string | null
+          deposit_returned_at: string | null
+          deposit_returned_cents: number | null
+          deposit_status: Database["public"]["Enums"]["deposit_status"]
+          extra_km_cents: number
+          id: string
+          is_individual_price: boolean
+          km_limit_per_day: number
+          locale: string
+          number: string
+          pending_change: Json | null
+          pickup_at: string
+          pickup_custom_address: string | null
+          pickup_location_id: string
+          price_override_reason: string | null
+          price_snapshot: Json
+          rental_paid_at: string | null
+          rental_paid_marked_by: string | null
+          rental_payment_method: Database["public"]["Enums"]["payment_method"]
+          rental_payment_status: Database["public"]["Enums"]["rental_payment_status"]
+          return_at: string
+          return_custom_address: string | null
+          return_location_id: string
+          review_requested_at: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          subtotal_cents: number | null
+          total_cents: number | null
+          updated_at: string
+          vat_rate: number
+          vehicle_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       resolve_booking_change: {
         Args: { p_approve: boolean; p_booking_id: string; p_note?: string }
         Returns: Database["public"]["Tables"]["bookings"]["Row"]
@@ -1974,6 +2293,79 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "handover_protocols"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      undo_payment: {
+        Args: {
+          p_booking_id: string
+          p_kind: string
+        }
+        Returns: {
+          abroad_countries: string | null
+          abroad_trip: boolean
+          blocked_until: string
+          buffer_minutes: number
+          cancellation_fee_cents: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: Database["public"]["Enums"]["booking_creator"]
+          created_by_staff_id: string | null
+          customer_id: string
+          customer_note: string | null
+          customer_snapshot: Json
+          days: number
+          deposit_cents: number
+          deposit_payment_method: Database["public"]["Enums"]["payment_method"]
+          deposit_received_at: string | null
+          deposit_received_marked_by: string | null
+          deposit_return_method:
+            | Database["public"]["Enums"]["payment_method"]
+            | null
+          deposit_return_note: string | null
+          deposit_returned_marked_by: string | null
+          pickup_reminder_sent_at: string | null
+          rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
+          rental_refund_note: string | null
+          rental_refunded_at: string | null
+          rental_refunded_cents: number | null
+          return_reminder_sent_at: string | null
+          deposit_returned_at: string | null
+          deposit_returned_cents: number | null
+          deposit_status: Database["public"]["Enums"]["deposit_status"]
+          extra_km_cents: number
+          id: string
+          is_individual_price: boolean
+          km_limit_per_day: number
+          locale: string
+          number: string
+          pending_change: Json | null
+          pickup_at: string
+          pickup_custom_address: string | null
+          pickup_location_id: string
+          price_override_reason: string | null
+          price_snapshot: Json
+          rental_paid_at: string | null
+          rental_paid_marked_by: string | null
+          rental_payment_method: Database["public"]["Enums"]["payment_method"]
+          rental_payment_status: Database["public"]["Enums"]["rental_payment_status"]
+          return_at: string
+          return_custom_address: string | null
+          return_location_id: string
+          review_requested_at: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          subtotal_cents: number | null
+          total_cents: number | null
+          updated_at: string
+          vat_rate: number
+          vehicle_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
           isOneToOne: true
           isSetofReturn: false
         }
