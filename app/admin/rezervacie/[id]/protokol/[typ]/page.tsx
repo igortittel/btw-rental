@@ -11,7 +11,7 @@ import { CLEANLINESS_LABEL, PROTOCOL_TITLE, defaultAccessories, fuelLabel, missi
 import { getSettings } from '@/lib/settings'
 import { createClient } from '@/lib/supabase/server'
 import { formatEuro } from '@/lib/format'
-import { missingPayments } from '@/lib/payment'
+import { depositOutstandingCents, missingPayments, rentalOutstandingCents } from '@/lib/payment'
 import { formatDateTime, utcToZonedLocal } from '@/lib/time'
 
 export const metadata: Metadata = { title: 'Protokol' }
@@ -108,8 +108,8 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
               type === 'pickup' && !draft.supersedes_id && settings.require_payment_before_pickup
                 ? missingPayments(booking).map((kind) =>
                     kind === 'rental'
-                      ? { kind, label: `Prenájom ${formatEuro(booking.total_cents)}`, method: booking.rental_payment_method }
-                      : { kind, label: `Depozit ${formatEuro(booking.deposit_cents)}`, method: booking.deposit_payment_method },
+                      ? { kind, label: `${booking.rental_payment_status === 'unpaid' ? 'Prenájom' : 'Doplatok prenájmu'} ${formatEuro(rentalOutstandingCents(booking))}`, method: booking.rental_payment_method }
+                      : { kind, label: `${booking.deposit_status === 'pending' ? 'Depozit' : 'Doplatok depozitu'} ${formatEuro(depositOutstandingCents(booking))}`, method: booking.deposit_payment_method },
                   )
                 : [],
             today: utcToZonedLocal(new Date()).slice(0, 10),

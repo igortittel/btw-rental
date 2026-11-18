@@ -119,6 +119,15 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   // A change requested by the customer: what differs, and whether the new term is free.
   const pending = booking.status === 'modified' ? (booking.pending_change as { booking?: ChangeableBooking & { vehicle_id: string }; extras?: { name_snapshot: unknown; quantity: number }[]; requested_at?: string } | null) : null
   const changes = pending?.booking ? describeBookingChange(booking, extras ?? [], pending.booking, pending.extras ?? []) : []
+  // The rental was already paid: approving a different price leaves a top-up or an overpayment.
+  const paidNet = booking.rental_payment_status === 'unpaid' ? 0 : (booking.rental_paid_cents ?? booking.total_cents ?? 0) - (booking.rental_refunded_cents ?? 0)
+  const proposedTotal = pending?.booking?.total_cents ?? null
+  const pendingPaymentNote =
+    paidNet > 0 && proposedTotal !== null && proposedTotal !== paidNet
+      ? proposedTotal > paidNet
+        ? `Prenájom je už uhradený (${formatEuro(paidNet)}). Po schválení bude zákazník doplácať ${formatEuro(proposedTotal - paidNet)} – zobrazí sa mu to v Mojom účte a odovzdanie vozidla bude čakať na doplatok.`
+        : `Prenájom je už uhradený (${formatEuro(paidNet)}). Po schválení vznikne preplatok ${formatEuro(paidNet - proposedTotal)}, ktorý treba zákazníkovi vrátiť (sekcia Platby).`
+      : null
   let collision = false
   if (pending?.booking) {
     const { data: free } = await supabase.rpc('is_vehicle_available', { p_vehicle_id: pending.booking.vehicle_id, p_pickup_at: pending.booking.pickup_at, p_return_at: pending.booking.return_at, p_exclude_booking_id: booking.id })
@@ -211,6 +220,9 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         ) : null}
         {pending ? (
           <Section id="uprava" title="Úprava od zákazníka" description={`Rezervácia platí v pôvodnom znení, kým nerozhodnete.${pending.requested_at ? ` Žiadosť: ${formatDateTime(pending.requested_at)}.` : ''}`}>
+            {pendingPaymentNote ? (
+              <p className="mb-4 rounded-lg border border-amber-400/60 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">{pendingPaymentNote}</p>
+            ) : null}
             {collision ? (
               <p role="alert" className="mb-4 rounded-lg border border-red-400/60 bg-red-500/10 px-4 py-3 text-sm text-red-100">
                 Navrhovaný termín koliduje s inou potvrdenou rezerváciou alebo blokáciou. Úpravu nie je možné schváliť.
@@ -305,6 +317,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             rental={{
               status: booking.rental_payment_status,
               method: booking.rental_payment_method,
+              paidCents: booking.rental_paid_cents,
               paidAt: booking.rental_paid_at,
               paidBy: booking.rental_paid_marked_by ? personName(booking.rental_paid_marked_by) : null,
               refundedCents: booking.rental_refunded_cents,
@@ -315,6 +328,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
             deposit={{
               status: booking.deposit_status,
               method: booking.deposit_payment_method,
+              receivedCents: booking.deposit_received_cents,
               receivedAt: booking.deposit_received_at,
               receivedBy: booking.deposit_received_marked_by ? personName(booking.deposit_received_marked_by) : null,
               returnedCents: booking.deposit_returned_cents,

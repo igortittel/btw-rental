@@ -54,23 +54,60 @@ export type PaymentState = {
   deposit_cents: number
   rental_payment_status: RentalPaymentStatus
   deposit_status: DepositStatus
+  /** Amounts actually paid / received (the price can change after a payment). */
+  rental_paid_cents?: number | null
+  rental_refunded_cents?: number | null
+  deposit_received_cents?: number | null
+}
+
+/** Paid minus refunded. An older record without an amount counts as the price it was paid at. */
+function netRentalPaid(b: PaymentState): number {
+  if (b.rental_payment_status === 'unpaid') return 0
+  return (b.rental_paid_cents ?? b.total_cents ?? 0) - (b.rental_refunded_cents ?? 0)
+}
+
+/**
+ * Still owed for the rental: the price minus what was paid. A booking whose price went up
+ * after it was paid (approved customer change, staff edit) owes the difference – the same
+ * rule as private.rental_outstanding_cents in the database.
+ */
+export function rentalOutstandingCents(b: PaymentState): number {
+  return Math.max(0, (b.total_cents ?? 0) - netRentalPaid(b))
+}
+
+/** Paid more than the current price (the price went down): to be refunded. */
+export function rentalOverpaidCents(b: PaymentState): number {
+  if (b.total_cents === null) return 0
+  return Math.max(0, netRentalPaid(b) - b.total_cents)
+}
+
+/** Deposit still to be received (also when the deposit was raised after it was received). */
+export function depositOutstandingCents(b: PaymentState): number {
+  if (b.deposit_status === 'returned' || b.deposit_status === 'partially_returned') return 0
+  const received = b.deposit_status === 'pending' ? 0 : (b.deposit_received_cents ?? b.deposit_cents)
+  return Math.max(0, b.deposit_cents - received)
+}
+
+/** Deposit received above the current deposit (it was lowered): part of the return. */
+export function depositOverpaidCents(b: PaymentState): number {
+  if (b.deposit_status !== 'received') return 0
+  return Math.max(0, (b.deposit_received_cents ?? b.deposit_cents) - b.deposit_cents)
 }
 
 /**
  * What still has to be paid before the car is handed over (the same rule as
- * `sign_protocol` in the database): the rental unless it has no price yet or is free,
- * and the deposit unless it is zero.
+ * `sign_protocol` in the database): any amount outstanding on the rental or the deposit.
  */
 export function missingPayments(b: PaymentState): PaymentKind[] {
   const missing: PaymentKind[] = []
-  if (b.total_cents !== null && b.total_cents > 0 && b.rental_payment_status === 'unpaid') missing.push('rental')
-  if (b.deposit_cents > 0 && b.deposit_status === 'pending') missing.push('deposit')
+  if (rentalOutstandingCents(b) > 0) missing.push('rental')
+  if (depositOutstandingCents(b) > 0) missing.push('deposit')
   return missing
 }
 
 /** Amount still unpaid in cents (for the dashboard sum). */
 export function unpaidCents(b: PaymentState): number {
-  return missingPayments(b).reduce((sum, kind) => sum + (kind === 'rental' ? (b.total_cents ?? 0) : b.deposit_cents), 0)
+  return rentalOutstandingCents(b) + depositOutstandingCents(b)
 }
 
 /**

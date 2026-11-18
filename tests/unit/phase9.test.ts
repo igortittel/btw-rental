@@ -10,7 +10,7 @@ import { documentFileName, documentPath, isDocumentPathOf, looksLikePdf } from '
 import { renderBookingReminder, renderDocumentAvailable, renderReviewRequest, sendBookingReminder, sendDocumentAvailable, sendReviewRequest } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { sendEmail } from '@/lib/email/send'
-import { depositReturnProposal, missingPayments, paymentDateToUtc, unpaidCents, type PaymentState } from '@/lib/payment'
+import { depositOutstandingCents, depositOverpaidCents, depositReturnProposal, missingPayments, paymentDateToUtc, rentalOutstandingCents, rentalOverpaidCents, unpaidCents, type PaymentState } from '@/lib/payment'
 import { protocolErrorMessage, protocolMissing } from '@/lib/protocol/model'
 
 const nbsp = (s: string) => s.replace(/&nbsp;| /g, ' ')
@@ -29,6 +29,26 @@ describe('payments before pick-up', () => {
     expect(missingPayments({ ...base, total_cents: null })).toEqual(['deposit'])
     expect(missingPayments({ ...base, total_cents: 0 })).toEqual(['deposit'])
     expect(missingPayments({ ...base, deposit_cents: 0 })).toEqual(['rental'])
+  })
+
+  it('a price change after payment leaves a top-up or an overpayment (same rule as the database)', () => {
+    const paid: PaymentState = { ...base, rental_payment_status: 'paid', rental_paid_cents: 63200, deposit_status: 'received', deposit_received_cents: 100000 }
+    expect(missingPayments(paid)).toEqual([])
+    const higher = { ...paid, total_cents: 71100 }
+    expect(rentalOutstandingCents(higher)).toBe(7900)
+    expect(missingPayments(higher)).toEqual(['rental'])
+    expect(unpaidCents(higher)).toBe(7900)
+    const lower = { ...paid, total_cents: 55300 }
+    expect(rentalOutstandingCents(lower)).toBe(0)
+    expect(rentalOverpaidCents(lower)).toBe(7900)
+    expect(rentalOverpaidCents({ ...lower, rental_refunded_cents: 7900 })).toBe(0)
+    expect(rentalOutstandingCents({ ...lower, rental_refunded_cents: 7900 })).toBe(0)
+    const biggerDeposit = { ...paid, deposit_cents: 150000 }
+    expect(depositOutstandingCents(biggerDeposit)).toBe(50000)
+    expect(missingPayments(biggerDeposit)).toEqual(['deposit'])
+    expect(depositOverpaidCents({ ...paid, deposit_cents: 80000 })).toBe(20000)
+    // records from before the amounts were stored count as paid in full
+    expect(rentalOutstandingCents({ ...base, rental_payment_status: 'paid' })).toBe(0)
   })
 
   it('the protocol lists missing payments and maps the database error', () => {

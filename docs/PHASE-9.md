@@ -78,6 +78,16 @@ Migrácia `20261121090000_phase9.sql` (aplikovaná aj na Supabase):
 
 Náhľady: Admin → Viac → E-maily.
 
+## Zmena ceny po úhrade (pripomienka klienta, 18. 11. 2026)
+
+Rezervácia sa môže zmeniť aj po úhrade (schválená úprava zákazníkom, úprava zamestnancom). Preto sa ukladá **uhradená suma** (`rental_paid_cents`, `deposit_received_cents`), nie len stav „uhradené“:
+
+- **Cena stúpla** → „Doplatok X €“: v detaile tlačidlo „Zaznamenať doplatok“, na prehľade medzi neuhradenými, v zóne „zostáva doplatiť X €“ s pokynmi k prevodu na doplatok, v pripomienke 7 a odovzdávací protokol čaká na doplatok.
+- **Cena klesla** → „Preplatok X €“: v detaile „Vrátiť preplatok“ (manažér), v zóne „preplatok vám vrátime“. Vrátenie sa sčítava, najviac do zaplatenej sumy.
+- **Depozit** rovnako (zvýšenie → doplatok depozitu; vrátenie po prenájme najviac do prijatej sumy).
+- Pri posudzovaní úpravy od zákazníka admin vidí, či po schválení vznikne doplatok alebo preplatok.
+- Pravidlo je v databáze (`private.rental_outstanding_cents`, `deposit_outstanding_cents` – používa `sign_protocol`) aj v `lib/payment.ts` (`rentalOutstandingCents`, `rentalOverpaidCents`, …). Migrácia `20261122090000_payment_amounts.sql` doplnila sumy aj k už zaznamenaným platbám.
+
 ## Opravené staršie chyby
 
 - **Duplicitné kľúče v detaile rezervácie** (zoznam e-mailov – ten istý e-mail poslaný dvakrát) – React hlásil chybu a obnova stránky po akcii mohla zlyhať.
@@ -88,8 +98,8 @@ Lokálne v produkčnom builde sa **na detaile rezervácie** po odoslaní formul�
 
 ## Testy
 
-- `npm test` – **193 unit testov** (pribudlo 25): platby pred vyzdvihnutím (rovnaké pravidlo ako databáza), návrh vrátenia depozitu, dátum platby, doklady (cesty, PDF hlavička, názov súboru), blacklist (e-mail, telefón v inom zápise), okná cronu (aj zmena času), audit (preklady, redakcia), CSV, e-maily 7, 9, 11, 12.
-- `supabase/tests/06_phase9.sql` – **56 testov**: oprávnenia platieb, dvojité zaznamenanie, budúci dátum, vrátenie depozitu len po vyúčtovaní, suma, vrátenie platby, zrušenie záznamu, audit; doklady (cesta, traversal, operátor nesmie, cudzí zákazník nevidí ani nestiahne); `admin_customers`; redakcia auditu profilu; anonymizácia (otvorená rezervácia, údaje, snapshoty, súhlasy, e-mail log, interné údaje, jeden záznam v audite bez osobných údajov, idempotencia, úplné vymazanie bez rezervácií); 2FA (aal1 bez práv pri zapnutom vynútení, vlastná rola čitateľná). `04_protocols.sql` doplnený o kontrolu platieb pri podpise.
+- `npm test` – **194 unit testov** (pribudlo 26): platby pred vyzdvihnutím (rovnaké pravidlo ako databáza), návrh vrátenia depozitu, dátum platby, doklady (cesty, PDF hlavička, názov súboru), blacklist (e-mail, telefón v inom zápise), okná cronu (aj zmena času), audit (preklady, redakcia), CSV, e-maily 7, 9, 11, 12.
+- `supabase/tests/06_phase9.sql` – **65 testov** (vrátane zmeny ceny a depozitu po úhrade – doplatok, preplatok, vrátenie najviac do zaplatenej sumy): oprávnenia platieb, dvojité zaznamenanie, budúci dátum, vrátenie depozitu len po vyúčtovaní, suma, vrátenie platby, zrušenie záznamu, audit; doklady (cesta, traversal, operátor nesmie, cudzí zákazník nevidí ani nestiahne); `admin_customers`; redakcia auditu profilu; anonymizácia (otvorená rezervácia, údaje, snapshoty, súhlasy, e-mail log, interné údaje, jeden záznam v audite bez osobných údajov, idempotencia, úplné vymazanie bez rezervácií); 2FA (aal1 bez práv pri zapnutom vynútení, vlastná rola čitateľná). `04_protocols.sql` doplnený o kontrolu platieb pri podpise.
 - Prehliadač (lokálne, dočasný účet majiteľa): registrácia 2FA s QR kódom a prihlásenie kódom, prehľad, zaznamenanie úhrady a depozitu, nahratie a stiahnutie dokladu, zmazanie dokladu, zákazníci, detail zákazníka, audit log, mobil bez horizontálneho posunu.
 - **Lokálne sa nedalo overiť** (chýba `SUPABASE_SERVICE_ROLE_KEY`): odoslanie e-mailov 7, 9, 11, 12, beh cronu, zrušenie Auth účtu pri anonymizácii, reset 2FA zamestnanca, stav 2FA v zozname zamestnancov.
 

@@ -184,6 +184,41 @@ select pg_temp.expect((select public.anonymize_customer('00000000-0000-0000-0000
 select pg_temp.login('');
 select pg_temp.expect(not exists (select 1 from public.profiles where id = '00000000-0000-0000-0000-00000000000d'), 'profile row gone');
 
+-- ── price changes after payment (amounts, not just "paid") ──
+select pg_temp.login('');
+create temp table b3 as select pg_temp.new_booking('00000000-0000-0000-0000-00000000000b', '3 days', '6 days') as id;
+grant select on b3 to authenticated;
+select pg_temp.login('00000000-0000-0000-0000-0000000000c1');
+select public.record_payment((select id from b3), 'rental', now(), 'transfer');
+select public.record_payment((select id from b3), 'deposit', now(), 'cash');
+select pg_temp.login('');
+select pg_temp.expect((select rental_paid_cents = 23700 and deposit_received_cents = 100000 from public.bookings where id = (select id from b3)), 'paid amounts are stored');
+select pg_temp.expect((select private.rental_outstanding_cents(b) = 0 and private.deposit_outstanding_cents(b) = 0 from public.bookings b where id = (select id from b3)), 'nothing outstanding after payment');
+-- the price goes up (approved change / staff edit)
+update public.bookings set total_cents = 31600 where id = (select id from b3);
+select pg_temp.expect((select private.rental_outstanding_cents(b) = 7900 and rental_payment_status = 'paid' from public.bookings b where id = (select id from b3)), 'a higher price leaves 79 € outstanding although the status says paid');
+select pg_temp.login('00000000-0000-0000-0000-0000000000c1');
+select public.record_payment((select id from b3), 'rental', now(), 'terminal');
+select pg_temp.login('');
+select pg_temp.expect((select rental_paid_cents = 31600 and private.rental_outstanding_cents(b) = 0 from public.bookings b where id = (select id from b3)), 'the top-up records only the difference');
+select pg_temp.login('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.expect_error($$select public.record_payment((select id from b3), 'rental', now(), 'terminal')$$, 'payment_already_recorded', 'no top-up when nothing is owed');
+-- the price goes down: overpayment, refunded by a manager (at most what was paid)
+select pg_temp.login('');
+update public.bookings set total_cents = 15800 where id = (select id from b3);
+select pg_temp.login('00000000-0000-0000-0000-0000000000c2');
+select pg_temp.expect_error($$select public.record_rental_refund((select id from b3), 31601, now(), 'transfer')$$, 'invalid_amount', 'cannot refund more than was paid');
+select public.record_rental_refund((select id from b3), 15800, now(), 'transfer', 'preplatok po úprave');
+select pg_temp.login('');
+select pg_temp.expect((select rental_refunded_cents = 15800 and rental_payment_status = 'partially_refunded' and private.rental_outstanding_cents(b) = 0 from public.bookings b where id = (select id from b3)), 'overpayment refunded, nothing outstanding');
+-- the deposit grows (another vehicle)
+update public.bookings set deposit_cents = 150000 where id = (select id from b3);
+select pg_temp.expect((select private.deposit_outstanding_cents(b) = 50000 from public.bookings b where id = (select id from b3)), 'a higher deposit leaves the difference outstanding');
+select pg_temp.login('00000000-0000-0000-0000-0000000000c1');
+select public.record_payment((select id from b3), 'deposit', now(), 'cash');
+select pg_temp.login('');
+select pg_temp.expect((select deposit_received_cents = 150000 and private.deposit_outstanding_cents(b) = 0 from public.bookings b where id = (select id from b3)), 'deposit top-up recorded');
+
 -- ── staff 2FA ──
 select pg_temp.login('00000000-0000-0000-0000-0000000000c2', 'aal1');
 select pg_temp.expect((select private.is_staff('manager')), 'without enforcement aal1 staff keep their rights');

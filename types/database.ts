@@ -322,6 +322,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_received_cents: number | null
+          rental_paid_cents: number | null
           deposit_returned_marked_by: string | null
           pickup_reminder_sent_at: string | null
           rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
@@ -383,6 +385,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note?: string | null
+          deposit_received_cents?: number | null
+          rental_paid_cents?: number | null
           deposit_returned_marked_by?: string | null
           pickup_reminder_sent_at?: string | null
           rental_refund_method?: Database["public"]["Enums"]["payment_method"] | null
@@ -444,6 +448,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note?: string | null
+          deposit_received_cents?: number | null
+          rental_paid_cents?: number | null
           deposit_returned_marked_by?: string | null
           pickup_reminder_sent_at?: string | null
           rental_refund_method?: Database["public"]["Enums"]["payment_method"] | null
@@ -1876,6 +1882,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_received_cents: number | null
+          rental_paid_cents: number | null
           deposit_returned_marked_by: string | null
           pickup_reminder_sent_at: string | null
           rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
@@ -1973,6 +1981,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_received_cents: number | null
+          rental_paid_cents: number | null
           deposit_returned_marked_by: string | null
           pickup_reminder_sent_at: string | null
           rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
@@ -2048,6 +2058,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_received_cents: number | null
+          rental_paid_cents: number | null
           deposit_returned_marked_by: string | null
           pickup_reminder_sent_at: string | null
           rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
@@ -2124,6 +2136,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_received_cents: number | null
+          rental_paid_cents: number | null
           deposit_returned_marked_by: string | null
           pickup_reminder_sent_at: string | null
           rental_refund_method: Database["public"]["Enums"]["payment_method"] | null
@@ -2326,6 +2340,8 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method"]
             | null
           deposit_return_note: string | null
+          deposit_received_cents: number | null
+          rental_paid_cents: number | null
           deposit_returned_marked_by: string | null
           pickup_reminder_sent_at: string | null
           rental_refund_method: Database["public"]["Enums"]["payment_method"] | null

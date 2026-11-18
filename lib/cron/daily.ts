@@ -4,7 +4,7 @@ import { bookingEmailDataFromRow } from '@/lib/booking/email-data'
 import { dailyWindows } from '@/lib/cron/windows'
 import { sendBookingReminder, sendReviewRequest } from '@/lib/email/booking-emails'
 import { formatEuro } from '@/lib/format'
-import { missingPayments } from '@/lib/payment'
+import { depositOutstandingCents, missingPayments, rentalOutstandingCents } from '@/lib/payment'
 import { getSettings } from '@/lib/settings'
 import { getConfiguredOrigin } from '@/lib/site-url'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -70,8 +70,8 @@ export async function runDaily(now = new Date()): Promise<DailyResult> {
         booking: data,
         kind: 'pickup',
         unpaid: {
-          rental: missing.includes('rental') ? `${euro(row.total_cents)} · ${data.rentalPayment}` : null,
-          deposit: missing.includes('deposit') ? `${euro(row.deposit_cents)} · ${data.depositPayment}` : null,
+          rental: missing.includes('rental') ? `${euro(rentalOutstandingCents(row))} · ${data.rentalPayment}` : null,
+          deposit: missing.includes('deposit') ? `${euro(depositOutstandingCents(row))} · ${data.depositPayment}` : null,
         },
         toleranceMinutes: settings.return_tolerance_minutes,
         assistancePhone: assistanceOf(row),

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { formatEuro } from '@/lib/format'
-import { missingPayments, unpaidCents } from '@/lib/payment'
+import { depositOutstandingCents, missingPayments, rentalOutstandingCents, unpaidCents } from '@/lib/payment'
 import { requireStaff } from '@/lib/auth/session'
 import { hasRole } from '@/lib/auth/roles'
 import { computeKpi } from '@/lib/kpi'
@@ -65,7 +65,7 @@ export default async function AdminHomePage({ searchParams }: Props) {
   const user = await requireStaff('operator')
   const now = new Date()
   const horizon = new Date(now.getTime() + 14 * 86_400_000).toISOString()
-  const paySelect = 'id, number, status, pickup_at, return_at, total_cents, deposit_cents, rental_payment_status, deposit_status, rental_payment_method, deposit_payment_method, customer_snapshot, vehicles(name)'
+  const paySelect = 'id, number, status, pickup_at, return_at, total_cents, deposit_cents, rental_payment_status, deposit_status, rental_paid_cents, rental_refunded_cents, deposit_received_cents, rental_payment_method, deposit_payment_method, customer_snapshot, vehicles(name)'
   const [{ data: upcoming }, { data: finished }, { data: deletionRequests }, { data: lastRun }] = await Promise.all([
     supabase.from('bookings').select(paySelect).in('status', ['confirmed', 'modified']).lte('pickup_at', horizon).order('pickup_at').limit(200),
     supabase.from('bookings').select(`${paySelect}, settlements(total_cents, approved_at)`).in('status', ['completed', 'cancelled']).eq('deposit_status', 'received').order('return_at').limit(100),
@@ -98,6 +98,7 @@ export default async function AdminHomePage({ searchParams }: Props) {
     { label: 'Depozity na vrátenie', value: deposits.length, sub: deposits.length > 0 ? `${formatEuro(depositsReadySum)} pripravené${deposits.some((d) => !d.ready) ? ` · ${deposits.filter((d) => !d.ready).length} čaká na vyúčtovanie` : ''}` : 'žiadne', href: '#depozity', highlight: deposits.some((d) => d.ready) },
     ...(hasRole(user.role, 'manager') ? [{ label: 'Žiadosti o vymazanie účtu', value: (deletionRequests ?? []).length, sub: (deletionRequests ?? []).length > 0 ? `najstaršia ${formatDateTime((deletionRequests ?? [])[0].deletion_requested_at!).split(' ')[0]} · lehota 30 dní` : 'žiadne', href: '/admin/zakaznici?filter=vymazanie', highlight: (deletionRequests ?? []).length > 0 }] : []),
   ]
+  const methodShort = (m: string) => (m === 'transfer' ? 'prevod' : m === 'terminal' ? 'terminál' : 'hotovosť')
   const customerName = (snapshot: unknown) => {
     const c = (snapshot ?? {}) as Snapshot & { company_name?: string | null }
     return c.company_name || `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim()
@@ -172,7 +173,13 @@ export default async function AdminHomePage({ searchParams }: Props) {
                     </span>
                     <span className="flex flex-wrap items-center gap-2">
                       <span>
-                        {missing.map((k) => (k === 'rental' ? `prenájom ${formatEuro(b.total_cents)} (${b.rental_payment_method === 'transfer' ? 'prevod' : b.rental_payment_method === 'terminal' ? 'terminál' : 'hotovosť'})` : `depozit ${formatEuro(b.deposit_cents)} (${b.deposit_payment_method === 'transfer' ? 'prevod' : b.deposit_payment_method === 'terminal' ? 'terminál' : 'hotovosť'})`)).join(' + ')}
+                        {missing
+                          .map((k) =>
+                            k === 'rental'
+                              ? `${b.rental_payment_status === 'unpaid' ? 'prenájom' : 'doplatok prenájmu'} ${formatEuro(rentalOutstandingCents(b))} (${methodShort(b.rental_payment_method)})`
+                              : `${b.deposit_status === 'pending' ? 'depozit' : 'doplatok depozitu'} ${formatEuro(depositOutstandingCents(b))} (${methodShort(b.deposit_payment_method)})`,
+                          )
+                          .join(' + ')}
                       </span>
                       {soon ? <span className="rounded-full border border-red-400/60 bg-red-500/10 px-2 py-0.5 text-xs font-semibold text-red-200">čoskoro</span> : null}
                     </span>

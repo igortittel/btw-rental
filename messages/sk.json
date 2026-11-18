@@ -242,7 +242,9 @@
       "invoice": "Faktúra",
       "credit_note": "Dobropis",
       "settlement": "Doúčtovanie"
-    }
+    },
+    "rentalTopUp": "zostáva doplatiť {amount}",
+    "rentalOverpaid": "preplatok {amount} vám vrátime"
   },
   "catalog": {
     "title": "Prenájom vozidiel",

@@ -6,7 +6,7 @@ import { ActionForm, Field, SubmitButton, selectClass } from '@/components/admin
 import { DateField, SELECT_CHEVRON_STYLE } from '@/components/ui/date-field'
 import { Label } from '@/components/ui/label'
 import { centsToInput, formatEuro } from '@/lib/format'
-import { DEPOSIT_STATUS_LABELS, RENTAL_PAYMENT_LABELS, type DepositStatus, type PaymentKind, type RentalPaymentStatus, type UndoKind } from '@/lib/payment'
+import { DEPOSIT_STATUS_LABELS, RENTAL_PAYMENT_LABELS, depositOutstandingCents, depositOverpaidCents, rentalOutstandingCents, rentalOverpaidCents, type DepositStatus, type PaymentKind, type PaymentState, type RentalPaymentStatus, type UndoKind } from '@/lib/payment'
 import { formatIban } from '@/lib/iban'
 
 type Method = 'transfer' | 'terminal' | 'cash'
@@ -21,8 +21,8 @@ export type PaymentsPanelProps = {
   variableSymbol: string
   totalCents: number | null
   depositCents: number
-  rental: { status: RentalPaymentStatus; method: Method; paidAt: string | null; paidBy: string | null; refundedCents: number | null; refundedAt: string | null; refundMethod: Method | null; refundNote: string | null }
-  deposit: { status: DepositStatus; method: Method; receivedAt: string | null; receivedBy: string | null; returnedCents: number | null; returnedAt: string | null; returnMethod: Method | null; returnNote: string | null; returnedBy: string | null }
+  rental: { status: RentalPaymentStatus; method: Method; paidCents: number | null; paidAt: string | null; paidBy: string | null; refundedCents: number | null; refundedAt: string | null; refundMethod: Method | null; refundNote: string | null }
+  deposit: { status: DepositStatus; method: Method; receivedCents: number | null; receivedAt: string | null; receivedBy: string | null; returnedCents: number | null; returnedAt: string | null; returnMethod: Method | null; returnNote: string | null; returnedBy: string | null }
   /** Approved settlement total, null when there is none (yet). */
   settlementCents: number | null
   settlementApproved: boolean
@@ -121,25 +121,46 @@ function UndoButton({ id, kind, label, confirm }: { id: string; kind: UndoKind; 
 export function PaymentsPanel(p: PaymentsPanelProps) {
   const [open, setOpen] = useState<null | 'rental' | 'deposit' | 'refund'>(null)
   const finished = p.bookingStatus === 'completed' || p.bookingStatus === 'cancelled'
+  const state: PaymentState = {
+    total_cents: p.totalCents,
+    deposit_cents: p.depositCents,
+    rental_payment_status: p.rental.status,
+    deposit_status: p.deposit.status,
+    rental_paid_cents: p.rental.paidCents,
+    rental_refunded_cents: p.rental.refundedCents,
+    deposit_received_cents: p.deposit.receivedCents,
+  }
+  // The price or the deposit can change after a payment (approved change, staff edit).
+  const rentalDue = p.rental.status === 'unpaid' ? 0 : rentalOutstandingCents(state)
+  const rentalOver = rentalOverpaidCents(state)
+  const netPaid = p.rental.status === 'unpaid' ? 0 : (p.rental.paidCents ?? p.totalCents ?? 0) - (p.rental.refundedCents ?? 0)
+  const depositDue = p.deposit.status === 'received' ? depositOutstandingCents(state) : 0
+  const depositOver = depositOverpaidCents(state)
+  const received = p.deposit.receivedCents ?? p.depositCents
   const charged = p.settlementApproved ? (p.settlementCents ?? 0) : 0
-  const proposal = Math.max(0, p.depositCents - charged)
-  const due = Math.max(0, charged - p.depositCents)
-  const rentalTone = p.rental.status === 'paid' ? 'ok' : p.rental.status === 'unpaid' ? 'warn' : 'muted'
-  const depositTone = p.deposit.status === 'received' ? (finished ? 'gold' : 'ok') : p.deposit.status === 'pending' ? 'warn' : 'ok'
+  const proposal = Math.max(0, received - charged)
+  const due = Math.max(0, charged - received)
+  const rentalLabel = rentalDue > 0 ? `Doplatok ${formatEuro(rentalDue)}` : rentalOver > 0 && p.bookingStatus !== 'cancelled' ? `Preplatok ${formatEuro(rentalOver)}` : RENTAL_PAYMENT_LABELS[p.rental.status]
+  const rentalTone = rentalDue > 0 || p.rental.status === 'unpaid' ? 'warn' : rentalOver > 0 && p.bookingStatus !== 'cancelled' ? 'gold' : p.rental.status === 'paid' ? 'ok' : 'muted'
+  const depositLabel = depositDue > 0 ? `Doplatiť ${formatEuro(depositDue)}` : p.deposit.status === 'received' && finished ? 'Prijatý · na vrátenie' : DEPOSIT_STATUS_LABELS[p.deposit.status]
+  const depositTone = depositDue > 0 ? 'warn' : p.deposit.status === 'received' ? (finished ? 'gold' : 'ok') : p.deposit.status === 'pending' ? 'warn' : 'ok'
+  const canRefund = p.canManage && netPaid > 0 && (p.bookingStatus === 'cancelled' || rentalOver > 0)
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Card title="Prenájom" status={<span className={badge(rentalTone)}>{RENTAL_PAYMENT_LABELS[p.rental.status]}</span>}>
+      <Card title="Prenájom" status={<span className={badge(rentalTone)}>{rentalLabel}</span>}>
         <Kv
           rows={[
             ['Suma', <strong key="s">{p.totalCents === null ? 'individuálna cena – nedoplnená' : formatEuro(p.totalCents)}</strong>],
             ['Spôsob', METHOD_LABELS[p.rental.method]],
+            ...(p.rental.status !== 'unpaid' && netPaid !== (p.totalCents ?? 0) ? ([['Uhradené spolu', formatEuro(netPaid)]] as [string, string][]) : []),
             ...(p.rental.method === 'transfer' ? ([['Variabilný symbol', p.variableSymbol]] as [string, string][]) : []),
           ]}
         />
         {p.rental.status !== 'unpaid' ? (
           <p className="border-t border-line pt-3 text-sm text-white">
-            Uhradené <strong>{p.dates.rentalPaid}</strong> · {METHOD_LABELS[p.rental.method]}
+            {p.rental.paidCents !== null ? <>Uhradené <strong>{formatEuro(p.rental.paidCents)}</strong>, posledná platba </> : 'Uhradené '}
+            <strong>{p.dates.rentalPaid}</strong> · {METHOD_LABELS[p.rental.method]}
             {p.rental.paidBy ? <span className="text-muted2"> · zaznamenal {p.rental.paidBy}</span> : null}
           </p>
         ) : null}
@@ -151,24 +172,35 @@ export function PaymentsPanel(p: PaymentsPanelProps) {
           </p>
         ) : null}
 
-        {p.rental.status === 'unpaid' && p.totalCents !== null ? (
+        {rentalDue > 0 ? (
+          <p className="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+            Cena sa po úhrade zmenila na {formatEuro(p.totalCents)}. Zákazník má doplatiť <strong>{formatEuro(rentalDue)}</strong>.
+          </p>
+        ) : null}
+        {rentalOver > 0 && p.bookingStatus !== 'cancelled' ? (
+          <p className="rounded-lg border border-gold/60 bg-gold/10 px-3 py-2 text-sm text-white">
+            Cena sa po úhrade znížila na {formatEuro(p.totalCents)}. Zákazníkovi treba vrátiť <strong>{formatEuro(rentalOver)}</strong>.
+          </p>
+        ) : null}
+
+        {(p.rental.status === 'unpaid' && p.totalCents !== null) || rentalDue > 0 ? (
           open === 'rental' ? (
             <RecordPaymentForm id={p.id} kind="rental" method={p.rental.method} today={p.today} onCancel={() => setOpen(null)} />
           ) : (
             <button type="button" onClick={() => setOpen('rental')} className="h-11 self-start rounded-lg bg-gold px-5 text-sm font-semibold text-white hover:bg-gold-hover">
-              Označiť ako uhradené
+              {rentalDue > 0 ? `Zaznamenať doplatok ${formatEuro(rentalDue)}` : 'Označiť ako uhradené'}
             </button>
           )
         ) : null}
 
-        {p.rental.status === 'paid' && p.bookingStatus === 'cancelled' && p.canManage ? (
+        {canRefund ? (
           open === 'refund' ? (
             <ActionForm action={refundRentalAction} className="grid gap-3 border-t border-line pt-3 sm:grid-cols-2">
               <input type="hidden" name="id" value={p.id} />
-              <Field label="Vrátiť zákazníkovi (€)" name="amount" id="refund-amount" inputMode="decimal" defaultValue={centsToInput(Math.max(0, (p.totalCents ?? 0)))} />
+              <Field label="Vrátiť zákazníkovi (€)" name="amount" id="refund-amount" inputMode="decimal" defaultValue={centsToInput(p.bookingStatus === 'cancelled' ? netPaid : rentalOver)} />
               <DateInput id="refund-date" today={p.today} label="Dátum vrátenia" />
               <MethodSelect id="refund-method" defaultValue="transfer" labels={RETURN_METHOD_LABELS} />
-              <Field label="Poznámka" name="note" id="refund-note" maxLength={300} placeholder="napr. po odpočítaní storno poplatku" />
+              <Field label="Poznámka" name="note" id="refund-note" maxLength={300} placeholder={p.bookingStatus === 'cancelled' ? 'napr. po odpočítaní storno poplatku' : 'preplatok po zmene rezervácie'} />
               <div className="flex flex-wrap gap-2 sm:col-span-2">
                 <SubmitButton>Zaznamenať vrátenie</SubmitButton>
                 <button type="button" onClick={() => setOpen(null)} className="h-10 rounded-lg border border-gold/50 px-4 text-sm font-semibold text-gold hover:bg-gold/10">
@@ -178,7 +210,7 @@ export function PaymentsPanel(p: PaymentsPanelProps) {
             </ActionForm>
           ) : (
             <button type="button" onClick={() => setOpen('refund')} className="h-11 self-start rounded-lg border border-gold/50 px-4 text-sm font-semibold text-gold hover:bg-gold/10">
-              Zaznamenať vrátenie platby
+              {rentalOver > 0 && p.bookingStatus !== 'cancelled' ? `Vrátiť preplatok ${formatEuro(rentalOver)}` : 'Zaznamenať vrátenie platby'}
             </button>
           )
         ) : null}
@@ -191,21 +223,31 @@ export function PaymentsPanel(p: PaymentsPanelProps) {
         ) : null}
       </Card>
 
-      <Card title="Depozit" status={<span className={badge(depositTone)}>{p.deposit.status === 'received' && finished ? 'Prijatý · na vrátenie' : DEPOSIT_STATUS_LABELS[p.deposit.status]}</span>}>
+      <Card title="Depozit" status={<span className={badge(depositTone)}>{depositLabel}</span>}>
         <Kv
           rows={[
             ['Suma', <strong key="s">{formatEuro(p.depositCents)}</strong>],
             ['Spôsob', METHOD_LABELS[p.deposit.method]],
-            ...(p.deposit.receivedAt ? ([['Prijatý', `${p.dates.depositReceived}${p.deposit.receivedBy ? ` · ${p.deposit.receivedBy}` : ''}`]] as [string, string][]) : []),
+            ...(p.deposit.receivedAt ? ([['Prijatý', `${p.deposit.receivedCents !== null ? `${formatEuro(p.deposit.receivedCents)} · ` : ''}${p.dates.depositReceived}${p.deposit.receivedBy ? ` · ${p.deposit.receivedBy}` : ''}`]] as [string, string][]) : []),
           ]}
         />
 
-        {p.deposit.status === 'pending' && p.depositCents > 0 ? (
+        {depositDue > 0 ? (
+          <p className="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+            Depozit sa zvýšil na {formatEuro(p.depositCents)}. Treba prijať ešte <strong>{formatEuro(depositDue)}</strong>.
+          </p>
+        ) : null}
+        {depositOver > 0 && !finished ? (
+          <p className="rounded-lg border border-gold/60 bg-gold/10 px-3 py-2 text-sm text-white">
+            Depozit sa znížil na {formatEuro(p.depositCents)}; prijatých {formatEuro(received)} sa vráti po skončení prenájmu.
+          </p>
+        ) : null}
+        {(p.deposit.status === 'pending' && p.depositCents > 0) || depositDue > 0 ? (
           open === 'deposit' ? (
             <RecordPaymentForm id={p.id} kind="deposit" method={p.deposit.method} today={p.today} onCancel={() => setOpen(null)} />
           ) : (
             <button type="button" onClick={() => setOpen('deposit')} className="h-11 self-start rounded-lg bg-gold px-5 text-sm font-semibold text-white hover:bg-gold-hover">
-              Depozit prijatý
+              {depositDue > 0 ? `Zaznamenať doplatok depozitu ${formatEuro(depositDue)}` : 'Depozit prijatý'}
             </button>
           )
         ) : null}
@@ -252,7 +294,7 @@ export function PaymentsPanel(p: PaymentsPanelProps) {
                       name="note"
                       id="return-note"
                       maxLength={300}
-                      defaultValue={p.settlementApproved && charged > 0 ? `Zrážka ${formatEuro(Math.min(charged, p.depositCents))} podľa vyúčtovania` : ''}
+                      defaultValue={p.settlementApproved && charged > 0 ? `Zrážka ${formatEuro(Math.min(charged, received))} podľa vyúčtovania` : ''}
                     />
                     <div className="sm:col-span-2">
                       <SubmitButton>Zaznamenať vrátenie depozitu</SubmitButton>

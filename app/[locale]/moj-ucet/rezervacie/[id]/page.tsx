@@ -13,7 +13,7 @@ import { customerEditBlock, describeBookingChange, type ChangeableBooking } from
 import { cancellationQuote } from '@/lib/cancellation'
 import { getCatalog, localize } from '@/lib/catalog'
 import { formatEuro } from '@/lib/format'
-import { variableSymbol } from '@/lib/payment'
+import { depositOutstandingCents, rentalOutstandingCents, rentalOverpaidCents, variableSymbol } from '@/lib/payment'
 import type { PriceBreakdown } from '@/lib/pricing'
 import { depositOutcome, settlementLines } from '@/lib/settlement'
 import { vehicleImageUrl } from '@/lib/storage'
@@ -57,7 +57,11 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
   const { settings } = catalog
   // Bank details for an unpaid transfer (company data, not personal; customers cannot read
   // the settings table, so the server reads just this key).
-  const transferDue = (booking.status === 'confirmed' || booking.status === 'modified') && booking.rental_payment_method === 'transfer' && booking.rental_payment_status === 'unpaid' && booking.total_cents !== null
+  // Outstanding amounts, also after a price change following a payment.
+  const rentalDue = rentalOutstandingCents(booking)
+  const rentalOver = booking.status === 'cancelled' ? 0 : rentalOverpaidCents(booking)
+  const depositDue = booking.deposit_status === 'received' ? depositOutstandingCents(booking) : 0
+  const transferDue = (booking.status === 'confirmed' || booking.status === 'modified') && booking.rental_payment_method === 'transfer' && rentalDue > 0 && booking.total_cents !== null
   let bank: { iban: string; swift: string } | null = null
   if (transferDue) {
     try {
@@ -296,6 +300,8 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               <dt className="text-muted2">{t('paymentRental')}</dt>
               <dd className="text-right text-white">
                 {t(`methods.${booking.rental_payment_method}`)} · <strong>{t(`rentalStatus.${booking.rental_payment_status}`)}</strong>
+                {booking.rental_payment_status !== 'unpaid' && rentalDue > 0 ? <span className="block text-sm font-semibold text-amber-200">{t('rentalTopUp', { amount: euro(rentalDue) })}</span> : null}
+                {rentalOver > 0 ? <span className="block text-sm text-muted2">{t('rentalOverpaid', { amount: euro(rentalOver) })}</span> : null}
                 {booking.rental_paid_at && booking.rental_payment_status === 'paid' ? <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.rental_paid_at, locale) })}</span> : null}
                 {booking.rental_refunded_cents && booking.rental_refunded_at ? <span className="block text-sm text-muted2">{t('rentalRefundedOn', { amount: euro(booking.rental_refunded_cents), date: formatDate(booking.rental_refunded_at, locale) })}</span> : null}
               </dd>
@@ -304,6 +310,7 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               <dt className="text-muted2">{t('paymentDeposit')}</dt>
               <dd className="text-right text-white">
                 {t(`methods.${booking.deposit_payment_method}`)} · <strong>{t(`depositStatus.${booking.deposit_status}`)}</strong>
+                {depositDue > 0 ? <span className="block text-sm font-semibold text-amber-200">{t('rentalTopUp', { amount: euro(depositDue) })}</span> : null}
                 {booking.deposit_received_at && booking.deposit_status === 'received' ? <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.deposit_received_at, locale) })}</span> : null}
                 {booking.deposit_returned_cents !== null && booking.deposit_returned_at ? <span className="block text-sm text-muted2">{t('depositReturnedOn', { amount: euro(booking.deposit_returned_cents), date: formatDate(booking.deposit_returned_at, locale) })}</span> : null}
               </dd>
@@ -329,7 +336,7 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
                 </div>
                 <div className={row}>
                   <dt className="text-muted2">{t('bankAmount')}</dt>
-                  <dd className="font-semibold text-white">{euro(booking.total_cents ?? 0)}</dd>
+                  <dd className="font-semibold text-white">{euro(rentalDue)}</dd>
                 </div>
               </dl>
             </div>

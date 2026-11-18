@@ -242,7 +242,9 @@
       "invoice": "Invoice",
       "credit_note": "Credit note",
       "settlement": "Additional invoice"
-    }
+    },
+    "rentalTopUp": "still to pay: {amount}",
+    "rentalOverpaid": "we will refund the overpayment of {amount}"
   },
   "catalog": {
     "title": "Car rental",
