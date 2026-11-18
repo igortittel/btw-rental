@@ -18,7 +18,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
 | 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, schválená, v `main` (klient ešte testuje preberací protokol a vyúčtovanie) |
-| 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, **čaká na schválenie** (vetva session) |
+| 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, v `main` (18. 11. 2026) |
 | 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | ďalšia na rade |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
@@ -27,7 +27,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - **Po každej fáze sa zastav**, zhrň zmeny, napíš, ako to otestovať na preview, a počkaj na schválenie.
 - Komunikácia a UI texty po slovensky; kód, tabuľky a premenné po anglicky.
-- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–8 sú zlúčené v `main` (PR #1–#4); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
+- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–8 sú zlúčené v `main` (PR #1–#5), Fáza 9 priamym pushom na `main` (na žiadosť klienta); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
 - Repo `igortittel/btw-web` nečítaj ani neupravuj.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
@@ -79,7 +79,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit.
 - **Reálny IBAN pred spustením:** v Nastaveniach je testovací `SK73 1100 0000 0029 0000 0042` (TATRSKBX, `is_placeholder: false`, aby sa dali testovať platobné pokyny). DNS pre `rental.btw.sk`.
 - Odložené zo skorších fáz: úprava číselníka výbavy, alt texty fotiek, EN preklady obsahu a Lighthouse (Fáza 10).
-- **Po zlúčení Fázy 9 do `main` zapnúť:** `settings.staff_mfa_enforced = true` (2FA v databáze) a v Nastaveniach „Pred odovzdaním vozidla vyžadovať úhradu“ (`require_payment_before_pickup`). Na Supabase sú zatiaľ vypnuté, aby fungoval kód z `main`.
+- **2FA v databáze** (`settings.staff_mfa_enforced`) a **úhrada pred odovzdaním** (`require_payment_before_pickup`) sú zapnuté od nasadenia Fázy 9 do produkcie. Kto ich vypne, oslabí ochranu – 2FA vypínať len pri výpadku Supabase MFA.
 
 ## Údaje od klienta
 
