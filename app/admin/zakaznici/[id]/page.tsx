@@ -19,8 +19,9 @@ const OPEN = ['new', 'confirmed', 'modified', 'active']
 function Rows({ rows }: { rows: [string, React.ReactNode][] }) {
   return (
     <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[12rem_1fr] sm:gap-y-2">
-      {rows.map(([label, value]) => (
-        <div key={label} className="contents">
+      {/* Index keys: labels repeat (e.g. the same e-mail sent twice), and duplicate keys break the page refresh after an action. */}
+      {rows.map(([label, value], index) => (
+        <div key={index} className="contents">
           <dt className="text-muted2">{label}</dt>
           <dd className="mb-2 break-words text-white sm:mb-0">{value || '—'}</dd>
         </div>

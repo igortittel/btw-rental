@@ -3,7 +3,7 @@
 Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 
 - **Zadanie:** [`docs/ZADANIE.md`](docs/ZADANIE.md) – čítaj ako prvé, najmä sekciu 14 (fázy).
-- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-8.md`.
+- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-9.md`.
 
 ## Stav
 
@@ -18,8 +18,8 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
 | 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, schválená, v `main` (klient ešte testuje preberací protokol a vyúčtovanie) |
-| 9 Faktúry/dokumenty, platby a depozit, cron, zákazníci + GDPR, audit log | **ďalšia na rade** |
-| 10 | nezačatá |
+| 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, **čaká na schválenie** (vetva session) |
+| 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | ďalšia na rade |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
@@ -65,14 +65,21 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **Vyúčtovanie:** meškanie = každý ďalší začatý deň po tolerancii × denná sadzba rezervácie (rovnaké počítanie dní ako cena); palivo zadáva zamestnanec; každé nové poškodenie má vlastnú sumu (`settlements.damage_items`). Zákazník vidí len potvrdené (`approved_at`); upravuje a potvrdzuje manager+.
 - **E-mail 10 má dve časti:** preberací protokol s PDF hneď po podpise, vyúčtovanie až po jeho potvrdení.
 - **Uniknuté heslá** kontroluje aplikácia (`lib/auth/pwned.ts`, HIBP k-anonymita, pri výpadku prijme), lebo Supabase „Leaked password protection“ nie je na pláne dostupná. Každé nové miesto, kde sa nastavuje heslo, ju musí volať. Verejná registrácia v Supabase Auth je vypnutá.
+- **Platby:** zaznamenanie cez RPC `record_payment` (operator+), vrátenie depozitu `record_deposit_return` a vrátenie platby `record_rental_refund` (manager+, depozit až po potvrdenom vyúčtovaní alebo storne), oprava `undo_payment` (manager+). Rovnaké pravidlo „čo chýba pred odovzdaním“ je v `missingPayments()` (`lib/payment.ts`) aj v `sign_protocol`.
+- **Doklady:** PDF nahráva prehliadač priamo do bucketu `documents/<booking_id>/<uuid>.pdf`, server akcia `createDocumentAction` overí veľkosť a hlavičku PDF a zapíše riadok; inak súbor zmaže. Sťahovanie cez `/api/documents/[id]` (RLS). Fakturačný systém iKros: len rozhranie `lib/invoicing/provider.ts`.
+- **Denný cron:** `vercel.json` `0 5 * * *` → `/api/cron/daily` (CRON_SECRET). E-maily 7, 9, 12 sa pred odoslaním „zaberú“ v stĺpcoch rezervácie, takže nič nejde dvakrát. Výsledok v `cron_runs`.
+- **2FA (TOTP) pre všetkých zamestnancov:** admin layout pri `aal1` ukáže krok 2FA namiesto stránky; `getStaff()` vyžaduje `aal2`; v databáze `private.is_staff()` podľa `staff_mfa_enforced`. Testovacie účty zamestnancov preto potrebujú TOTP (Playwright: kód z tajomstva zobrazeného pri registrácii).
+- **GDPR:** `anonymize_customer` (manager+) – bez rezervácií vymaže, inak anonymizuje profil, snapshoty rezervácií, súhlasy (IP), e-mail log a interné údaje; Auth účet potom zmaže server. Audit vypína `app.skip_audit` a zapíše jeden záznam bez osobných údajov. Zmeny `profiles` od zamestnanca sa auditujú bez hodnôt (trigger s argumentom `redact`).
+- **Blacklist** sa porovnáva aj podľa e-mailu a telefónu (`lib/customers/blacklist.ts`) – detail a zoznam rezervácií, e-mail 2.
+- **Kľúče v zoznamoch nesmú byť popisky, ktoré sa môžu opakovať** (napr. typ e-mailu) – duplicitné kľúče rozbili obnovu detailu rezervácie po akcii.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
 
 - Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit.
 - **Reálny IBAN pred spustením:** v Nastaveniach je testovací `SK73 1100 0000 0029 0000 0042` (TATRSKBX, `is_placeholder: false`, aby sa dali testovať platobné pokyny). DNS pre `rental.btw.sk`.
-- `CRON_SECRET` vo Verceli – treba pre Vercel Cron (Fáza 9).
-- Odložené zo skorších fáz: 2FA pre zamestnancov, úprava číselníka výbavy, alt texty fotiek, obrazovka audit logu (Fáza 9), EN preklady obsahu a Lighthouse (Fáza 10).
+- Odložené zo skorších fáz: úprava číselníka výbavy, alt texty fotiek, EN preklady obsahu a Lighthouse (Fáza 10).
+- **Po zlúčení Fázy 9 do `main` zapnúť:** `settings.staff_mfa_enforced = true` (2FA v databáze) a v Nastaveniach „Pred odovzdaním vozidla vyžadovať úhradu“ (`require_payment_before_pickup`). Na Supabase sú zatiaľ vypnuté, aby fungoval kód z `main`.
 
 ## Údaje od klienta
 
@@ -86,7 +93,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 |---|---|
 | Supabase projekt | `btw`, ref `wlkdhdkflbswjjdobsfs`, eu-west-1 (cez Supabase MCP konektor) |
 | Vercel | tím `igortittels-projects` (`team_tKyxRtkRIInsaFXlnwp9EpJf`), projekt `btw-rental` |
-| Vercel env | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SEED_OWNER_PASSWORD`, `RESEND_API_KEY` |
+| Vercel env | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SEED_OWNER_PASSWORD`, `RESEND_API_KEY`, `CRON_SECRET` (Production + Preview) |
 | Owner účet | firemný e-mail BTW (hodnota je v `scripts/seed-owner.ts`) |
 | Cloud prostredie | `btw-rental` – povolené hosty: `www.btw.sk`, `btw.sk`, `wp.btw.sk`, `wlkdhdkflbswjjdobsfs.supabase.co` |
 

@@ -124,6 +124,11 @@ const FIELD_LABELS: Record<string, string> = {
   price_cents: 'Cena',
   signed_at: 'Podpísaný',
   pdf_path: 'PDF',
+  body: 'Text',
+  author_id: 'Autor',
+  booking_id: 'Rezervácia',
+  customer_id: 'Zákazník',
+  uploaded_by: 'Nahral',
 }
 
 const ENUMS: Record<string, string> = {
