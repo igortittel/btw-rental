@@ -18,7 +18,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 6 Admin rezervácie: zoznam, timeline, detail, stavy, manuálna rezervácia, emaily 3 a 6 | hotová, schválená, v `main` |
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
 | 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, schválená, v `main` (klient ešte testuje preberací protokol a vyúčtovanie) |
-| 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, v `main` (18. 11. 2026) |
+| 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, schválená, v `main` (18. 11. 2026) |
 | 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | ďalšia na rade |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
