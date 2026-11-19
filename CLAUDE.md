@@ -4,7 +4,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 
 - **Zadanie:** [`docs/ZADANIE.md`](docs/ZADANIE.md) – čítaj ako prvé, najmä sekciu 14 (fázy).
 - **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-10.md`.
-- **Pred spustením:** [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md).
+- **Pred spustením:** [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md). Vercel Hobby a Supabase Free stačia, kým sa web nezverejní (rozhodnutie klienta 19. 11. 2026); pred ostrým spustením to prehodnotiť.
 
 ## Stav
 
@@ -20,7 +20,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
 | 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, schválená, v `main` (klient ešte testuje preberací protokol a vyúčtovanie) |
 | 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, schválená, v `main` (18. 11. 2026) |
-| 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | hotová, čaká na schválenie (vetva session) |
+| 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | hotová, schválená, v `main` (19. 11. 2026) – ostáva DNS a kroky z `docs/RELEASE-CHECKLIST.md` |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
@@ -28,7 +28,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
 - **Po každej fáze sa zastav**, zhrň zmeny, napíš, ako to otestovať na preview, a počkaj na schválenie.
 - Komunikácia a UI texty po slovensky; kód, tabuľky a premenné po anglicky.
-- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–8 sú zlúčené v `main` (PR #1–#5), Fáza 9 priamym pushom na `main` (na žiadosť klienta); novšie fázy sú na vetve session, kým klient nepožiada o zlúčenie.
+- Vývoj na vetve, ktorú určí session; push → Vercel preview. PR nevytváraj, kým o to používateľ nepožiada. Fázy 0–8 sú zlúčené v `main` (PR #1–#5), Fázy 9 a 10 priamym pushom na `main` (na žiadosť klienta); ďalšie zmeny sú na vetve session, kým klient nepožiada o zlúčenie.
 - Repo `igortittel/btw-web` nečítaj ani neupravuj.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
