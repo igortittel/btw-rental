@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { AvailabilityCalendar } from '@/components/catalog/availability-calendar'
 import { checkTermAction, createBookingAction, type BookingActionResult } from '@/lib/booking/actions'
@@ -9,7 +9,7 @@ import { COUNTRY_CODES, PHONE_PREFIXES, countryName } from '@/lib/booking/countr
 import { PHONE_DIGITS, customerRuleErrors, customerSchema, confirmSchema, fieldErrors, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors } from '@/lib/booking/schema'
 import { formatEuro } from '@/lib/format'
 import { calculatePrice } from '@/lib/pricing'
-import { formatDate, formatDateTime, utcToZonedLocal } from '@/lib/time'
+import { formatDate, formatDateTime, localDateInHours, utcToZonedLocal } from '@/lib/time'
 import { Card, CheckField, DateInput, Field, RadioCards, SelectInput, TextInput, controlClass, describe } from './fields'
 import { PriceLines, PriceSummary } from './price-summary'
 import { Turnstile } from './turnstile'
@@ -46,10 +46,13 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
   const [turnstileReset, setTurnstileReset] = useState(0)
   const [checking, startChecking] = useTransition()
   const [submitting, startSubmitting] = useTransition()
-  const startedAt = useRef(Date.now())
+  // When the form was opened (anti-spam minimum fill time); set after mount.
+  const startedAt = useRef(0)
   const heading = useRef<HTMLHeadingElement>(null)
   const valuesRef = useRef(values)
-  valuesRef.current = values
+  useLayoutEffect(() => {
+    valuesRef.current = values
+  })
 
   const euro = (cents: number) => formatEuro(cents, locale)
   const vehicle = vehicles.find((v) => v.vin === values.vin) ?? null
@@ -112,6 +115,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
 
   // ── Draft in sessionStorage + step in the URL: Back and reload never lose input ──
   useEffect(() => {
+    startedAt.current = Date.now()
     let restored = initial
     try {
       const stored = JSON.parse(sessionStorage.getItem(BOOKING_DRAFT_KEY) ?? 'null') as Partial<BookingFormState> | null
@@ -123,6 +127,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
         if (config.lockedEmail) restored.email = config.lockedEmail
         if (!locations.some((l) => l.id === restored.pickupLocationId)) restored.pickupLocationId = initial.pickupLocationId
         if (!locations.some((l) => l.id === restored.returnLocationId)) restored.returnLocationId = initial.returnLocationId
+        // sessionStorage exists only in the browser, so the saved draft can be applied only after hydration.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setValues(restored)
       }
     } catch {
@@ -215,7 +221,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
     return t(`errors.${key}`, { hours: config.minLeadHours, days: config.minRentalDays, age: vehicle?.minDriverAge ?? 21, digits: PHONE_DIGITS[values.phonePrefix] ?? 9 })
   }
 
-  const minPickupDate = useMemo(() => utcToZonedLocal(new Date(Date.now() + config.minLeadHours * 3600_000)).slice(0, 10), [config.minLeadHours])
+  const minPickupDate = useMemo(() => localDateInHours(config.minLeadHours), [config.minLeadHours])
   const pickupLabel = instants ? formatDateTime(instants.pickupAt, locale) : null
   const returnLabel = instants ? formatDateTime(instants.returnAt, locale) : null
   const steps = t.raw('steps') as string[]

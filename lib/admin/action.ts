@@ -1,8 +1,9 @@
 import 'server-only'
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 import type { PostgrestError } from '@supabase/supabase-js'
 import type { StaffRole } from '@/lib/auth/roles'
 import { getStaff } from '@/lib/auth/session'
+import { CATALOG_TAG } from '@/lib/catalog'
 import { createClient } from '@/lib/supabase/server'
 
 export type ActionState = { error?: string; ok?: boolean; message?: string; link?: string }
@@ -38,8 +39,9 @@ export async function staffAction(
   if (!staff) return { error: 'Na túto akciu nemáte oprávnenie.' }
   try {
     const result = await run({ supabase: await createClient(), userId: staff.id, role: staff.role })
-    // Anything an admin saves may be visible on the public site: refresh the cached catalogue.
-    if (result.ok) revalidateTag('catalog')
+    // Anything an admin saves may be visible on the public site: expire the cached catalogue
+    // at once (updateTag = read-your-own-writes; staffAction runs only inside server actions).
+    if (result.ok) updateTag(CATALOG_TAG)
     return result
   } catch (e) {
     // redirect() / notFound() work by throwing – let them through.

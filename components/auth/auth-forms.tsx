@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Turnstile } from '@/components/booking/turnstile'
 import { useFormAction } from '@/components/use-form-action'
 import { useLocale, useTranslations } from 'next-intl'
@@ -36,9 +36,11 @@ export function LoginForm({ next }: { next?: string }) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
   const [token, setToken] = useState<string | null>(null)
   const [reset, setReset] = useState(0)
-  useEffect(() => {
+  const [handled, setHandled] = useState(state)
+  if (handled !== state) {
+    setHandled(state)
     if (state.error) setReset((n) => n + 1)
-  }, [state])
+  }
 
   return (
     <form onSubmit={action} className="space-y-5" noValidate>

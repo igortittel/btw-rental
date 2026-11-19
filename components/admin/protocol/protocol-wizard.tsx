@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { RecordPaymentForm } from '@/components/admin/payments-panel'
 import { CarDiagram } from '@/components/admin/protocol/car-diagram'
 import { SignaturePad, type SignaturePadHandle } from '@/components/admin/protocol/signature-pad'
@@ -120,7 +120,9 @@ export function ProtocolWizard({
 
   // ── saving: debounced, serialised, always the latest draft ──
   const latest = useRef(draft)
-  latest.current = draft
+  useLayoutEffect(() => {
+    latest.current = draft
+  })
   const dirty = useRef(false)
   const chain = useRef<Promise<void>>(Promise.resolve())
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -171,11 +173,11 @@ export function ProtocolWizard({
   }
 
   // ── derived ──
-  const referenceDamages = reference?.damages ?? []
   const numbered = useMemo(() => {
+    const referenceDamages = reference?.damages ?? []
     const all = [...referenceDamages.map((d) => ({ ...d, isNew: false, own: false })), ...draft.damages.map((d) => ({ ...d, isNew: isReturn, own: true }))]
     return all.map((d, index) => ({ ...d, no: index + 1 }))
-  }, [referenceDamages, draft.damages, isReturn])
+  }, [reference?.damages, draft.damages, isReturn])
   const selectedDamage = numbered.find((d) => d.id === selected) ?? null
   const missing = protocolMissing(draft, { fuel, pickupOdometerKm: reference?.odometerKm, customerSigned: signed.customer, staffSigned: signed.staff, unpaid: (booking.unpaid ?? []).map((u) => u.kind) })
   const kmAllowed = booking.kmLimitPerDay * booking.days

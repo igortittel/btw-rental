@@ -36,6 +36,11 @@ export function zonedLocalToUtc(local: string, timeZone: string = TIME_ZONE): Da
 }
 
 /** Instant -> "YYYY-MM-DDTHH:mm" wall time in Europe/Bratislava (for datetime-local inputs). */
+/** Local date (YYYY-MM-DD, Europe/Bratislava) `hours` from now – earliest pickup day for a lead time. */
+export function localDateInHours(hours: number): string {
+  return utcToZonedLocal(new Date(Date.now() + hours * 3600_000)).slice(0, 10)
+}
+
 export function utcToZonedLocal(value: string | Date, timeZone: string = TIME_ZONE): string {
   const date = typeof value === 'string' ? new Date(value) : value
   const shifted = new Date(date.getTime() + offsetMinutes(date, timeZone) * 60000)

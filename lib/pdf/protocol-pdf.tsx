@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text -- @react-pdf/renderer <Image> has no alt attribute (PDF, not HTML) */
 import { Circle, Defs, Document, Ellipse, Font, G, Image, LinearGradient, Page, Path, Rect, Stop, StyleSheet, Svg, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { LOGO_PATHS, LOGO_VIEWBOX, MONTSERRAT_BASE64 } from '@/lib/pdf/assets.generated'
 import { DIAGRAM_HEIGHT, DIAGRAM_WIDTH, DIAGRAMS } from '@/lib/protocol/diagram'

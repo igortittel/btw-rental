@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { zonedLocalToUtc } from '@/lib/time'
 
@@ -62,7 +62,7 @@ type Props = {
 export function AvailabilityCalendar({ vin, value = null, onChange, minDate }: Props) {
   const t = useTranslations('vehicle')
   const locale = useLocale()
-  const today = useMemo(currentMonth, [])
+  const [today] = useState(currentMonth)
   const [view, setView] = useState(today)
   const [ranges, setRanges] = useState<Range[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -89,6 +89,8 @@ export function AvailabilityCalendar({ vin, value = null, onChange, minDate }: P
     return () => controller.abort()
   }, [vin, view.year, view.month])
 
+  // Days before now are shown as past; re-evaluated on every render on purpose.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
   const stateOf = (date: string): DayState => {
     const from = dayStart(date)

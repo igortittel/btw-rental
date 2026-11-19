@@ -1,17 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 type Labels = { days: string; hours: string; minutes: string; done: string }
 
+// The clock as an external store: ticks every 30 s; the snapshot is rounded to the tick so it stays stable between ticks.
+const TICK_MS = 30_000
+function subscribeClock(onChange: () => void) {
+  const timer = setInterval(onChange, TICK_MS)
+  return () => clearInterval(timer)
+}
+function clockSnapshot() {
+  return Math.floor(Date.now() / TICK_MS) * TICK_MS
+}
+
 /** Days / hours / minutes left until `target`; re-rendered every 30 s. Rendered only on the client to avoid a server/client time mismatch. */
 export function Countdown({ target, title, labels }: { target: string; title: string; labels: Labels }) {
-  const [now, setNow] = useState<number | null>(null)
-  useEffect(() => {
-    setNow(Date.now())
-    const timer = setInterval(() => setNow(Date.now()), 30_000)
-    return () => clearInterval(timer)
-  }, [])
+  const now = useSyncExternalStore(subscribeClock, clockSnapshot, () => null)
 
   const left = now === null ? null : Date.parse(target) - now
   const minutes = left === null ? 0 : Math.max(0, Math.floor(left / 60_000))

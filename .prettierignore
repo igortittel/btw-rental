@@ -1,0 +1,12 @@
+.next
+node_modules
+package-lock.json
+supabase/seed.sql
+supabase/seed
+types/database.ts
+lib/pdf/assets.generated.ts
+docs
+*.md
+public
+test-results
+playwright-report

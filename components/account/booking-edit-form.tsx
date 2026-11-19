@@ -8,7 +8,7 @@ import { updateMyBookingAction, type BookingEditResult, type BookingEditValues }
 import { fieldErrors, termInstants, termSchema, validateTerm, type FieldErrors } from '@/lib/booking/schema'
 import { formatEuro } from '@/lib/format'
 import { calculatePrice } from '@/lib/pricing'
-import { utcToZonedLocal } from '@/lib/time'
+import { localDateInHours } from '@/lib/time'
 
 type Props = {
   bookingId: string
@@ -62,7 +62,7 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
       individualFromDays: config.individualFromDays,
     })
   }, [values, vehicle, pickupLocation, returnLocation, config])
-  const minPickupDate = useMemo(() => utcToZonedLocal(new Date(Date.now() + config.minLeadHours * 3600_000)).slice(0, 10), [config.minLeadHours])
+  const minPickupDate = useMemo(() => localDateInHours(config.minLeadHours), [config.minLeadHours])
 
   const submit = () => {
     const parsed = termSchema.safeParse(values)

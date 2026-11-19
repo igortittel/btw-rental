@@ -91,12 +91,15 @@ function UploadForm({ bookingId, hasEmail, today }: { bookingId: string; hasEmai
   const [uploading, setUploading] = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
 
-  // After a successful save the form starts over.
+  // After a successful save the form starts over: the chosen file is cleared during render,
+  // the native inputs in an effect (DOM).
+  const [handled, setHandled] = useState(state)
+  if (handled !== state) {
+    setHandled(state)
+    if (state.ok) setFile(null)
+  }
   useEffect(() => {
-    if (state.ok) {
-      formRef.current?.reset()
-      setFile(null)
-    }
+    if (state.ok) formRef.current?.reset()
   }, [state])
 
   const choose = async (picked: File | undefined) => {

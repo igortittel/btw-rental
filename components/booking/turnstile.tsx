@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 type TurnstileApi = {
   render: (el: HTMLElement, options: Record<string, unknown>) => string
@@ -40,7 +40,9 @@ export function Turnstile({ siteKey, locale, resetKey, onToken }: { siteKey: str
   const container = useRef<HTMLDivElement>(null)
   const widgetId = useRef<string | null>(null)
   const callback = useRef(onToken)
-  callback.current = onToken
+  useLayoutEffect(() => {
+    callback.current = onToken
+  })
 
   useEffect(() => {
     let cancelled = false

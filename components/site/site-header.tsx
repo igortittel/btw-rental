@@ -20,6 +20,8 @@ export async function SiteHeader() {
       </a>
       <LocaleSwitch className={linkClass} />
       {user?.role ? (
+        // The admin lives outside the locale routing and needs a full page load.
+        // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a href="/admin" className={linkClass}>
           {t('admin')}
         </a>

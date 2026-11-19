@@ -1,4 +1,4 @@
-const createNextIntlPlugin = require('next-intl/plugin')
+import createNextIntlPlugin from 'next-intl/plugin'
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
@@ -36,6 +36,13 @@ const nextConfig = {
     '/admin/**': ['./node_modules/pdfkit/js/standard-fonts/**', './node_modules/pdfkit/js/data/**'],
     '/api/protocols/**': ['./node_modules/pdfkit/js/standard-fonts/**', './node_modules/pdfkit/js/data/**'],
   },
+  webpack(config) {
+    // next-intl's plugin loads a message extractor through a dynamic import() that webpack's persistent
+    // cache cannot analyse; it then warns on every build. The warning concerns only cache invalidation of
+    // that dev-only file, so infrastructure logs are limited to errors.
+    config.infrastructureLogging = { ...config.infrastructureLogging, level: 'error' }
+    return config
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
@@ -43,4 +50,4 @@ const nextConfig = {
   },
 }
 
-module.exports = withNextIntl(nextConfig)
+export default withNextIntl(nextConfig)

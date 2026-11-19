@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -26,12 +26,14 @@ export function AdminNav({ primary, secondary, userName, roleLabel }: Props) {
   const isActive = (href: string) => (href === '/admin' ? pathname === '/admin' : pathname === href || pathname.startsWith(`${href}/`))
   const secondaryActive = secondary.some((link) => isActive(link.href)) || isActive('/admin/profil')
 
-  // Menus close when the page changes.
-  useEffect(() => {
+  // Menus close when the page changes (state adjusted during render, not in an effect).
+  const [menuPath, setMenuPath] = useState(pathname)
+  if (menuPath !== pathname) {
+    setMenuPath(pathname)
     setMoreOpen(false)
     setUserOpen(false)
     setSheetOpen(false)
-  }, [pathname])
+  }
 
   const topLink = (active: boolean) => `inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition-colors ${active ? 'bg-gold/15 text-white' : 'text-muted2 hover:text-white'}`
   const menuItem = (active: boolean) => `flex min-h-11 items-center rounded-lg px-3 text-sm ${active ? 'bg-gold/15 font-semibold text-white' : 'text-white hover:bg-white/5'}`

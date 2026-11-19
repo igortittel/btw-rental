@@ -10,7 +10,7 @@ import { getCatalog, localize, type PublicVehicle } from '@/lib/catalog'
 import { formatEuro } from '@/lib/format'
 import { absoluteUrl, alternates } from '@/lib/seo'
 import { vehicleImageUrl } from '@/lib/storage'
-import { utcToZonedLocal } from '@/lib/time'
+import { localDateInHours } from '@/lib/time'
 import { parseVehicleSegment, vehiclePath } from '@/lib/vehicle-url'
 
 type Props = { params: Promise<{ locale: string; kategoria: string; vozidlo: string }> }
@@ -148,7 +148,7 @@ export default async function VehiclePage({ params }: Props) {
   const cardTitle = 'text-xl font-bold tracking-wide text-white'
   const cardLead = 'mt-2 text-sm text-muted2'
   const row = 'flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-line py-3 text-sm last:border-0'
-  const minDate = utcToZonedLocal(new Date(Date.now() + settings.min_lead_hours * 3600_000)).slice(0, 10)
+  const minDate = localDateInHours(settings.min_lead_hours)
   const book = (
     <Link href={bookingHref(vehicle)} rel="nofollow" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover sm:w-auto">
       {t('book')}
