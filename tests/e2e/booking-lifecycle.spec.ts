@@ -12,7 +12,8 @@ import { bookingByNumber, createStaff, dayInFuture, serviceClient, sign, staffPa
  * 6. the owner records the rental payment and the deposit,
  * 7. the owner fills in and signs the pick-up protocol -> "active".
  */
-test.describe.configure({ mode: 'serial' })
+// Serial and without retries: a retry would start the story again on an already booked term.
+test.describe.configure({ mode: 'serial', retries: 0 })
 
 const VIN = 'TESTBTW0000000001'
 const PHOTO = path.join(__dirname, 'fixtures', 'car.jpg')
@@ -113,9 +114,14 @@ test('4 · customer changes the confirmed booking -> modified', async ({ page })
   await page.locator('#email').fill(customerEmail)
   await page.locator('#password').fill(customerPassword)
   await page.locator('form:has(#password) button[type=submit]').click()
-  await expect(page).toHaveURL(/\/moj-ucet/)
+  await expect(page).toHaveURL(/\/moj-ucet$/)
 
+  const before = await bookingByNumber(bookingNumber)
+  expect(before, 'booking must be confirmed with a price list price to be editable online').toMatchObject({ status: 'confirmed', price_override_reason: null })
+  expect(before.total_cents).not.toBeNull()
   await page.goto(`/moj-ucet/rezervacie/${bookingId}/upravit`)
+  // The page redirects to the detail when the booking cannot be changed online.
+  await expect(page).toHaveURL(/\/upravit$/)
   await page.locator('#returnDate').fill(newReturnDate)
   await page.getByRole('button', { name: 'Odoslať úpravu' }).click()
   await expect(page).toHaveURL(new RegExp(`/moj-ucet/rezervacie/${bookingId}\\?zmena=caka`))
