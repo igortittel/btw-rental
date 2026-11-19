@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { FEATURE_GROUP_LABELS, FEATURE_GROUPS } from '@/lib/features'
 import { notFound } from 'next/navigation'
 import {
   addBlockAction,
@@ -30,12 +31,7 @@ export const metadata: Metadata = { title: 'Vozidlo' }
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ mesiac?: string; vytvorene?: string }> }
 type Text = { sk?: string; en?: string }
 
-const GROUPS = [
-  { key: 'comfort', label: 'Komfort' },
-  { key: 'technical', label: 'Technické' },
-  { key: 'safety', label: 'Bezpečnosť' },
-  { key: 'included', label: 'V cene prenájmu' },
-] as const
+const GROUPS = FEATURE_GROUPS.map((key) => ({ key, label: FEATURE_GROUP_LABELS[key] }))
 
 const BLOCK_REASONS = { service: 'Servis', stk: 'STK / EK', private: 'Súkromné použitie', other: 'Iné' }
 const STATUS_LABELS: Record<string, string> = { new: 'nová', confirmed: 'potvrdená', modified: 'upravená', active: 'prebieha' }
@@ -138,7 +134,7 @@ export default async function VehiclePage({ params, searchParams }: Props) {
             id: image.id,
             url: vehicleImageUrl(image.storage_path),
             isMain: image.is_main,
-            alt: (image.alt as Text).sk ?? vehicle.name,
+            alt: { sk: (image.alt as Text).sk ?? vehicle.name, en: (image.alt as Text).en ?? '' },
           }))}
         />
       </Section>
@@ -171,7 +167,7 @@ export default async function VehiclePage({ params, searchParams }: Props) {
         </ActionForm>
       </Section>
 
-      <Section id="vybava" title="Výbava" description="Zaškrtnuté položky sa zobrazia na detaile vozidla v príslušnej skupine.">
+      <Section id="vybava" title="Výbava" description="Zaškrtnuté položky sa zobrazia na detaile vozidla v príslušnej skupine. Názvy a preklady položiek upravíte v časti Viac → Výbava.">
         <ActionForm action={saveVehicleFeaturesAction}>
           <fieldset disabled={!canEdit} className="space-y-6">
             <input type="hidden" name="vehicle_id" value={vehicle.id} />

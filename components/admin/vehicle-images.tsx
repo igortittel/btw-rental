@@ -2,13 +2,13 @@
 
 import { useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
-import { deleteVehicleImageAction, registerVehicleImagesAction, reorderVehicleImagesAction, setMainVehicleImageAction } from '@/app/admin/vozidla/actions'
+import { deleteVehicleImageAction, registerVehicleImagesAction, reorderVehicleImagesAction, saveVehicleImageAltAction, setMainVehicleImageAction } from '@/app/admin/vozidla/actions'
 import { Feedback, type FormState } from '@/components/admin/ui'
 import { Button } from '@/components/ui/button'
 import { VEHICLE_IMAGES_BUCKET } from '@/lib/storage'
 import { createClient } from '@/lib/supabase/client'
 
-export type VehicleImage = { id: string; url: string; isMain: boolean; alt: string }
+export type VehicleImage = { id: string; url: string; isMain: boolean; alt: { sk: string; en: string } }
 
 const MAX_EDGE = 2000
 
@@ -42,6 +42,7 @@ export function VehicleImages({ vehicleId, images, canEdit }: { vehicleId: strin
   const [state, setState] = useState<FormState>({})
   const [progress, setProgress] = useState<string | null>(null)
   const [dragId, setDragId] = useState<string | null>(null)
+  const [editingAlt, setEditingAlt] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const input = useRef<HTMLInputElement>(null)
 
@@ -115,9 +116,44 @@ export function VehicleImages({ vehicleId, images, canEdit }: { vehicleId: strin
             className={`rounded-lg border bg-black p-2 ${image.isMain ? 'border-gold' : 'border-line'} ${canEdit ? 'cursor-grab' : ''} ${dragId === image.id ? 'opacity-50' : ''}`}
           >
             <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-surface">
-              <Image src={image.url} alt={image.alt} fill sizes="(min-width: 1024px) 220px, 45vw" className="object-contain" />
+              <Image src={image.url} alt={image.alt.sk} fill sizes="(min-width: 1024px) 220px, 45vw" className="object-contain" />
             </div>
             <p className="mt-2 text-xs text-muted2">{image.isMain ? 'Hlavná fotka' : `Poradie ${index + 1}`}</p>
+            <p className="mt-1 break-words text-xs text-white" title="Popis fotky (alt text)">
+              {image.alt.sk || '—'}
+              {image.alt.en ? <span className="text-muted2"> · EN: {image.alt.en}</span> : <span className="text-amber-200"> · bez EN</span>}
+            </p>
+            {canEdit && editingAlt === image.id ? (
+              <form
+                className="mt-2 space-y-2"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  const data = new FormData(event.currentTarget)
+                  run(async () => {
+                    const result = await saveVehicleImageAltAction(vehicleId, image.id, { sk: String(data.get('alt_sk') ?? ''), en: String(data.get('alt_en') ?? '') })
+                    if (result.ok) setEditingAlt(null)
+                    return result
+                  })
+                }}
+              >
+                <label className="block text-xs text-muted2">
+                  Popis (SK)
+                  <input name="alt_sk" defaultValue={image.alt.sk} maxLength={200} required className="mt-1 h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-2 text-sm text-white" />
+                </label>
+                <label className="block text-xs text-muted2">
+                  Popis (EN)
+                  <input name="alt_en" defaultValue={image.alt.en} maxLength={200} className="mt-1 h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-2 text-sm text-white" />
+                </label>
+                <div className="flex gap-1">
+                  <Button type="submit" size="sm" disabled={pending}>
+                    Uložiť
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setEditingAlt(null)}>
+                    Zrušiť
+                  </Button>
+                </div>
+              </form>
+            ) : null}
             {canEdit ? (
               <div className="mt-2 flex flex-wrap gap-1">
                 <Button type="button" size="sm" variant="ghost" disabled={pending || index === 0} onClick={() => move(index, index - 1)} aria-label="Posunúť dopredu">
@@ -125,6 +161,9 @@ export function VehicleImages({ vehicleId, images, canEdit }: { vehicleId: strin
                 </Button>
                 <Button type="button" size="sm" variant="ghost" disabled={pending || index === order.length - 1} onClick={() => move(index, index + 1)} aria-label="Posunúť dozadu">
                   →
+                </Button>
+                <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setEditingAlt(editingAlt === image.id ? null : image.id)}>
+                  Popis
                 </Button>
                 {image.isMain ? null : (
                   <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => run(() => setMainVehicleImageAction(vehicleId, image.id))}>

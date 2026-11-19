@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { FEATURE_GROUPS } from '@/lib/features'
 import { redirect } from 'next/navigation'
 import { checkbox, dbErrorMessage, localized, optionalInt, optionalText, staffAction, text, type ActionState } from '@/lib/admin/action'
 import { parseEuroToCents } from '@/lib/format'
@@ -12,7 +13,6 @@ type Enums = Database['public']['Enums']
 const FUELS: Enums['fuel_type'][] = ['petrol', 'diesel', 'hybrid', 'plug_in_hybrid', 'electric']
 const TRANSMISSIONS: Enums['transmission_type'][] = ['automatic', 'manual']
 const DRIVETRAINS: Enums['drivetrain_type'][] = ['fwd', 'rwd', 'awd']
-const FEATURE_GROUPS: Enums['feature_group'][] = ['comfort', 'technical', 'safety', 'included']
 const BLOCK_REASONS: Enums['block_reason'][] = ['service', 'stk', 'private', 'other']
 const BUCKET = 'vehicle-images'
 
@@ -343,6 +343,24 @@ export async function setMainVehicleImageAction(vehicleId: string, imageId: stri
     if (error) return { error: dbErrorMessage(error) }
     revalidateVehicle(vehicleId)
     return { ok: true, message: 'Hlavná fotka zmenená.' }
+  })
+}
+
+/** Alternative text of a photo (screen readers, image search); SK required, EN optional. */
+export async function saveVehicleImageAltAction(vehicleId: string, imageId: string, alt: { sk: string; en: string }): Promise<ActionState> {
+  return staffAction('manager', async ({ supabase }) => {
+    const sk = alt.sk.trim()
+    const en = alt.en.trim()
+    if (!sk) return { error: 'Zadajte popis fotky po slovensky.' }
+    if (sk.length > 200 || en.length > 200) return { error: 'Popis fotky môže mať najviac 200 znakov.' }
+    const { error } = await supabase
+      .from('vehicle_images')
+      .update({ alt: en ? { sk, en } : { sk } })
+      .eq('id', imageId)
+      .eq('vehicle_id', vehicleId)
+    if (error) return { error: dbErrorMessage(error) }
+    revalidateVehicle(vehicleId)
+    return { ok: true, message: 'Popis fotky uložený.' }
   })
 }
 

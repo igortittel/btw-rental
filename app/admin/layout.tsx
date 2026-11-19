@@ -23,6 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const secondary = [
     { href: '/admin/kategorie', label: 'Kategórie' },
     { href: '/admin/priplatky', label: 'Príplatky' },
+    { href: '/admin/vybava', label: 'Výbava' },
     { href: '/admin/miesta', label: 'Miesta' },
     { href: '/admin/emaily', label: 'E-maily' },
     ...(hasRole(user.role, 'owner')
