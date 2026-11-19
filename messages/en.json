@@ -323,15 +323,7 @@
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "calendarError": "Availability could not be loaded.",
-    "weekdays": [
-      "Mo",
-      "Tu",
-      "We",
-      "Th",
-      "Fr",
-      "Sa",
-      "Su"
-    ],
+    "weekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
     "pricing": "Prices",
     "pricingLead": "Prices include VAT. The rate for the total rental length applies to every day.",
     "rentalLength": "Rental length",
@@ -392,11 +384,7 @@
   "booking": {
     "title": "Booking",
     "metaTitle": "Book a vehicle",
-    "steps": [
-      "Dates and location",
-      "Details and extras",
-      "Summary"
-    ],
+    "steps": ["Dates and location", "Details and extras", "Summary"],
     "stepOf": "Step {step} of {total}",
     "continue": "Continue",
     "back": "Back",

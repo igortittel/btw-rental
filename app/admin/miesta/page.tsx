@@ -25,7 +25,14 @@ function LocationFields({ location, nextSort }: { location?: Location; nextSort?
       <Field label="Odkaz na mapu" name="map_url" id={`map_${key}`} type="url" defaultValue={location?.map_url ?? ''} placeholder="https://maps.google.com/…" />
       <Field label="GPS šírka" name="latitude" id={`lat_${key}`} inputMode="decimal" defaultValue={location?.latitude ?? ''} placeholder="48.1560" />
       <Field label="GPS dĺžka" name="longitude" id={`lng_${key}`} inputMode="decimal" defaultValue={location?.longitude ?? ''} placeholder="17.1340" />
-      <Field label="Príplatok (€)" name="surcharge" id={`surcharge_${key}`} inputMode="decimal" defaultValue={centsToInput(location?.surcharge_cents ?? 0)} hint="Účtuje sa jednorazovo za každé použitie miesta." />
+      <Field
+        label="Príplatok (€)"
+        name="surcharge"
+        id={`surcharge_${key}`}
+        inputMode="decimal"
+        defaultValue={centsToInput(location?.surcharge_cents ?? 0)}
+        hint="Účtuje sa jednorazovo za každé použitie miesta."
+      />
       <Field label="Poradie" name="sort_order" id={`sort_${key}`} type="number" defaultValue={location?.sort_order ?? nextSort ?? 0} />
       <div className="space-y-2 sm:col-span-2 lg:col-span-3">
         <Check label="Dostupné na vyzdvihnutie" name="for_pickup" defaultChecked={location?.for_pickup ?? true} />
@@ -47,9 +54,7 @@ export default async function LocationsPage() {
     <div>
       <PageHeader title="Miesta vyzdvihnutia a odovzdania" />
       {canEdit ? null : <ReadOnlyNotice />}
-      <p className="mb-6 text-sm text-muted2">
-        Kým je aktívne len jedno miesto, zákazník ho vo formulári vidí len informatívne. Výber sa zobrazí, až keď pridáte ďalšie.
-      </p>
+      <p className="mb-6 text-sm text-muted2">Kým je aktívne len jedno miesto, zákazník ho vo formulári vidí len informatívne. Výber sa zobrazí, až keď pridáte ďalšie.</p>
       <div className="space-y-4">
         {list.map((location) => {
           const name = location.name as Name

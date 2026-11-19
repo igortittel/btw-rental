@@ -45,7 +45,12 @@ export function ProfileForm({ email, initial: start }: { email: string; initial:
     if (!code) return undefined
     return a.has(`errors.${code}`) ? a(`errors.${code}`) : b(`errors.${b.has(`errors.${code}`) ? code : 'unknown'}`, { hours: 0, days: 1, age: 21, digits: 9 })
   }
-  const text = (key: 'firstName' | 'lastName' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'refundIban', label: string, props: React.ComponentProps<'input'> = {}, className?: string) => (
+  const text = (
+    key: 'firstName' | 'lastName' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'refundIban',
+    label: string,
+    props: React.ComponentProps<'input'> = {},
+    className?: string,
+  ) => (
     <Field id={key} label={label} error={err(key)} className={className}>
       <TextInput id={key} value={values[key]} onChange={(event) => set(key, event.target.value)} {...describe(key, err(key))} {...props} />
     </Field>
@@ -139,7 +144,11 @@ export function PasswordForm() {
         <TextInput id="passwordConfirm" name="passwordConfirm" type="password" autoComplete="new-password" required />
       </Field>
       <Notice state={state} okText={t('passwordSaved')} />
-      <button type="submit" disabled={pending} className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold/15 disabled:opacity-60 sm:w-auto">
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold/15 disabled:opacity-60 sm:w-auto"
+      >
         {t('passwordSubmit')}
       </button>
     </form>
@@ -157,7 +166,11 @@ export function DeleteAccountForm() {
         <span>{t('deleteConfirm')}</span>
       </label>
       <Notice state={state} okText="" />
-      <button type="submit" disabled={pending} className="inline-flex h-11 items-center justify-center rounded-lg border border-red-400/60 px-5 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10 disabled:opacity-60">
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-11 items-center justify-center rounded-lg border border-red-400/60 px-5 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10 disabled:opacity-60"
+      >
         {t('deleteSubmit')}
       </button>
     </form>

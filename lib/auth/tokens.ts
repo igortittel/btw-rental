@@ -25,11 +25,7 @@ export async function issueAuthToken(profileId: string, purpose: AuthTokenPurpos
   const token = generateToken()
   const expiresAt = new Date(Date.now() + TOKEN_TTL_HOURS[purpose] * 3600_000)
 
-  await admin
-    .from('auth_tokens')
-    .update({ used_at: new Date().toISOString() })
-    .eq('profile_id', profileId)
-    .is('used_at', null)
+  await admin.from('auth_tokens').update({ used_at: new Date().toISOString() }).eq('profile_id', profileId).is('used_at', null)
 
   const { error } = await admin.from('auth_tokens').insert({
     profile_id: profileId,
@@ -47,11 +43,7 @@ export async function issueAuthToken(profileId: string, purpose: AuthTokenPurpos
 export async function peekAuthToken(token: string) {
   if (!token || token.length > 200) return null
   const admin = createAdminClient()
-  const { data } = await admin
-    .from('auth_tokens')
-    .select('profile_id, purpose, expires_at, used_at')
-    .eq('token_hash', hashToken(token))
-    .maybeSingle()
+  const { data } = await admin.from('auth_tokens').select('profile_id, purpose, expires_at, used_at').eq('token_hash', hashToken(token)).maybeSingle()
   if (!data || data.used_at || new Date(data.expires_at) <= new Date()) return null
   return { profileId: data.profile_id, purpose: data.purpose }
 }

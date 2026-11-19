@@ -9,7 +9,10 @@ export const AUDIT_AREAS = {
   doklady: { label: 'Doklady', entities: ['documents'] },
   zakaznici: { label: 'Zákazníci', entities: ['profiles', 'customer_internal'] },
   protokoly: { label: 'Protokoly a vyúčtovania', entities: ['handover_protocols', 'settlements'] },
-  vozidla: { label: 'Vozidlá a cenník', entities: ['vehicles', 'vehicle_images', 'vehicle_features', 'features', 'vehicle_prices', 'price_tiers', 'extras', 'vehicle_extras', 'vehicle_categories', 'availability_blocks', 'locations'] },
+  vozidla: {
+    label: 'Vozidlá a cenník',
+    entities: ['vehicles', 'vehicle_images', 'vehicle_features', 'features', 'vehicle_prices', 'price_tiers', 'extras', 'vehicle_extras', 'vehicle_categories', 'availability_blocks', 'locations'],
+  },
   nastavenia: { label: 'Nastavenia', entities: ['settings'] },
   zamestnanci: { label: 'Zamestnanci', entities: ['staff_roles'] },
 } as const
@@ -132,12 +135,30 @@ const FIELD_LABELS: Record<string, string> = {
 }
 
 const ENUMS: Record<string, string> = {
-  new: 'Nová', confirmed: 'Potvrdená', modified: 'Upravená', active: 'Prebiehajúca', completed: 'Ukončená', cancelled: 'Zrušená',
-  unpaid: 'Neuhradené', paid: 'Uhradené', refunded: 'Vrátené', partially_refunded: 'Čiastočne vrátené',
-  pending: 'Neprijatý', received: 'Prijatý', returned: 'Vrátený', partially_returned: 'Čiastočne vrátený',
-  transfer: 'Prevodom', terminal: 'Terminálom', cash: 'V hotovosti',
-  proforma: 'Zálohová faktúra', invoice: 'Faktúra', credit_note: 'Dobropis', settlement: 'Doúčtovanie',
-  operator: 'Operátor', manager: 'Manažér', owner: 'Majiteľ',
+  new: 'Nová',
+  confirmed: 'Potvrdená',
+  modified: 'Upravená',
+  active: 'Prebiehajúca',
+  completed: 'Ukončená',
+  cancelled: 'Zrušená',
+  unpaid: 'Neuhradené',
+  paid: 'Uhradené',
+  refunded: 'Vrátené',
+  partially_refunded: 'Čiastočne vrátené',
+  pending: 'Neprijatý',
+  received: 'Prijatý',
+  returned: 'Vrátený',
+  partially_returned: 'Čiastočne vrátený',
+  transfer: 'Prevodom',
+  terminal: 'Terminálom',
+  cash: 'V hotovosti',
+  proforma: 'Zálohová faktúra',
+  invoice: 'Faktúra',
+  credit_note: 'Dobropis',
+  settlement: 'Doúčtovanie',
+  operator: 'Operátor',
+  manager: 'Manažér',
+  owner: 'Majiteľ',
 }
 
 export function fieldLabel(key: string): string {
@@ -183,7 +204,10 @@ export function auditChanges(action: string, diff: unknown): AuditChange[] {
       .map(([k, v]) => ({ field: fieldLabel(k), before: formatAuditValue(k, v), after: '—' }))
   }
   if (action.startsWith('customer.')) {
-    return [{ field: 'Rezervácie', before: '', after: String(d.bookings ?? 0) }, ...(d.requested_at ? [{ field: 'Žiadosť zákazníka', before: '', after: formatAuditValue('requested_at', d.requested_at) }] : [])]
+    return [
+      { field: 'Rezervácie', before: '', after: String(d.bookings ?? 0) },
+      ...(d.requested_at ? [{ field: 'Žiadosť zákazníka', before: '', after: formatAuditValue('requested_at', d.requested_at) }] : []),
+    ]
   }
   return Object.entries(d)
     .filter(([k]) => !HIDDEN.has(k))

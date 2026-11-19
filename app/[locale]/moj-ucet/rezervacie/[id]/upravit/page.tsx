@@ -55,7 +55,15 @@ export default async function EditMyBookingPage({ params }: Props) {
     minDriverAge: v.minDriverAge,
     minLicenseMonths: v.minLicenseMonths,
   }
-  const locations: BookingLocation[] = catalog.locations.map((l) => ({ id: l.id, name: localize(l.name, locale), address: l.address, surchargeCents: l.surchargeCents, forPickup: l.forPickup, forReturn: l.forReturn, isDefault: l.isDefault }))
+  const locations: BookingLocation[] = catalog.locations.map((l) => ({
+    id: l.id,
+    name: localize(l.name, locale),
+    address: l.address,
+    surchargeCents: l.surchargeCents,
+    forPickup: l.forPickup,
+    forReturn: l.forReturn,
+    isDefault: l.isDefault,
+  }))
   const snapshot = (booking.price_snapshot ?? {}) as { delivery_outside_city?: boolean }
   const pickup = utcToZonedLocal(booking.pickup_at)
   const ret = utcToZonedLocal(booking.return_at)
@@ -94,7 +102,13 @@ export default async function EditMyBookingPage({ params }: Props) {
         confirmed={booking.status === 'confirmed'}
         vehicle={vehicle}
         locations={locations}
-        config={{ vatRate: settings.vat_rate, minLeadHours: settings.min_lead_hours, minRentalDays: settings.min_rental_days, toleranceMinutes: settings.return_tolerance_minutes, individualFromDays: settings.individual_price_from_days }}
+        config={{
+          vatRate: settings.vat_rate,
+          minLeadHours: settings.min_lead_hours,
+          minRentalDays: settings.min_rental_days,
+          toleranceMinutes: settings.return_tolerance_minutes,
+          individualFromDays: settings.individual_price_from_days,
+        }}
         initial={initial}
         currentTotalCents={booking.total_cents}
       />

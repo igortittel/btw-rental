@@ -102,7 +102,12 @@ export function AdminNav({ primary, secondary, userName, roleLabel }: Props) {
           const Icon = ICONS[link.href] ?? LayoutDashboard
           const active = isActive(link.href)
           return (
-            <Link key={link.href} href={link.href} aria-current={active ? 'page' : undefined} className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${active ? 'text-gold' : 'text-muted2'}`}>
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={active ? 'page' : undefined}
+              className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${active ? 'text-gold' : 'text-muted2'}`}
+            >
               <Icon className="h-5 w-5" aria-hidden="true" />
               {link.label}
             </Link>
@@ -115,7 +120,10 @@ export function AdminNav({ primary, secondary, userName, roleLabel }: Props) {
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
-            <Dialog.Content aria-describedby={undefined} className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-gold/50 bg-[#161616] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:outline-none">
+            <Dialog.Content
+              aria-describedby={undefined}
+              className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-gold/50 bg-[#161616] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:outline-none"
+            >
               <div className="mb-2 flex items-center justify-between">
                 <Dialog.Title className="text-sm font-semibold text-white">
                   {userName} <span className="font-normal text-muted2">· {roleLabel}</span>

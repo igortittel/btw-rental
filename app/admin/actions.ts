@@ -112,15 +112,10 @@ export async function inviteStaffAction(_prev: AdminFormState, formData: FormDat
     passwordSet = false
   }
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ type: 'staff', first_name: parsed.data.firstName, last_name: parsed.data.lastName })
-    .eq('id', profileId)
+  const { error: profileError } = await supabase.from('profiles').update({ type: 'staff', first_name: parsed.data.firstName, last_name: parsed.data.lastName }).eq('id', profileId)
   if (profileError) return fail('unknown')
 
-  const { error: roleError } = await supabase
-    .from('staff_roles')
-    .insert({ user_id: profileId, role: parsed.data.role, invited_by: owner.id })
+  const { error: roleError } = await supabase.from('staff_roles').insert({ user_id: profileId, role: parsed.data.role, invited_by: owner.id })
   if (roleError) return fail('unknown')
 
   revalidatePath('/admin/zamestnanci')
@@ -152,11 +147,7 @@ export async function resendInviteAction(_prev: AdminFormState, formData: FormDa
   const userId = field(formData, 'userId')
 
   const admin = createAdminClient()
-  const { data: target } = await admin
-    .from('staff_roles')
-    .select('user_id, profiles!staff_roles_user_id_fkey(email, password_set)')
-    .eq('user_id', userId)
-    .maybeSingle()
+  const { data: target } = await admin.from('staff_roles').select('user_id, profiles!staff_roles_user_id_fkey(email, password_set)').eq('user_id', userId).maybeSingle()
   const profile = target?.profiles
   if (!target || !profile?.email) return fail('not_found')
 
@@ -190,12 +181,7 @@ export async function updateStaffAction(_prev: AdminFormState, formData: FormDat
 
   const losesOwner = target.role === 'owner' && target.is_active && (role.data !== 'owner' || !isActive)
   if (losesOwner) {
-    const { count } = await supabase
-      .from('staff_roles')
-      .select('user_id', { count: 'exact', head: true })
-      .eq('role', 'owner')
-      .eq('is_active', true)
-      .neq('user_id', userId)
+    const { count } = await supabase.from('staff_roles').select('user_id', { count: 'exact', head: true }).eq('role', 'owner').eq('is_active', true).neq('user_id', userId)
     if (!count) return fail('last_owner')
   }
 
@@ -203,7 +189,10 @@ export async function updateStaffAction(_prev: AdminFormState, formData: FormDat
   if (error) return fail('unknown')
 
   // A deactivated employee is signed out everywhere.
-  if (!isActive) await createAdminClient().auth.admin.signOut(userId, 'global').catch(() => undefined)
+  if (!isActive)
+    await createAdminClient()
+      .auth.admin.signOut(userId, 'global')
+      .catch(() => undefined)
 
   revalidatePath('/admin/zamestnanci')
   return { ok: true, message: 'Uložené.' }

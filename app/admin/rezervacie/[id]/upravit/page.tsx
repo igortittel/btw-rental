@@ -14,8 +14,16 @@ import { utcToZonedLocal } from '@/lib/time'
 export const metadata: Metadata = { title: 'Úprava rezervácie' }
 
 type Customer = {
-  first_name?: string; last_name?: string; email?: string; phone?: string; date_of_birth?: string | null
-  is_company?: boolean; company_name?: string | null; ico?: string | null; dic?: string | null; ic_dph?: string | null
+  first_name?: string
+  last_name?: string
+  email?: string
+  phone?: string
+  date_of_birth?: string | null
+  is_company?: boolean
+  company_name?: string | null
+  ico?: string | null
+  dic?: string | null
+  ic_dph?: string | null
   billing_address?: { street?: string; city?: string; zip?: string; country?: string }
 }
 
@@ -88,7 +96,16 @@ export default async function EditBookingPage({ params }: { params: Promise<{ id
           Vozidlo {booking.vehicles?.name} už nie je v ponuke. Pred uložením vyberte iné vozidlo, alebo ho v administrácii znova aktivujte.
         </p>
       ) : null}
-      <BookingEditor mode="edit" bookingId={id} vehicles={vehicles} locations={locations} config={config} initial={{ ...initial, vin: vehicleMissing ? '' : initial.vin }} storedTotalCents={booking.total_cents} mustHavePrice={booking.status !== 'new'} />
+      <BookingEditor
+        mode="edit"
+        bookingId={id}
+        vehicles={vehicles}
+        locations={locations}
+        config={config}
+        initial={{ ...initial, vin: vehicleMissing ? '' : initial.vin }}
+        storedTotalCents={booking.total_cents}
+        mustHavePrice={booking.status !== 'new'}
+      />
     </div>
   )
 }

@@ -77,13 +77,16 @@ export async function saveSettlementAction(_prev: ActionState, formData: FormDat
       note: text(formData, 'note').slice(0, 2000) || null,
       ...(intent === 'approve' ? { approved_at: new Date().toISOString(), approved_by: userId } : {}),
     }
-    const { error } = settlement
-      ? await supabase.from('settlements').update(values).eq('id', settlement.id)
-      : await supabase.from('settlements').insert({ booking_id: bookingId, ...values })
+    const { error } = settlement ? await supabase.from('settlements').update(values).eq('id', settlement.id) : await supabase.from('settlements').insert({ booking_id: bookingId, ...values })
     if (error) return { error: dbErrorMessage(error) }
     refresh()
     if (intent === 'save') return { ok: true, message: 'Návrh vyúčtovania je uložený. Zákazník ho uvidí až po potvrdení.' }
     const sent = await notifySettlementApproved(supabase, bookingId)
-    return { ok: true, message: sent ? 'Vyúčtovanie je potvrdené, zákazník dostal e-mail.' : 'Vyúčtovanie je potvrdené a zákazník ho vidí vo svojom účte. E-mail sa neodoslal (odosielanie nie je nastavené alebo zlyhalo).' }
+    return {
+      ok: true,
+      message: sent
+        ? 'Vyúčtovanie je potvrdené, zákazník dostal e-mail.'
+        : 'Vyúčtovanie je potvrdené a zákazník ho vidí vo svojom účte. E-mail sa neodoslal (odosielanie nie je nastavené alebo zlyhalo).',
+    }
   })
 }

@@ -111,7 +111,11 @@ export function EraseCustomerForm({ id, name, hasBookings, blocked }: { id: stri
         <Input id="erase-confirm" name="confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" spellCheck={false} />
       </div>
       <div className="flex flex-wrap gap-2">
-        <button type="submit" disabled={pending || typed.trim().toUpperCase() !== ERASE_CONFIRMATION} className="h-11 rounded-lg bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={pending || typed.trim().toUpperCase() !== ERASE_CONFIRMATION}
+          className="h-11 rounded-lg bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50"
+        >
           {pending ? 'Vykonávam…' : hasBookings ? 'Anonymizovať' : 'Vymazať'}
         </button>
         <button type="button" onClick={() => setOpen(false)} className="h-11 rounded-lg border border-gold/50 px-4 text-sm font-semibold text-gold hover:bg-gold/10">

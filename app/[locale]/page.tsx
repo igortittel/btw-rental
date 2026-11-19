@@ -10,7 +10,10 @@ type Props = { params: Promise<{ locale: string }>; searchParams: Promise<Record
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const [{ locale }, query, catalog] = await Promise.all([params, searchParams, getCatalog()])
   const t = await getTranslations({ locale, namespace: 'catalog' })
-  const filters = parseCatalogFilters(query, catalog.categories.map((c) => c.slug))
+  const filters = parseCatalogFilters(
+    query,
+    catalog.categories.map((c) => c.slug),
+  )
   return {
     title: { absolute: `${t('metaTitle')} | BY THE WAVE` },
     description: t('metaDescription'),
@@ -24,7 +27,10 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const [{ locale }, query, catalog] = await Promise.all([params, searchParams, getCatalog()])
   setRequestLocale(locale)
   const t = await getTranslations('catalog')
-  const filters = parseCatalogFilters(query, catalog.categories.map((c) => c.slug))
+  const filters = parseCatalogFilters(
+    query,
+    catalog.categories.map((c) => c.slug),
+  )
 
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20 pt-32">

@@ -31,12 +31,24 @@ export function DocumentsPanel({ bookingId, documents, canManage, hasEmail, toda
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wider text-muted2">
               <tr>
-                <th scope="col" className="py-2 pr-3 font-semibold">Typ</th>
-                <th scope="col" className="py-2 pr-3 font-semibold">Číslo</th>
-                <th scope="col" className="py-2 pr-3 font-semibold">Suma s DPH</th>
-                <th scope="col" className="py-2 pr-3 font-semibold">Vystavený</th>
-                <th scope="col" className="py-2 pr-3 font-semibold">E-mail</th>
-                <th scope="col" className="py-2 font-semibold"><span className="sr-only">Akcie</span></th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Typ
+                </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Číslo
+                </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Suma s DPH
+                </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  Vystavený
+                </th>
+                <th scope="col" className="py-2 pr-3 font-semibold">
+                  E-mail
+                </th>
+                <th scope="col" className="py-2 font-semibold">
+                  <span className="sr-only">Akcie</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -146,7 +158,10 @@ function UploadForm({ bookingId, hasEmail, today }: { bookingId: string; hasEmai
           <DateField id="doc-issued" name="issuedAt" defaultValue={today} className="h-11 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm text-white" />
         </div>
       </div>
-      <label htmlFor="doc-file" className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gold/60 px-4 py-4 text-center text-sm text-muted2 hover:bg-gold/5">
+      <label
+        htmlFor="doc-file"
+        className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gold/60 px-4 py-4 text-center text-sm text-muted2 hover:bg-gold/5"
+      >
         <span className="font-semibold text-white">{uploading ? 'Nahrávam…' : file ? file.name : 'Vybrať PDF'}</span>
         <span>{file ? 'pripravené – vyplňte údaje a uložte' : 'len PDF do 10 MB'}</span>
         <input id="doc-file" type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => void choose(event.target.files?.[0])} />
@@ -160,7 +175,11 @@ function UploadForm({ bookingId, hasEmail, today }: { bookingId: string; hasEmai
         <input type="checkbox" name="notify" defaultChecked={hasEmail} disabled={!hasEmail} className="h-5 w-5 accent-[#B88746]" />
         {hasEmail ? 'Poslať zákazníkovi e-mail „Doklad k dispozícii“ s PDF v prílohe' : 'Zákazník nemá e-mail (anonymizovaný) – e-mail sa nepošle'}
       </label>
-      <button type="submit" disabled={pending || uploading || !file} className="h-11 rounded-lg bg-gold px-5 text-sm font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={pending || uploading || !file}
+        className="h-11 rounded-lg bg-gold px-5 text-sm font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-50"
+      >
         {pending ? 'Ukladám…' : 'Nahrať doklad'}
       </button>
       <Feedback state={state} />
@@ -168,4 +187,3 @@ function UploadForm({ bookingId, hasEmail, today }: { bookingId: string; hasEmai
     </form>
   )
 }
-

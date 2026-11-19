@@ -67,7 +67,15 @@ export default async function BookingPage({ params, searchParams }: Props) {
     minDriverAge: v.minDriverAge,
     minLicenseMonths: v.minLicenseMonths,
   }))
-  const locations: BookingLocation[] = catalog.locations.map((l) => ({ id: l.id, name: localize(l.name, locale), address: l.address, surchargeCents: l.surchargeCents, forPickup: l.forPickup, forReturn: l.forReturn, isDefault: l.isDefault }))
+  const locations: BookingLocation[] = catalog.locations.map((l) => ({
+    id: l.id,
+    name: localize(l.name, locale),
+    address: l.address,
+    surchargeCents: l.surchargeCents,
+    forPickup: l.forPickup,
+    forReturn: l.forReturn,
+    isDefault: l.isDefault,
+  }))
   const defaultFor = (kind: 'forPickup' | 'forReturn') => (locations.find((l) => l.isDefault && l[kind]) ?? locations.find((l) => l[kind]))?.id ?? ''
 
   const { settings } = catalog

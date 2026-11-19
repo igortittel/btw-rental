@@ -35,10 +35,7 @@ export async function loginAction(_prev: AuthFormState, formData: FormData): Pro
   if (!email.success || !password) return { error: 'invalid_credentials' }
 
   const ip = await getClientIp()
-  const [ipOk, emailOk] = await Promise.all([
-    rateLimit(`login:ip:${ip}`, 30, 15 * 60),
-    rateLimit(`login:email:${email.data}`, 8, 15 * 60),
-  ])
+  const [ipOk, emailOk] = await Promise.all([rateLimit(`login:ip:${ip}`, 30, 15 * 60), rateLimit(`login:email:${email.data}`, 8, 15 * 60)])
   if (!ipOk || !emailOk) return { error: 'rate_limited' }
   if (!(await verifyTurnstile(field(formData, 'turnstileToken'), ip))) return { error: 'captcha_failed' }
 
@@ -66,10 +63,7 @@ export async function requestPasswordLinkAction(_prev: AuthFormState, formData: 
   if (!email.success) return { error: 'email_invalid' }
 
   const ip = await getClientIp()
-  const [ipOk, emailOk] = await Promise.all([
-    rateLimit(`pwlink:ip:${ip}`, 10, 60 * 60),
-    rateLimit(`pwlink:email:${email.data}`, 3, 60 * 60),
-  ])
+  const [ipOk, emailOk] = await Promise.all([rateLimit(`pwlink:ip:${ip}`, 10, 60 * 60), rateLimit(`pwlink:email:${email.data}`, 3, 60 * 60)])
   if (!ipOk) return { error: 'rate_limited' }
   if (!emailOk) return { ok: true } // silently drop: do not reveal anything, do not spam the mailbox
 
@@ -111,11 +105,7 @@ export async function setPasswordAction(_prev: AuthFormState, formData: FormData
   if (!peeked) return { error: 'token_invalid' }
 
   const admin = createAdminClient()
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('id, email, anonymized_at')
-    .eq('id', peeked.profileId)
-    .maybeSingle()
+  const { data: profile } = await admin.from('profiles').select('id, email, anonymized_at').eq('id', peeked.profileId).maybeSingle()
   if (!profile?.email || profile.anonymized_at) return { error: 'token_invalid' }
   if (await isPwnedPassword(parsed.data.password)) return { error: 'password_pwned' }
 

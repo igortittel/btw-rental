@@ -47,7 +47,9 @@ export function bookingListQuery(supabase: SupabaseClient<Database>, filters: Bo
     if (term) {
       const like = `%${term.replace(/\s+/g, '%')}%`
       request = request.or(
-        ['number', 'customer_snapshot->>first_name', 'customer_snapshot->>last_name', 'customer_snapshot->>email', 'customer_snapshot->>phone', 'customer_snapshot->>company_name'].map((column) => `${column}.ilike.${like}`).join(','),
+        ['number', 'customer_snapshot->>first_name', 'customer_snapshot->>last_name', 'customer_snapshot->>email', 'customer_snapshot->>phone', 'customer_snapshot->>company_name']
+          .map((column) => `${column}.ilike.${like}`)
+          .join(','),
       )
     }
   }

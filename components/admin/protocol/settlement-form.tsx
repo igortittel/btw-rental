@@ -9,13 +9,25 @@ import { saveSettlementAction } from '@/lib/settlement-actions'
 
 export type SettlementFormValues = { km: number; fuel: number; late: number; other: number; otherLabel: string; note: string; damages: Record<string, number> }
 
-const money = 'h-12 w-28 rounded-lg border bg-black px-3 text-right text-base font-semibold tabular-nums text-white focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-60'
-const field = 'block min-h-12 w-full rounded-lg border border-line bg-black px-3 text-base text-white placeholder:text-zinc-500 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-60'
+const money =
+  'h-12 w-28 rounded-lg border bg-black px-3 text-right text-base font-semibold tabular-nums text-white focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-60'
+const field =
+  'block min-h-12 w-full rounded-lg border border-line bg-black px-3 text-base text-white placeholder:text-zinc-500 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-60'
 
 function Amount({ name, value, onChange, auto, label, locked }: { name: string; value: string; onChange: (v: string) => void; auto?: boolean; label: string; locked: boolean }) {
   return (
     <span className="flex shrink-0 items-center gap-1.5 text-white">
-      <input name={name} aria-label={label} inputMode="decimal" autoComplete="off" value={value} readOnly={locked} onChange={(e) => onChange(e.target.value)} className={`${money} ${auto ? 'border-gold/60' : 'border-zinc-600'} ${locked ? 'opacity-70' : ''}`} />€
+      <input
+        name={name}
+        aria-label={label}
+        inputMode="decimal"
+        autoComplete="off"
+        value={value}
+        readOnly={locked}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${money} ${auto ? 'border-gold/60' : 'border-zinc-600'} ${locked ? 'opacity-70' : ''}`}
+      />
+      €
     </span>
   )
 }
@@ -25,7 +37,14 @@ function Amount({ name, value, onChange, auto, label, locked }: { name: string; 
  * by staff, with the running total and what happens to the deposit.
  */
 export function SettlementForm({
-  bookingId, initial, damages, explain, remarks, depositCents, approved, canEdit,
+  bookingId,
+  initial,
+  damages,
+  explain,
+  remarks,
+  depositCents,
+  approved,
+  canEdit,
 }: {
   bookingId: string
   initial: SettlementFormValues
@@ -81,7 +100,13 @@ export function SettlementForm({
                 <span className="mr-1.5 rounded-full border border-red-400 bg-red-500/10 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-red-300">č. {damage.no}</span>
                 {damage.label}
               </span>
-              <Amount locked={locked} name={`damage_${damage.id}`} label={`Suma za poškodenie č. ${damage.no}`} value={values.damages[damage.id] ?? ''} onChange={(next) => setValues((v) => ({ ...v, damages: { ...v.damages, [damage.id]: next } }))} />
+              <Amount
+                locked={locked}
+                name={`damage_${damage.id}`}
+                label={`Suma za poškodenie č. ${damage.no}`}
+                value={values.damages[damage.id] ?? ''}
+                onChange={(next) => setValues((v) => ({ ...v, damages: { ...v.damages, [damage.id]: next } }))}
+              />
             </div>
           ))}
         </div>
@@ -94,7 +119,15 @@ export function SettlementForm({
           <h3 className="text-[15px] font-semibold text-white">Iné</h3>
           <Amount locked={locked} name="other" label="Iné" value={values.other} onChange={(other) => setValues((v) => ({ ...v, other }))} />
           <div className="col-span-2 space-y-1.5">
-            <input name="otherLabel" aria-label="Popis položky Iné" defaultValue={initial.otherLabel} maxLength={200} readOnly={locked} placeholder="napr. chýbajúca reflexná vesta, čistenie interiéru" className={field} />
+            <input
+              name="otherLabel"
+              aria-label="Popis položky Iné"
+              defaultValue={initial.otherLabel}
+              maxLength={200}
+              readOnly={locked}
+              placeholder="napr. chýbajúca reflexná vesta, čistenie interiéru"
+              className={field}
+            />
             {remarks.length > 0 ? (
               <p className="text-[13px] text-muted2">
                 <span className="font-semibold text-red-300">Z protokolu:</span> {remarks.join(' · ')}
@@ -105,7 +138,9 @@ export function SettlementForm({
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="settlement-note" className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted2">Poznámka pre zákazníka</label>
+        <label htmlFor="settlement-note" className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted2">
+          Poznámka pre zákazníka
+        </label>
         <textarea id="settlement-note" name="note" defaultValue={initial.note} maxLength={2000} readOnly={locked} placeholder="Zobrazí sa vo vyúčtovaní" className={`${field} min-h-24 py-3`} />
       </div>
 
@@ -137,7 +172,13 @@ export function SettlementForm({
           <button type="submit" name="intent" value="save" disabled={pending} className="min-h-[50px] rounded-lg border border-gold/60 px-5 text-[15px] font-semibold text-gold disabled:opacity-50">
             Uložiť návrh
           </button>
-          <button type="submit" name="intent" value="approve" disabled={pending} className="min-h-[50px] flex-1 rounded-lg bg-gold px-5 text-[15px] font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-50">
+          <button
+            type="submit"
+            name="intent"
+            value="approve"
+            disabled={pending}
+            className="min-h-[50px] flex-1 rounded-lg bg-gold px-5 text-[15px] font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-50"
+          >
             {pending ? 'Ukladám…' : 'Potvrdiť vyúčtovanie'}
           </button>
         </div>

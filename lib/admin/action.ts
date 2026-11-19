@@ -31,10 +31,7 @@ export function dbErrorMessage(error: PostgrestError | { code?: string; message:
  * Runs an admin mutation as the signed-in staff member. The role is checked here and
  * again by RLS; the session client makes the audit log record the real actor.
  */
-export async function staffAction(
-  min: StaffRole,
-  run: (ctx: { supabase: Awaited<ReturnType<typeof createClient>>; userId: string; role: StaffRole }) => Promise<ActionState>,
-): Promise<ActionState> {
+export async function staffAction(min: StaffRole, run: (ctx: { supabase: Awaited<ReturnType<typeof createClient>>; userId: string; role: StaffRole }) => Promise<ActionState>): Promise<ActionState> {
   const staff = await getStaff(min)
   if (!staff) return { error: 'Na túto akciu nemáte oprávnenie.' }
   try {

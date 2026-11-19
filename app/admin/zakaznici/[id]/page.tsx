@@ -72,7 +72,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <PageHeader title={name} back={{ href: '/admin/zakaznici', label: 'Zákazníci' }} />
       <div className="mb-4 -mt-4 flex flex-wrap gap-2">
         {anonymized ? <span className={`${badge} border-line bg-white/5 text-muted2`}>Anonymizovaný {formatDate(profile.anonymized_at!)}</span> : null}
-        {profile.deletion_requested_at && !anonymized ? <span className={`${badge} border-amber-400/60 bg-amber-400/10 text-amber-100`}>Žiada vymazanie od {formatDate(profile.deletion_requested_at)}</span> : null}
+        {profile.deletion_requested_at && !anonymized ? (
+          <span className={`${badge} border-amber-400/60 bg-amber-400/10 text-amber-100`}>Žiada vymazanie od {formatDate(profile.deletion_requested_at)}</span>
+        ) : null}
         {internal?.is_blacklisted ? <span className={`${badge} border-red-400/60 bg-red-500/10 text-red-200`}>Blacklist</span> : null}
         {!profile.password_set && !anonymized ? <span className={`${badge} border-line bg-white/5 text-muted2`}>Heslo zatiaľ nenastavené</span> : null}
       </div>
@@ -87,10 +89,37 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           <Section title="Údaje">
             <Rows
               rows={[
-                ['E-mail', profile.email ? <a key="e" href={`mailto:${profile.email}`} className="text-gold hover:underline">{profile.email}</a> : ''],
-                ['Telefón', profile.phone ? <a key="p" href={`tel:${profile.phone}`} className="text-gold hover:underline">{profile.phone}</a> : ''],
+                [
+                  'E-mail',
+                  profile.email ? (
+                    <a key="e" href={`mailto:${profile.email}`} className="text-gold hover:underline">
+                      {profile.email}
+                    </a>
+                  ) : (
+                    ''
+                  ),
+                ],
+                [
+                  'Telefón',
+                  profile.phone ? (
+                    <a key="p" href={`tel:${profile.phone}`} className="text-gold hover:underline">
+                      {profile.phone}
+                    </a>
+                  ) : (
+                    ''
+                  ),
+                ],
                 ['Dátum narodenia', profile.date_of_birth ? formatDate(`${profile.date_of_birth}T12:00:00Z`) : ''],
-                ...(profile.is_company ? ([['Firma', [profile.company_name, profile.ico ? `IČO ${profile.ico}` : null, profile.dic ? `DIČ ${profile.dic}` : null, profile.ic_dph ? `IČ DPH ${profile.ic_dph}` : null].filter(Boolean).join(' · ')]] as [string, string][]) : []),
+                ...(profile.is_company
+                  ? ([
+                      [
+                        'Firma',
+                        [profile.company_name, profile.ico ? `IČO ${profile.ico}` : null, profile.dic ? `DIČ ${profile.dic}` : null, profile.ic_dph ? `IČ DPH ${profile.ic_dph}` : null]
+                          .filter(Boolean)
+                          .join(' · '),
+                      ],
+                    ] as [string, string][])
+                  : []),
                 ['Fakturačná adresa', [address.street, [address.zip, address.city].filter(Boolean).join(' '), address.country].filter(Boolean).join(', ')],
                 ['Účet na vrátenie', profile.refund_iban ? formatIban(profile.refund_iban) : ''],
                 ['Jazyk', profile.locale === 'en' ? 'angličtina' : 'slovenčina'],
@@ -160,7 +189,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           <Section title="Vymazanie účtu (GDPR)">
             {anonymized ? (
               <div className="space-y-3 text-sm">
-                <p className="text-white">Osobné údaje boli odstránené {formatDateTime(profile.anonymized_at!)}. Rezervácie, doklady a podpísané protokoly ostávajú pre účtovníctvo (10 rokov). Záznam je v audit logu.</p>
+                <p className="text-white">
+                  Osobné údaje boli odstránené {formatDateTime(profile.anonymized_at!)}. Rezervácie, doklady a podpísané protokoly ostávajú pre účtovníctvo (10 rokov). Záznam je v audit logu.
+                </p>
                 {canEdit && authAccountLeft ? (
                   <>
                     <p className="text-amber-100">Prihlasovací účet sa ešte nepodarilo zrušiť. Dokončite to:</p>
@@ -179,7 +210,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                 )}
                 {(bookings ?? []).length > 0 ? (
                   <>
-                    <p className="text-white">Má rezervácie, preto sa vykoná <strong>anonymizácia</strong>:</p>
+                    <p className="text-white">
+                      Má rezervácie, preto sa vykoná <strong>anonymizácia</strong>:
+                    </p>
                     <ul className="list-disc space-y-1 pl-5 text-white">
                       <li>meno, e-mail, telefón, dátum narodenia, adresa a IBAN sa odstránia z profilu aj z údajov rezervácií</li>
                       <li>poznámky zákazníka, adresy pristavenia, interné poznámky a blacklist sa zmažú</li>
@@ -188,7 +221,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     </ul>
                   </>
                 ) : (
-                  <p className="text-white">Nemá žiadne rezervácie – účet sa <strong>vymaže úplne</strong>.</p>
+                  <p className="text-white">
+                    Nemá žiadne rezervácie – účet sa <strong>vymaže úplne</strong>.
+                  </p>
                 )}
                 {canEdit ? (
                   <>

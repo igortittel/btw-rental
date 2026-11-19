@@ -14,10 +14,7 @@ export default async function CategoriesPage() {
   const user = await requireStaff('operator', '/admin/kategorie')
   const canEdit = hasRole(user.role, 'manager')
   const supabase = await createClient()
-  const [{ data: categories }, { data: vehicles }] = await Promise.all([
-    supabase.from('vehicle_categories').select('*').order('sort_order'),
-    supabase.from('vehicles').select('category_id'),
-  ])
+  const [{ data: categories }, { data: vehicles }] = await Promise.all([supabase.from('vehicle_categories').select('*').order('sort_order'), supabase.from('vehicles').select('category_id')])
   const counts = new Map<string, number>()
   for (const v of vehicles ?? []) counts.set(v.category_id, (counts.get(v.category_id) ?? 0) + 1)
 

@@ -31,13 +31,20 @@ export function buildProtocolPdfData({ booking, vehicle, company, protocol, pick
   const isReturn = protocol.type === 'return'
   const reference = isReturn ? pickup : null
   const customer = (booking.customer_snapshot ?? {}) as {
-    first_name?: string; last_name?: string; email?: string; phone?: string; date_of_birth?: string
-    is_company?: boolean; company_name?: string | null; ico?: string | null
+    first_name?: string
+    last_name?: string
+    email?: string
+    phone?: string
+    date_of_birth?: string
+    is_company?: boolean
+    company_name?: string | null
+    ico?: string | null
     billing_address?: { street?: string; city?: string; zip?: string; country?: string }
   }
   const snapshot = (booking.price_snapshot ?? {}) as { pickup_location?: { name: Localized; address: string }; return_location?: { name: Localized; address: string } }
   const address = customer.billing_address ?? {}
-  const place = (kind: 'pickup' | 'return') => (kind === 'pickup' ? booking.pickup_custom_address ?? snapshot.pickup_location?.address : booking.return_custom_address ?? snapshot.return_location?.address) ?? '—'
+  const place = (kind: 'pickup' | 'return') =>
+    (kind === 'pickup' ? (booking.pickup_custom_address ?? snapshot.pickup_location?.address) : (booking.return_custom_address ?? snapshot.return_location?.address)) ?? '—'
   const at = (value: string | null) => (value ? formatDateTime(value) : '—')
 
   const state: ProtocolPdfData['state'] = []
@@ -45,11 +52,21 @@ export function buildProtocolPdfData({ booking, vehicle, company, protocol, pick
   state.push({ label: 'Dátum a čas', pickup: at(reference?.handover_at ?? null), value: at(protocol.handover_at), diff: lateMinutes > 0 ? `meškanie ${formatDuration(lateMinutes)}` : undefined })
   state.push({ label: 'Miesto', pickup: place('pickup'), value: place(isReturn ? 'return' : 'pickup') })
   const driven = reference && reference.odometer_km !== null && protocol.odometer_km !== null ? protocol.odometer_km - reference.odometer_km : null
-  state.push({ label: 'Tachometer', pickup: km(reference?.odometer_km ?? null), value: km(protocol.odometer_km), diff: driven === null ? undefined : `${km(driven)} (limit ${km(booking.km_limit_per_day * booking.days)})` })
+  state.push({
+    label: 'Tachometer',
+    pickup: km(reference?.odometer_km ?? null),
+    value: km(protocol.odometer_km),
+    diff: driven === null ? undefined : `${km(driven)} (limit ${km(booking.km_limit_per_day * booking.days)})`,
+  })
   if (usesFuel(vehicle.fuel)) {
     const before = percentToEighths(reference?.fuel_level)
     const after = percentToEighths(protocol.fuel_level)
-    state.push({ label: 'Palivo', pickup: fuelLabel(reference?.fuel_level), value: fuelLabel(protocol.fuel_level), diff: before !== null && after !== null && before !== after ? `${after > before ? '+' : '−'}${Math.abs(after - before)}/8` : undefined })
+    state.push({
+      label: 'Palivo',
+      pickup: fuelLabel(reference?.fuel_level),
+      value: fuelLabel(protocol.fuel_level),
+      diff: before !== null && after !== null && before !== after ? `${after > before ? '+' : '−'}${Math.abs(after - before)}/8` : undefined,
+    })
   }
   if (usesCharge(vehicle.fuel)) {
     const pct = (value: number | null | undefined) => (value === null || value === undefined ? '—' : `${value} %`)
@@ -87,7 +104,11 @@ export function buildProtocolPdfData({ booking, vehicle, company, protocol, pick
     bookingNumber: booking.number,
     version: protocol.version,
     supersedesVersion,
-    company: { name: company.name, address: company.address, ids: [company.ico ? `IČO: ${company.ico}` : '', company.dic ? `DIČ: ${company.dic}` : '', company.ic_dph ? `IČ DPH: ${company.ic_dph}` : ''].filter(Boolean) },
+    company: {
+      name: company.name,
+      address: company.address,
+      ids: [company.ico ? `IČO: ${company.ico}` : '', company.dic ? `DIČ: ${company.dic}` : '', company.ic_dph ? `IČ DPH: ${company.ic_dph}` : ''].filter(Boolean),
+    },
     customer: {
       name: `${customer.first_name ?? ''} ${customer.last_name ?? ''}`.trim() || (protocol.signed_by_name ?? ''),
       lines: [
@@ -159,7 +180,15 @@ export async function generateProtocolPdf(supabase: Client, protocolId: string):
   ])
   const { vehicles: vehicle, ...bookingRow } = booking
   const pdf = await renderProtocolPdf(
-    buildProtocolPdfData({ booking: bookingRow, vehicle, company: settings.company, protocol, pickup, supersedesVersion: protocols.find((p) => p.id === protocol.supersedes_id)?.version ?? null, images }),
+    buildProtocolPdfData({
+      booking: bookingRow,
+      vehicle,
+      company: settings.company,
+      protocol,
+      pickup,
+      supersedesVersion: protocols.find((p) => p.id === protocol.supersedes_id)?.version ?? null,
+      images,
+    }),
   )
 
   const filename = `${booking.number}-${PROTOCOL_SLUG[protocol.type]}-protokol${protocol.version > 1 ? `-v${protocol.version}` : ''}.pdf`

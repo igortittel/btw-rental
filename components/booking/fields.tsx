@@ -11,7 +11,23 @@ export const controlClass =
   'h-11 w-full rounded-lg border border-line bg-[#141414] px-3 text-base text-white placeholder:text-[#8c8c8c] transition-colors [color-scheme:dark] ' +
   'focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40 aria-[invalid=true]:border-red-400 disabled:opacity-60'
 
-export function Field({ id, label, error, hint, optional, className, children }: { id: string; label: string; error?: string; hint?: string; optional?: string; className?: string; children: ReactNode }) {
+export function Field({
+  id,
+  label,
+  error,
+  hint,
+  optional,
+  className,
+  children,
+}: {
+  id: string
+  label: string
+  error?: string
+  hint?: string
+  optional?: string
+  className?: string
+  children: ReactNode
+}) {
   return (
     <div className={cn('min-w-0', className)}>
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-white">
@@ -53,11 +69,7 @@ export function DateInput({ className, ...props }: Omit<ComponentProps<'input'>,
 
 export function SelectInput({ className, children, style, ...props }: ComponentProps<'select'>) {
   return (
-    <select
-      {...props}
-      className={cn(controlClass, 'appearance-none pr-9', className)}
-      style={{ ...SELECT_CHEVRON_STYLE, ...style }}
-    >
+    <select {...props} className={cn(controlClass, 'appearance-none pr-9', className)} style={{ ...SELECT_CHEVRON_STYLE, ...style }}>
       {children}
     </select>
   )
@@ -82,7 +94,23 @@ export function CheckField({ id, checked, onChange, error, children }: { id: str
   )
 }
 
-export function RadioCards<T extends string>({ name, legend, value, options, onChange, error, stack = false }: { name: string; legend: string; value: string; options: { value: T; label: string }[]; onChange: (value: T) => void; error?: string; /** One option per row (narrow columns). */ stack?: boolean }) {
+export function RadioCards<T extends string>({
+  name,
+  legend,
+  value,
+  options,
+  onChange,
+  error,
+  stack = false,
+}: {
+  name: string
+  legend: string
+  value: string
+  options: { value: T; label: string }[]
+  onChange: (value: T) => void
+  error?: string
+  /** One option per row (narrow columns). */ stack?: boolean
+}) {
   return (
     <fieldset>
       <legend className="mb-1.5 text-sm font-medium text-white">{legend}</legend>

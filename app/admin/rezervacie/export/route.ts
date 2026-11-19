@@ -10,7 +10,6 @@ export const dynamic = 'force-dynamic'
 
 type Snapshot = { first_name?: string; last_name?: string; email?: string; phone?: string; company_name?: string | null }
 
-
 /** CSV export of the bookings matching the same filters as the list (semicolon-separated, UTF-8 with BOM for Excel). */
 export async function GET(request: NextRequest) {
   if (!(await getStaff('operator'))) return new NextResponse('Forbidden', { status: 403 })

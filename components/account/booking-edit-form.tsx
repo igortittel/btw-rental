@@ -66,7 +66,9 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
 
   const submit = () => {
     const parsed = termSchema.safeParse(values)
-    const found: FieldErrors = parsed.success ? validateTerm(values, { minLeadHours: config.minLeadHours, minRentalDays: config.minRentalDays, toleranceMinutes: config.toleranceMinutes }) : fieldErrors(parsed.error)
+    const found: FieldErrors = parsed.success
+      ? validateTerm(values, { minLeadHours: config.minLeadHours, minRentalDays: config.minRentalDays, toleranceMinutes: config.toleranceMinutes })
+      : fieldErrors(parsed.error)
     if (Object.values(found).some(Boolean)) {
       setErrors(found)
       requestAnimationFrame(() => (document.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus())
@@ -112,7 +114,13 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
             </SelectInput>
           </Field>
           <Field id="returnDate" label={b('returnDate')} error={err('returnDate')}>
-            <DateInput id="returnDate" min={values.pickupDate || minPickupDate} value={values.returnDate} onChange={(event) => set('returnDate', event.target.value)} {...describe('returnDate', err('returnDate'))} />
+            <DateInput
+              id="returnDate"
+              min={values.pickupDate || minPickupDate}
+              value={values.returnDate}
+              onChange={(event) => set('returnDate', event.target.value)}
+              {...describe('returnDate', err('returnDate'))}
+            />
           </Field>
           <Field id="returnTime" label={b('returnTime')}>
             <SelectInput id="returnTime" value={values.returnTime} onChange={(event) => set('returnTime', event.target.value)}>
@@ -128,14 +136,39 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
         <div className="grid gap-6 sm:grid-cols-2">
           {(
             [
-              { field: 'pickupLocationId', custom: 'pickupCustom', address: 'pickupAddress', outside: 'pickupOutsideCity', label: b('pickupLocation'), toggle: b('pickupCustom'), options: locations.filter((l) => l.forPickup), location: pickupLocation },
-              { field: 'returnLocationId', custom: 'returnCustom', address: 'returnAddress', outside: 'returnOutsideCity', label: b('returnLocation'), toggle: b('returnCustom'), options: locations.filter((l) => l.forReturn), location: returnLocation },
+              {
+                field: 'pickupLocationId',
+                custom: 'pickupCustom',
+                address: 'pickupAddress',
+                outside: 'pickupOutsideCity',
+                label: b('pickupLocation'),
+                toggle: b('pickupCustom'),
+                options: locations.filter((l) => l.forPickup),
+                location: pickupLocation,
+              },
+              {
+                field: 'returnLocationId',
+                custom: 'returnCustom',
+                address: 'returnAddress',
+                outside: 'returnOutsideCity',
+                label: b('returnLocation'),
+                toggle: b('returnCustom'),
+                options: locations.filter((l) => l.forReturn),
+                location: returnLocation,
+              },
             ] as const
           ).map((place) => (
             <div key={place.field} className="min-w-0">
               {values[place.custom] ? (
                 <Field id={place.address} label={place.label} error={err(place.address)}>
-                  <TextInput id={place.address} value={values[place.address]} maxLength={200} placeholder={b('addressPlaceholder')} onChange={(event) => set(place.address, event.target.value)} {...describe(place.address, err(place.address))} />
+                  <TextInput
+                    id={place.address}
+                    value={values[place.address]}
+                    maxLength={200}
+                    placeholder={b('addressPlaceholder')}
+                    onChange={(event) => set(place.address, event.target.value)}
+                    {...describe(place.address, err(place.address))}
+                  />
                 </Field>
               ) : place.options.length > 1 ? (
                 <Field id={place.field} label={place.label}>
@@ -163,7 +196,10 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
               {values[place.custom] ? (
                 <div className="mt-1 grid gap-2">
                   {([false, true] as const).map((outside) => (
-                    <label key={String(outside)} className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-[15px] text-white ${values[place.outside] === outside ? 'border-gold bg-gold/10' : 'border-line'}`}>
+                    <label
+                      key={String(outside)}
+                      className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-[15px] text-white ${values[place.outside] === outside ? 'border-gold bg-gold/10' : 'border-line'}`}
+                    >
                       <input type="radio" name={place.outside} checked={values[place.outside] === outside} onChange={() => set(place.outside, outside)} className="h-4 w-4 shrink-0 accent-gold" />
                       {b(outside ? 'addressOutside' : 'addressInCity')}
                     </label>
@@ -192,9 +228,16 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
               <li key={extra.id} className="flex items-center justify-between gap-4 py-2.5">
                 <label htmlFor={`extra-${extra.id}`} className="text-[15px] text-white">
                   {pick(extra.name)}
-                  <span className="block text-sm text-muted2">{extra.pricingType === 'per_rental' ? b('perRental', { price: euro(extra.priceCents) }) : b('perDay', { price: euro(extra.priceCents) })}</span>
+                  <span className="block text-sm text-muted2">
+                    {extra.pricingType === 'per_rental' ? b('perRental', { price: euro(extra.priceCents) }) : b('perDay', { price: euro(extra.priceCents) })}
+                  </span>
                 </label>
-                <SelectInput id={`extra-${extra.id}`} className="w-24" value={values.extras[extra.id] ?? 0} onChange={(event) => set('extras', { ...values.extras, [extra.id]: Number(event.target.value) })}>
+                <SelectInput
+                  id={`extra-${extra.id}`}
+                  className="w-24"
+                  value={values.extras[extra.id] ?? 0}
+                  onChange={(event) => set('extras', { ...values.extras, [extra.id]: Number(event.target.value) })}
+                >
                   {Array.from({ length: extra.maxQuantity + 1 }, (_, n) => (
                     <option key={n} value={n}>
                       {n === 0 ? '—' : b('pieces', { count: n })}
@@ -234,7 +277,11 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
         </dl>
       </Card>
 
-      <button type="submit" disabled={pending} className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-60 sm:w-auto">
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover disabled:opacity-60 sm:w-auto"
+      >
         {pending ? t('editPending') : confirmed ? t('editSubmit') : t('editSubmitNew')}
       </button>
     </form>

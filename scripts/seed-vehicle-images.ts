@@ -43,9 +43,7 @@ async function main() {
         continue
       }
       const body = await readFile(path.join(SOURCE_DIR, folder.name, file))
-      const { error } = await supabase.storage
-        .from(BUCKET)
-        .upload(`${folder.name}/${file}`, body, { contentType: 'image/webp', cacheControl: '31536000', upsert: false })
+      const { error } = await supabase.storage.from(BUCKET).upload(`${folder.name}/${file}`, body, { contentType: 'image/webp', cacheControl: '31536000', upsert: false })
       if (error) throw new Error(`[seed-images] cannot upload ${folder.name}/${file}: ${error.message}`)
       uploaded++
     }

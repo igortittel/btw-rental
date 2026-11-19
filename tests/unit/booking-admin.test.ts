@@ -63,7 +63,10 @@ describe('cancellationQuote', () => {
   })
 
   it('uses custom tiers from settings', () => {
-    const tiers = [{ min_hours: 168, fee_percent: 0 }, { min_hours: 0, fee_percent: 50 }]
+    const tiers = [
+      { min_hours: 168, fee_percent: 0 },
+      { min_hours: 0, fee_percent: 50 },
+    ]
     expect(cancellationQuote(pickup, 10000, tiers, before(100)).feeCents).toBe(5000)
     expect(cancellationQuote(pickup, 10000, tiers, before(169)).feeCents).toBe(0)
     expect(cancellationQuote(pickup, 10000, [], before(1)).feeCents).toBe(0)
@@ -91,7 +94,14 @@ describe('payment helpers', () => {
 
 describe('buildIcs', () => {
   const ics = buildIcs(
-    { uid: 'BTW-2027-0042@rental.btw.sk', start: new Date('2027-06-14T08:00:00Z'), end: new Date('2027-06-19T08:00:00Z'), summary: 'Prenájom: Mercedes-Benz E 220 d', description: 'Rezervácia BTW-2027-0042\nVyzdvihnutie; odovzdanie, depozit', location: 'Trenčianska 56/A, 821 09 Bratislava' },
+    {
+      uid: 'BTW-2027-0042@rental.btw.sk',
+      start: new Date('2027-06-14T08:00:00Z'),
+      end: new Date('2027-06-19T08:00:00Z'),
+      summary: 'Prenájom: Mercedes-Benz E 220 d',
+      description: 'Rezervácia BTW-2027-0042\nVyzdvihnutie; odovzdanie, depozit',
+      location: 'Trenčianska 56/A, 821 09 Bratislava',
+    },
     new Date('2027-06-01T00:00:00Z'),
   )
 
@@ -130,7 +140,17 @@ describe('applyPriceOverride', () => {
   })
 
   it('gives a price to a rental that the price list leaves individual', () => {
-    const long = calculatePrice({ pickupAt: new Date('2027-06-01T08:00:00Z'), returnAt: new Date('2027-07-16T08:00:00Z'), tiers: [{ minDays: 1, maxDays: 30, pricePerDayCents: 7900 }], extras: [], pickupSurchargeCents: 0, returnSurchargeCents: 0, vatRate: 23, toleranceMinutes: 59, individualFromDays: 31 })
+    const long = calculatePrice({
+      pickupAt: new Date('2027-06-01T08:00:00Z'),
+      returnAt: new Date('2027-07-16T08:00:00Z'),
+      tiers: [{ minDays: 1, maxDays: 30, pricePerDayCents: 7900 }],
+      extras: [],
+      pickupSurchargeCents: 0,
+      returnSurchargeCents: 0,
+      vatRate: 23,
+      toleranceMinutes: 59,
+      individualFromDays: 31,
+    })
     expect(long.totalCents).toBeNull()
     expect(applyPriceOverride(long, 250000).totalCents).toBe(250000)
   })
@@ -146,7 +166,12 @@ describe('computeKpi', () => {
   const booking = (pickup: string, ret: string, total: number | null) => ({ pickup_at: `${pickup}T00:00:00Z`, return_at: `${ret}T00:00:00Z`, total_cents: total })
 
   it('counts bookings starting in the period and their revenue', () => {
-    const kpi = computeKpi([booking('2027-06-05', '2027-06-08', 23700), booking('2027-05-30', '2027-06-02', 10000), booking('2027-06-29', '2027-07-04', 39500), booking('2027-06-10', '2027-06-11', null)], from, to, 2)
+    const kpi = computeKpi(
+      [booking('2027-06-05', '2027-06-08', 23700), booking('2027-05-30', '2027-06-02', 10000), booking('2027-06-29', '2027-07-04', 39500), booking('2027-06-10', '2027-06-11', null)],
+      from,
+      to,
+      2,
+    )
     expect(kpi.count).toBe(3)
     expect(kpi.revenueCents).toBe(63200)
   })
@@ -161,7 +186,20 @@ describe('computeKpi', () => {
 })
 
 describe('staffRuleErrors', () => {
-  const base = { phonePrefix: '+421', phoneNumber: '900123456', isCompany: false, companyName: '', ico: '', pickupCustom: false, pickupAddress: '', returnCustom: false, returnAddress: '', priceMode: 'auto', customPrice: '', priceReason: '' } as StaffBookingValues
+  const base = {
+    phonePrefix: '+421',
+    phoneNumber: '900123456',
+    isCompany: false,
+    companyName: '',
+    ico: '',
+    pickupCustom: false,
+    pickupAddress: '',
+    returnCustom: false,
+    returnAddress: '',
+    priceMode: 'auto',
+    customPrice: '',
+    priceReason: '',
+  } as StaffBookingValues
 
   it('a custom price needs a valid amount and a reason', () => {
     expect(staffRuleErrors(base)).toEqual({})
@@ -171,6 +209,11 @@ describe('staffRuleErrors', () => {
   })
 
   it('shares the phone, company and address rules with the public form', () => {
-    expect(staffRuleErrors({ ...base, phoneNumber: '12345678', isCompany: true, pickupCustom: true })).toEqual({ phoneNumber: 'phone_length', companyName: 'required', ico: 'required', pickupAddress: 'address_required' })
+    expect(staffRuleErrors({ ...base, phoneNumber: '12345678', isCompany: true, pickupCustom: true })).toEqual({
+      phoneNumber: 'phone_length',
+      companyName: 'required',
+      ico: 'required',
+      pickupAddress: 'address_required',
+    })
   })
 })

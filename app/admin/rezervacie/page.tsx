@@ -42,7 +42,8 @@ export default async function BookingsPage({ searchParams }: Props) {
   }
   const exportQuery = bookingFilterParams(filters).toString()
   const headerLink = 'inline-flex h-10 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15'
-  const tab = (active: boolean) => `inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors ${active ? 'bg-white text-black' : 'border border-line text-muted2 hover:border-gold hover:text-white'}`
+  const tab = (active: boolean) =>
+    `inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors ${active ? 'bg-white text-black' : 'border border-line text-muted2 hover:border-gold hover:text-white'}`
   const filtered = !!(vehicleId || from || to || q)
 
   return (
@@ -124,7 +125,10 @@ export default async function BookingsPage({ searchParams }: Props) {
               Filtrovať
             </button>
             {filtered ? (
-              <Link href={status ? `/admin/rezervacie?stav=${status}` : '/admin/rezervacie'} className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm text-white hover:border-gold">
+              <Link
+                href={status ? `/admin/rezervacie?stav=${status}` : '/admin/rezervacie'}
+                className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm text-white hover:border-gold"
+              >
                 Zrušiť
               </Link>
             ) : null}
@@ -177,11 +181,21 @@ export default async function BookingsPage({ searchParams }: Props) {
               {flagged || unpaid.length > 0 ? (
                 <p className="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
                   {flagged ? <span className="rounded-full border border-red-400/60 bg-red-500/10 px-2.5 py-0.5 text-red-200">Blacklist</span> : null}
-                  {unpaid.length > 0 ? <span className="rounded-full border border-amber-400/60 bg-amber-400/10 px-2.5 py-0.5 text-amber-100">Neuhradené: {unpaid.map((k) => (k === 'rental' ? 'prenájom' : 'depozit')).join(', ')}</span> : null}
+                  {unpaid.length > 0 ? (
+                    <span className="rounded-full border border-amber-400/60 bg-amber-400/10 px-2.5 py-0.5 text-amber-100">
+                      Neuhradené: {unpaid.map((k) => (k === 'rental' ? 'prenájom' : 'depozit')).join(', ')}
+                    </span>
+                  ) : null}
                 </p>
               ) : null}
               <div className="mt-auto pt-4">
-                <BookingQuickActions id={booking.id} number={booking.number} status={booking.status} cancelHref={`/admin/rezervacie/${booking.id}#storno`} detailHref={`/admin/rezervacie/${booking.id}`} />
+                <BookingQuickActions
+                  id={booking.id}
+                  number={booking.number}
+                  status={booking.status}
+                  cancelHref={`/admin/rezervacie/${booking.id}#storno`}
+                  detailHref={`/admin/rezervacie/${booking.id}`}
+                />
               </div>
             </li>
           )

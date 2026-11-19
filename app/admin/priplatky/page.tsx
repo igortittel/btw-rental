@@ -35,7 +35,14 @@ function ExtraFields({ extra, vehicles, enabledVehicleIds, nextSort }: { extra?:
         </select>
       </div>
       <Field label="Cena (€)" name="price" id={`price_${key}`} inputMode="decimal" defaultValue={centsToInput(extra?.price_cents)} required />
-      <Field label="Strop ceny (€)" name="max_charge" id={`max_charge_${key}`} inputMode="decimal" defaultValue={centsToInput(extra?.max_charge_cents)} hint="Nepovinné. Najvyššia suma za jeden kus za celý prenájom." />
+      <Field
+        label="Strop ceny (€)"
+        name="max_charge"
+        id={`max_charge_${key}`}
+        inputMode="decimal"
+        defaultValue={centsToInput(extra?.max_charge_cents)}
+        hint="Nepovinné. Najvyššia suma za jeden kus za celý prenájom."
+      />
       <Field label="Max. počet kusov" name="max_quantity" id={`max_q_${key}`} type="number" min={1} max={20} defaultValue={extra?.max_quantity ?? 1} />
       <div className="space-y-2">
         <Label htmlFor={`scope_${key}`}>Platí pre</Label>
@@ -78,9 +85,7 @@ export default async function ExtrasPage() {
     <div>
       <PageHeader title="Príplatky" />
       {canEdit ? null : <ReadOnlyNotice />}
-      <p className="mb-6 text-sm text-muted2">
-        Cenu pre konkrétne vozidlo alebo vypnutie príplatku pri jednom vozidle nastavíte v detaile vozidla, časť Príplatky.
-      </p>
+      <p className="mb-6 text-sm text-muted2">Cenu pre konkrétne vozidlo alebo vypnutie príplatku pri jednom vozidle nastavíte v detaile vozidla, časť Príplatky.</p>
       <div className="space-y-4">
         {list.map((extra) => {
           const name = extra.name as Text

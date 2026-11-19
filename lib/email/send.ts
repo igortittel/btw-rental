@@ -34,16 +34,18 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
   const log = async (status: 'sent' | 'failed', resendId: string | null, error: string | null) => {
     // Logging must not break the flow either (e.g. no service key in local development).
     try {
-      await createAdminClient().from('email_log').insert({
-        type: message.type,
-        recipient: message.to,
-        locale: message.locale ?? null,
-        profile_id: message.profileId ?? null,
-        booking_id: message.bookingId ?? null,
-        resend_id: resendId,
-        status,
-        error,
-      })
+      await createAdminClient()
+        .from('email_log')
+        .insert({
+          type: message.type,
+          recipient: message.to,
+          locale: message.locale ?? null,
+          profile_id: message.profileId ?? null,
+          booking_id: message.bookingId ?? null,
+          resend_id: resendId,
+          status,
+          error,
+        })
     } catch (e) {
       console.error('email log failed', e)
     }
@@ -66,7 +68,11 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
         subject: message.subject,
         html: message.html,
         text: message.text,
-        attachments: message.attachments?.map((file) => ({ filename: file.filename, content: (typeof file.content === 'string' ? Buffer.from(file.content, 'utf8') : file.content).toString('base64'), content_type: file.contentType })),
+        attachments: message.attachments?.map((file) => ({
+          filename: file.filename,
+          content: (typeof file.content === 'string' ? Buffer.from(file.content, 'utf8') : file.content).toString('base64'),
+          content_type: file.contentType,
+        })),
       }),
     })
     const body = (await response.json().catch(() => ({}))) as { id?: string; message?: string }

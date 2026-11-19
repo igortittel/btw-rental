@@ -199,7 +199,13 @@ export function AvailabilityCalendar({ vin, value = null, onChange, minDate }: P
             {start ? t('pickReturn') : value ? '' : t('pickPickup')}
           </p>
         ) : null}
-        <button type="button" className={navButton} onClick={() => setView(shift(view.year, view.month, 1))} disabled={after.year * 12 + after.month > today.year * 12 + today.month + 18} aria-label={t('nextMonth')}>
+        <button
+          type="button"
+          className={navButton}
+          onClick={() => setView(shift(view.year, view.month, 1))}
+          disabled={after.year * 12 + after.month > today.year * 12 + today.month + 18}
+          aria-label={t('nextMonth')}
+        >
           →
         </button>
       </div>

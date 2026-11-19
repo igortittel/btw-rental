@@ -10,7 +10,17 @@ import { documentFileName, documentPath, isDocumentPathOf, looksLikePdf } from '
 import { renderBookingReminder, renderDocumentAvailable, renderReviewRequest, sendBookingReminder, sendDocumentAvailable, sendReviewRequest } from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { sendEmail } from '@/lib/email/send'
-import { depositOutstandingCents, depositOverpaidCents, depositReturnProposal, missingPayments, paymentDateToUtc, rentalOutstandingCents, rentalOverpaidCents, unpaidCents, type PaymentState } from '@/lib/payment'
+import {
+  depositOutstandingCents,
+  depositOverpaidCents,
+  depositReturnProposal,
+  missingPayments,
+  paymentDateToUtc,
+  rentalOutstandingCents,
+  rentalOverpaidCents,
+  unpaidCents,
+  type PaymentState,
+} from '@/lib/payment'
 import { protocolErrorMessage, protocolMissing } from '@/lib/protocol/model'
 
 const nbsp = (s: string) => s.replace(/&nbsp;| /g, ' ')
@@ -52,7 +62,20 @@ describe('payments before pick-up', () => {
   })
 
   it('the protocol lists missing payments and maps the database error', () => {
-    const draft = { handoverAt: '2026-11-18T10:00', odometerKm: 1000, fuelLevel: 100, chargeLevel: null, interior: 'clean', exterior: 'clean', accessories: [], damages: [], photos: [], note: '', customerName: 'A', staffName: 'B' }
+    const draft = {
+      handoverAt: '2026-11-18T10:00',
+      odometerKm: 1000,
+      fuelLevel: 100,
+      chargeLevel: null,
+      interior: 'clean',
+      exterior: 'clean',
+      accessories: [],
+      damages: [],
+      photos: [],
+      note: '',
+      customerName: 'A',
+      staffName: 'B',
+    }
     const missing = protocolMissing(draft as never, { fuel: 'diesel', customerSigned: true, staffSigned: true, unpaid: ['rental', 'deposit'] })
     expect(missing.slice(0, 2)).toEqual(['úhrada prenájmu', 'prijatie depozitu'])
     expect(protocolErrorMessage('protocol_incomplete: payments')).toContain('úhrada prenájmu a prijatie depozitu')
@@ -151,24 +174,51 @@ describe('CSV', () => {
 describe('emails 7, 9, 11, 12', () => {
   it('7 – pick-up reminder lists what to bring and an unpaid rental', async () => {
     const booking = sampleBookingEmailData('sk')
-    const email = await renderBookingReminder({ booking, kind: 'pickup', unpaid: { rental: `${booking.total} · bankový prevod`, deposit: null }, toleranceMinutes: 59, assistancePhone: '+421 900 000 000', accountUrl: 'https://rental.btw.sk/moj-ucet' })
+    const email = await renderBookingReminder({
+      booking,
+      kind: 'pickup',
+      unpaid: { rental: `${booking.total} · bankový prevod`, deposit: null },
+      toleranceMinutes: 59,
+      assistancePhone: '+421 900 000 000',
+      accountUrl: 'https://rental.btw.sk/moj-ucet',
+    })
     expect(email.subject).toBe('Zajtra vyzdvihnutie vozidla – BTW-2027-0042')
-    for (const part of ['Pripomienka vyzdvihnutia', 'občiansky preukaz', 'vodičský preukaz', 'Prenájom zatiaľ nemáme uhradený', '+421 900 000 000', 'Zobraziť rezerváciu']) expect(nbsp(email.html)).toContain(part)
+    for (const part of ['Pripomienka vyzdvihnutia', 'občiansky preukaz', 'vodičský preukaz', 'Prenájom zatiaľ nemáme uhradený', '+421 900 000 000', 'Zobraziť rezerváciu'])
+      expect(nbsp(email.html)).toContain(part)
     expect(email.text).not.toMatch(/<[a-z]/i)
   })
   it('9 – return reminder mentions fuel, tolerance and the km limit (EN)', async () => {
-    const email = await renderBookingReminder({ booking: sampleBookingEmailData('en'), kind: 'return', unpaid: { rental: null, deposit: null }, toleranceMinutes: 59, assistancePhone: null, accountUrl: 'https://rental.btw.sk/en/moj-ucet' })
+    const email = await renderBookingReminder({
+      booking: sampleBookingEmailData('en'),
+      kind: 'return',
+      unpaid: { rental: null, deposit: null },
+      toleranceMinutes: 59,
+      assistancePhone: null,
+      accountUrl: 'https://rental.btw.sk/en/moj-ucet',
+    })
     expect(email.subject).toBe('Vehicle return tomorrow – BTW-2027-0042')
     expect(nbsp(email.html)).toContain('more than 59 minutes')
     expect(nbsp(email.html)).toContain('Mileage limit')
   })
   it('11 – document available, sent with the PDF attached', async () => {
-    const props = { booking: sampleBookingEmailData('sk'), typeLabel: 'Faktúra', number: 'FA2026-0102', amount: '632,00 €', issuedAt: '17. 11. 2026', hasAttachment: true, accountUrl: 'https://rental.btw.sk/moj-ucet' }
+    const props = {
+      booking: sampleBookingEmailData('sk'),
+      typeLabel: 'Faktúra',
+      number: 'FA2026-0102',
+      amount: '632,00 €',
+      issuedAt: '17. 11. 2026',
+      hasAttachment: true,
+      accountUrl: 'https://rental.btw.sk/moj-ucet',
+    }
     const email = await renderDocumentAvailable(props)
     expect(email.subject).toBe('Faktúra k rezervácii BTW-2027-0042 – BY THE WAVE')
     expect(nbsp(email.html)).toContain('FA2026-0102')
     await sendDocumentAvailable(props, { bookingId: 'b', profileId: 'p', pdf: { filename: 'Faktura-FA2026-0102.pdf', content: Buffer.from('%PDF-') } })
-    expect(vi.mocked(sendEmail).mock.lastCall?.[0]).toMatchObject({ type: 'document_available', to: 'anna.novakova@example.com', attachments: [{ filename: 'Faktura-FA2026-0102.pdf', contentType: 'application/pdf' }] })
+    expect(vi.mocked(sendEmail).mock.lastCall?.[0]).toMatchObject({
+      type: 'document_available',
+      to: 'anna.novakova@example.com',
+      attachments: [{ filename: 'Faktura-FA2026-0102.pdf', contentType: 'application/pdf' }],
+    })
   })
   it('12 – thank you with the Google review link', async () => {
     const props = { booking: sampleBookingEmailData('sk'), reviewUrl: 'https://g.page/r/CfK31p1klMkpEBM/review', siteUrl: 'https://rental.btw.sk' }
@@ -177,7 +227,10 @@ describe('emails 7, 9, 11, 12', () => {
     expect(nbsp(email.html)).toContain('Napísať recenziu')
     await sendReviewRequest(props, { bookingId: 'b', profileId: 'p' })
     expect(vi.mocked(sendEmail).mock.lastCall?.[0]).toMatchObject({ type: 'review_request' })
-    await sendBookingReminder({ booking: sampleBookingEmailData('sk'), kind: 'return', unpaid: { rental: null, deposit: null }, toleranceMinutes: 59, assistancePhone: null, accountUrl: 'x' }, { bookingId: 'b', profileId: 'p' })
+    await sendBookingReminder(
+      { booking: sampleBookingEmailData('sk'), kind: 'return', unpaid: { rental: null, deposit: null }, toleranceMinutes: 59, assistancePhone: null, accountUrl: 'x' },
+      { bookingId: 'b', profileId: 'p' },
+    )
     expect(vi.mocked(sendEmail).mock.lastCall?.[0]).toMatchObject({ type: 'return_reminder' })
   })
 })

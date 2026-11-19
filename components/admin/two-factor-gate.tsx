@@ -126,7 +126,11 @@ export function TwoFactorGate({ userName }: { userName: string }) {
             placeholder="123456"
             className="h-12 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-center text-xl tracking-[0.4em] text-white focus:border-gold/50 focus:outline-none"
           />
-          <button type="submit" disabled={busy || code.replace(/\s/g, '').length !== 6} className="h-12 w-full rounded-lg bg-gold text-base font-semibold text-white hover:bg-gold-hover disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={busy || code.replace(/\s/g, '').length !== 6}
+            className="h-12 w-full rounded-lg bg-gold text-base font-semibold text-white hover:bg-gold-hover disabled:opacity-50"
+          >
             {busy ? 'Overujem…' : mode === 'enroll' ? 'Zapnúť a pokračovať' : 'Overiť'}
           </button>
         </form>

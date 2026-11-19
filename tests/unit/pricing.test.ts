@@ -141,7 +141,16 @@ describe('calculatePrice – extras, locations, VAT', () => {
 
   it('caps the quantity and ignores zero, negative and duplicate lines', () => {
     const e = extra({ maxQuantity: 2 })
-    const price = calculatePrice(forDays(1, { extras: [{ extra: e, quantity: 9 }, { extra: e, quantity: 1 }, { extra: extra({ id: 'y' }), quantity: 0 }, { extra: extra({ id: 'z' }), quantity: -3 }] }))
+    const price = calculatePrice(
+      forDays(1, {
+        extras: [
+          { extra: e, quantity: 9 },
+          { extra: e, quantity: 1 },
+          { extra: extra({ id: 'y' }), quantity: 0 },
+          { extra: extra({ id: 'z' }), quantity: -3 },
+        ],
+      }),
+    )
     expect(price.extras).toHaveLength(1)
     expect(price.extras[0].quantity).toBe(2)
   })

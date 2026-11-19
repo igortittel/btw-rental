@@ -52,15 +52,11 @@ export default async function VehiclesPage({ searchParams }: Props) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-white">{vehicle.name}</p>
-                  <p className="mt-1 break-all text-sm text-muted2">
-                    {[category, vehicle.license_plate, vehicle.vin].filter(Boolean).join(' · ')}
-                  </p>
+                  <p className="mt-1 break-all text-sm text-muted2">{[category, vehicle.license_plate, vehicle.vin].filter(Boolean).join(' · ')}</p>
                 </div>
                 <div className="shrink-0 text-right text-sm">
                   <p className="text-white">{prices.length ? `od ${formatEuro(Math.min(...prices))}` : 'bez ceny'}</p>
-                  <p className={vehicle.is_active && vehicle.for_rental ? 'text-muted2' : 'text-red-300'}>
-                    {!vehicle.is_active ? 'skryté' : vehicle.for_rental ? 'na webe' : 'mimo katalógu'}
-                  </p>
+                  <p className={vehicle.is_active && vehicle.for_rental ? 'text-muted2' : 'text-red-300'}>{!vehicle.is_active ? 'skryté' : vehicle.for_rental ? 'na webe' : 'mimo katalógu'}</p>
                 </div>
               </Link>
             </li>

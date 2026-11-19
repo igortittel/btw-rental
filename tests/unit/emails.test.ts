@@ -3,7 +3,15 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/email/send', () => ({ sendEmail: vi.fn(async () => ({ sent: true })) }))
 
-import { renderBookingAdminNotification, renderBookingCancelled, renderBookingConfirmed, renderBookingReceived, sendBookingAdminNotification, sendBookingCancelled, sendBookingConfirmed } from '@/lib/email/booking-emails'
+import {
+  renderBookingAdminNotification,
+  renderBookingCancelled,
+  renderBookingConfirmed,
+  renderBookingReceived,
+  sendBookingAdminNotification,
+  sendBookingCancelled,
+  sendBookingConfirmed,
+} from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { sendEmail } from '@/lib/email/send'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
@@ -61,7 +69,13 @@ describe('email 1 – booking received', () => {
 
 describe('email 2 – staff notification', () => {
   it('links to the admin and shows customer contact details', async () => {
-    const email = await renderBookingAdminNotification({ booking: sampleBookingEmailData('sk'), adminUrl: 'https://rental.btw.sk/admin/rezervacie/1', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: true })
+    const email = await renderBookingAdminNotification({
+      booking: sampleBookingEmailData('sk'),
+      adminUrl: 'https://rental.btw.sk/admin/rezervacie/1',
+      pendingOverlaps: 0,
+      isBlacklisted: false,
+      isNewCustomer: true,
+    })
     dump('booking-admin', email.html)
     expect(email.subject).toContain('Nová rezervácia BTW-2027-0042 – Mercedes-Benz E 220 d')
     expect(email.html).toContain('href="https://rental.btw.sk/admin/rezervacie/1"')
@@ -72,7 +86,13 @@ describe('email 2 – staff notification', () => {
   })
 
   it('warns about a collision, a blacklisted customer and a missing price', async () => {
-    const email = await renderBookingAdminNotification({ booking: sampleBookingEmailData('sk', true), adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 2, isBlacklisted: true, isNewCustomer: false })
+    const email = await renderBookingAdminNotification({
+      booking: sampleBookingEmailData('sk', true),
+      adminUrl: 'https://rental.btw.sk/admin',
+      pendingOverlaps: 2,
+      isBlacklisted: true,
+      isNewCustomer: false,
+    })
     dump('booking-admin-warnings', email.html)
     expect(email.html).toContain('Kolízia')
     expect(email.html).toContain('blacklist')
@@ -80,14 +100,18 @@ describe('email 2 – staff notification', () => {
   })
 
   it('goes to every notification address with the customer as reply-to', async () => {
-    await sendBookingAdminNotification({ booking: sampleBookingEmailData('sk'), adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: true }, ['a@btw.sk', 'b@btw.sk'], { bookingId: 'id' })
+    await sendBookingAdminNotification(
+      { booking: sampleBookingEmailData('sk'), adminUrl: 'https://rental.btw.sk/admin', pendingOverlaps: 0, isBlacklisted: false, isNewCustomer: true },
+      ['a@btw.sk', 'b@btw.sk'],
+      { bookingId: 'id' },
+    )
     const calls = vi.mocked(sendEmail).mock.calls.map(([message]) => message)
     expect(calls.map((m) => m.to)).toEqual(['a@btw.sk', 'b@btw.sk'])
     expect(calls.every((m) => m.replyTo === 'anna.novakova@example.com' && m.type === 'booking_admin_new' && m.bookingId === 'id')).toBe(true)
   })
 })
 
-describe('delivery to the customer\'s own address', () => {
+describe("delivery to the customer's own address", () => {
   const build = async (deliveryOutsideCity: boolean) => {
     const { buildBookingEmailData } = await import('@/lib/booking/email-data')
     const { calculatePrice } = await import('@/lib/pricing')
@@ -96,11 +120,37 @@ describe('delivery to the customer\'s own address', () => {
     const returnAt = new Date('2027-06-16T08:00:00Z')
     const location = { name: { sk: 'Bratislava – Trenčianska 56/A' }, address: 'Trenčianska 56/A, 821 09 Bratislava' }
     return buildBookingEmailData({
-      locale: 'sk', number: 'BTW-2027-0043', customer: base.customer, vehicleName: base.vehicleName, pickupAt, returnAt,
-      price: calculatePrice({ pickupAt, returnAt, tiers: [{ minDays: 1, maxDays: 30, pricePerDayCents: 7900 }], extras: [], pickupSurchargeCents: 0, returnSurchargeCents: 0, vatRate: 23, toleranceMinutes: 59, individualFromDays: 31 }),
-      pickupLocation: location, returnLocation: location, pickupAddress: 'Hlavná stanica', returnAddress: null, deliveryOutsideCity,
-      depositCents: 100000, kmLimitPerDay: 300, extraKmCents: 62, rentalPaymentMethod: 'transfer', depositPaymentMethod: 'cash',
-      note: null, abroadTrip: false, abroadCountries: null, company: DEFAULT_SETTINGS.company,
+      locale: 'sk',
+      number: 'BTW-2027-0043',
+      customer: base.customer,
+      vehicleName: base.vehicleName,
+      pickupAt,
+      returnAt,
+      price: calculatePrice({
+        pickupAt,
+        returnAt,
+        tiers: [{ minDays: 1, maxDays: 30, pricePerDayCents: 7900 }],
+        extras: [],
+        pickupSurchargeCents: 0,
+        returnSurchargeCents: 0,
+        vatRate: 23,
+        toleranceMinutes: 59,
+        individualFromDays: 31,
+      }),
+      pickupLocation: location,
+      returnLocation: location,
+      pickupAddress: 'Hlavná stanica',
+      returnAddress: null,
+      deliveryOutsideCity,
+      depositCents: 100000,
+      kmLimitPerDay: 300,
+      extraKmCents: 62,
+      rentalPaymentMethod: 'transfer',
+      depositPaymentMethod: 'cash',
+      note: null,
+      abroadTrip: false,
+      abroadCountries: null,
+      company: DEFAULT_SETTINGS.company,
     })
   }
 
@@ -130,7 +180,16 @@ describe('email 3 – booking confirmed', () => {
   const bank = { iban: 'SK31 1200 0000 1987 4263 7541', swift: 'TATRSKBX', accountName: 'BY THE WAVE, s.r.o.' }
   const props = (over = {}) => {
     const booking = sampleBookingEmailData('sk')
-    return { booking, rental: { method: 'transfer' as const, amount: booking.total }, deposit: { method: 'cash' as const, amount: booking.deposit }, bank, variableSymbol: '20270042', dueDate: '11. 6. 2027', accountUrl: 'https://rental.btw.sk/moj-ucet', ...over }
+    return {
+      booking,
+      rental: { method: 'transfer' as const, amount: booking.total },
+      deposit: { method: 'cash' as const, amount: booking.deposit },
+      bank,
+      variableSymbol: '20270042',
+      dueDate: '11. 6. 2027',
+      accountUrl: 'https://rental.btw.sk/moj-ucet',
+      ...over,
+    }
   }
 
   it('gives transfer details with the booking number as the payment reference', async () => {
@@ -138,7 +197,8 @@ describe('email 3 – booking confirmed', () => {
     dump('booking-confirmed', email.html)
     expect(email.subject).toBe('Rezervácia BTW-2027-0042 je potvrdená – BY THE WAVE')
     const html = email.html.replace(/&nbsp;|\u00a0/g, ' ')
-    for (const part of ['SK31 1200 0000 1987 4263 7541', 'TATRSKBX', '20270042', '11. 6. 2027', '460 € bankovým prevodom', '1 000 € v hotovosti pri vyzdvihnutí', 'vodičský preukaz']) expect(html).toContain(part)
+    for (const part of ['SK31 1200 0000 1987 4263 7541', 'TATRSKBX', '20270042', '11. 6. 2027', '460 € bankovým prevodom', '1 000 € v hotovosti pri vyzdvihnutí', 'vodičský preukaz'])
+      expect(html).toContain(part)
     expect(email.text).toContain('20270042')
   })
 
@@ -180,9 +240,16 @@ describe('email 6 – booking cancelled', () => {
 
   it('goes to the customer and to every staff address', async () => {
     vi.mocked(sendEmail).mockClear()
-    await sendBookingCancelled({ booking: sampleBookingEmailData('en'), staffBooking: sampleBookingEmailData('sk'), cancelledBy: 'staff', reason: null, fee: null, adminUrl: 'https://rental.btw.sk/admin/rezervacie/1' }, ['a@btw.sk'], { bookingId: 'b', profileId: 'p' })
+    await sendBookingCancelled(
+      { booking: sampleBookingEmailData('en'), staffBooking: sampleBookingEmailData('sk'), cancelledBy: 'staff', reason: null, fee: null, adminUrl: 'https://rental.btw.sk/admin/rezervacie/1' },
+      ['a@btw.sk'],
+      { bookingId: 'b', profileId: 'p' },
+    )
     const calls = vi.mocked(sendEmail).mock.calls.map(([message]) => message)
-    expect(calls.map((m) => [m.type, m.to])).toEqual([['booking_cancelled', 'anna.novakova@example.com'], ['booking_cancelled_admin', 'a@btw.sk']])
+    expect(calls.map((m) => [m.type, m.to])).toEqual([
+      ['booking_cancelled', 'anna.novakova@example.com'],
+      ['booking_cancelled_admin', 'a@btw.sk'],
+    ])
     expect(calls[0].subject).toContain('has been cancelled')
     expect(calls[1].html).toContain('href="https://rental.btw.sk/admin/rezervacie/1"')
   })

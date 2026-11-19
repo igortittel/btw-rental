@@ -8,18 +8,7 @@ import { getSessionUser } from '@/lib/auth/session'
 import { issueAuthToken } from '@/lib/auth/tokens'
 import { buildBookingEmailData } from '@/lib/booking/email-data'
 import { buildBookingRecord } from '@/lib/booking/record'
-import {
-  bookingSchema,
-  fieldErrors,
-  fullPhone,
-  termInstants,
-  termSchema,
-  validateDriverAge,
-  validateTerm,
-  type BookingFormState,
-  type FieldErrors,
-  type TermInput,
-} from '@/lib/booking/schema'
+import { bookingSchema, fieldErrors, fullPhone, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors, type TermInput } from '@/lib/booking/schema'
 import { createPublicClient, getCatalog, loadCatalog } from '@/lib/catalog'
 import { sendBookingAdminNotification, sendBookingReceived } from '@/lib/email/booking-emails'
 import { loadBlacklist, matchBlacklist } from '@/lib/customers/blacklist'

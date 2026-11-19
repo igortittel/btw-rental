@@ -7,8 +7,7 @@ import { getAvailableVehicleIds, localize, type Catalog } from '@/lib/catalog'
 import { catalogPath, filterQuery, filterWindow, hasActiveFilters, type CatalogFilters } from '@/lib/catalog-filters'
 import { formatDate } from '@/lib/time'
 
-const inputClass =
-  'h-11 w-full rounded-lg border border-line bg-surface-2 px-3 text-sm text-white focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/50'
+const inputClass = 'h-11 w-full rounded-lg border border-line bg-surface-2 px-3 text-sm text-white focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/50'
 const selectClass = `${inputClass} appearance-none pr-9`
 const SEAT_OPTIONS = [5, 7, 8]
 
@@ -25,7 +24,11 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
       (!filters.minSeats || v.seats >= filters.minSeats),
   )
   if (window) {
-    const available = await getAvailableVehicleIds(vehicles.map((v) => v.id), window.from, window.to)
+    const available = await getAvailableVehicleIds(
+      vehicles.map((v) => v.id),
+      window.from,
+      window.to,
+    )
     vehicles = vehicles.filter((v) => available.has(v.id))
   }
 
@@ -37,9 +40,7 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
     dates.set('do', filters.to)
   }
   const chip = (active: boolean) =>
-    `inline-flex h-11 items-center rounded-full px-6 text-sm font-medium transition-colors ${
-      active ? 'bg-white text-black' : 'border border-[#666666] text-muted2 hover:border-gold hover:text-white'
-    }`
+    `inline-flex h-11 items-center rounded-full px-6 text-sm font-medium transition-colors ${active ? 'bg-white text-black' : 'border border-[#666666] text-muted2 hover:border-gold hover:text-white'}`
   const formAction = catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, minSeats: null, from: null, to: null })
   const [actionPath, actionQuery] = formAction.split('?')
   const activeCount = [filters.transmission, filters.fuel, filters.minSeats, filters.from && filters.to].filter(Boolean).length
@@ -137,7 +138,11 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
           {window && filters.from && filters.to ? ` · ${t('availableInRange', { from: formatDate(window.from, locale), to: formatDate(window.to, locale) })}` : ''}
         </p>
         {hasActiveFilters(filters) ? (
-          <Link href={catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, minSeats: null, from: null, to: null })} className="text-gold underline-offset-4 hover:underline" rel="nofollow">
+          <Link
+            href={catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, minSeats: null, from: null, to: null })}
+            className="text-gold underline-offset-4 hover:underline"
+            rel="nofollow"
+          >
             {t('reset')}
           </Link>
         ) : null}

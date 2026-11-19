@@ -116,13 +116,17 @@ export async function resolveBookingChangeAction(_prev: ActionState, formData: F
 
     const { error } = await supabase.rpc('resolve_booking_change', { p_booking_id: id, p_approve: approve, p_note: note || undefined })
     if (error) {
-      if (error.code === '23P01') return { error: 'Navrhovaný termín koliduje s inou potvrdenou rezerváciou alebo blokáciou. Úpravu nie je možné schváliť – zamietnite ju alebo najprv uvoľnite termín.' }
+      if (error.code === '23P01')
+        return { error: 'Navrhovaný termín koliduje s inou potvrdenou rezerváciou alebo blokáciou. Úpravu nie je možné schváliť – zamietnite ju alebo najprv uvoľnite termín.' }
       if (error.message.includes('no_pending_change')) return { error: 'Táto rezervácia už nemá úpravu na posúdenie.' }
       return { error: dbErrorMessage(error) }
     }
     refresh(id)
     const sent = await notifyBookingChangeResolved(supabase, id, approve, note || null)
-    return { ok: true, message: `Úprava ${approve ? 'schválená' : 'zamietnutá'}. ${sent ? 'Zákazník dostal e-mail.' : 'E-mail zákazníkovi sa neodoslal (odosielanie nie je nastavené alebo zlyhalo).'}` }
+    return {
+      ok: true,
+      message: `Úprava ${approve ? 'schválená' : 'zamietnutá'}. ${sent ? 'Zákazník dostal e-mail.' : 'E-mail zákazníkovi sa neodoslal (odosielanie nie je nastavené alebo zlyhalo).'}`,
+    }
   })
 }
 
@@ -239,11 +243,20 @@ export async function createStaffBookingAction(values: StaffBookingValues, optio
 
   // The account is created with the service role; the permission was checked above.
   const admin = createAdminClient()
-  const { data: existing } = await admin.from('profiles').select('id, password_set').ilike('email', data.email.replace(/[%_\\]/g, '\\$&')).is('anonymized_at', null).maybeSingle()
+  const { data: existing } = await admin
+    .from('profiles')
+    .select('id, password_set')
+    .ilike('email', data.email.replace(/[%_\\]/g, '\\$&'))
+    .is('anonymized_at', null)
+    .maybeSingle()
   let customerId = existing?.id
   const createdAccount = !existing
   if (!customerId) {
-    const { data: created, error } = await admin.auth.admin.createUser({ email: data.email, email_confirm: true, user_metadata: { first_name: data.firstName, last_name: data.lastName, locale: data.locale } })
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email: data.email,
+      email_confirm: true,
+      user_metadata: { first_name: data.firstName, last_name: data.lastName, locale: data.locale },
+    })
     if (error || !created.user) return fail({ email: 'unknown' })
     customerId = created.user.id
   }
@@ -281,7 +294,11 @@ export async function createStaffBookingAction(values: StaffBookingValues, optio
         const prefix = data.locale === 'en' ? '/en' : ''
         let account: { kind: 'set_password' | 'login'; url: string }
         if (existing?.password_set) account = { kind: 'login', url: `${origin}${prefix}/prihlasenie` }
-        else account = { kind: 'set_password', url: `${origin}${prefix}/nastavit-heslo?${new URLSearchParams({ token: (await issueAuthToken(customerId, 'set_password', staff.id)).token, next: `${prefix}/moj-ucet` })}` }
+        else
+          account = {
+            kind: 'set_password',
+            url: `${origin}${prefix}/nastavit-heslo?${new URLSearchParams({ token: (await issueAuthToken(customerId, 'set_password', staff.id)).token, next: `${prefix}/moj-ucet` })}`,
+          }
         await sendBookingReceived(
           {
             booking: buildBookingEmailData({
@@ -339,7 +356,12 @@ export async function updateBookingAction(id: string, values: StaffBookingValues
   const { vehicle, record, pickupAt, returnAt } = prepared
 
   if (BLOCKING_STATUSES.includes(booking.status)) {
-    const { data: available } = await supabase.rpc('is_vehicle_available', { p_vehicle_id: vehicle.id, p_pickup_at: pickupAt.toISOString(), p_return_at: returnAt.toISOString(), p_exclude_booking_id: id })
+    const { data: available } = await supabase.rpc('is_vehicle_available', {
+      p_vehicle_id: vehicle.id,
+      p_pickup_at: pickupAt.toISOString(),
+      p_return_at: returnAt.toISOString(),
+      p_exclude_booking_id: id,
+    })
     if (!available) return fail({ pickupDate: 'unavailable' })
   }
 

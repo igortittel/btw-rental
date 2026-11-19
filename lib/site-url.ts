@@ -5,12 +5,7 @@ const PRODUCTION_HOST = 'rental.btw.sk'
 
 function allowedHosts(): Set<string> {
   const hosts = new Set<string>([PRODUCTION_HOST])
-  for (const value of [
-    process.env.VERCEL_URL,
-    process.env.VERCEL_BRANCH_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL,
-    process.env.NEXT_PUBLIC_SITE_URL,
-  ]) {
+  for (const value of [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.NEXT_PUBLIC_SITE_URL]) {
     if (!value) continue
     try {
       hosts.add(new URL(value.includes('://') ? value : `https://${value}`).host)

@@ -133,7 +133,10 @@ export type ProtocolDraft = {
  * What still has to be filled in before the protocol can be signed (Slovak, for the list on
  * the last step). The database repeats these checks in sign_protocol().
  */
-export function protocolMissing(draft: ProtocolDraft, opts: { fuel: string; pickupOdometerKm?: number | null; customerSigned: boolean; staffSigned: boolean; unpaid?: ('rental' | 'deposit')[] }): string[] {
+export function protocolMissing(
+  draft: ProtocolDraft,
+  opts: { fuel: string; pickupOdometerKm?: number | null; customerSigned: boolean; staffSigned: boolean; unpaid?: ('rental' | 'deposit')[] },
+): string[] {
   const missing: string[] = []
   for (const kind of opts.unpaid ?? []) missing.push(kind === 'rental' ? 'úhrada prenájmu' : 'prijatie depozitu')
   if (!draft.handoverAt) missing.push('dátum a čas')
@@ -162,7 +165,16 @@ export function protocolErrorMessage(message: string): string | null {
   if (message.includes('invalid_storage_path')) return 'Niektorý súbor nepatrí k tejto rezervácii. Nahrajte ho znova.'
   if (message.includes('protocol_incomplete')) {
     const what = message.split('protocol_incomplete:')[1]?.trim() ?? ''
-    const labels: Record<string, string> = { handover_at: 'dátum a čas', odometer: 'stav tachometra', fuel: 'stav paliva alebo nabitie', names: 'mená podpisujúcich', photos: 'štyri povinné fotky', damage_description: 'popis každého poškodenia', signatures: 'oba podpisy', payments: 'úhrada prenájmu a prijatie depozitu' }
+    const labels: Record<string, string> = {
+      handover_at: 'dátum a čas',
+      odometer: 'stav tachometra',
+      fuel: 'stav paliva alebo nabitie',
+      names: 'mená podpisujúcich',
+      photos: 'štyri povinné fotky',
+      damage_description: 'popis každého poškodenia',
+      signatures: 'oba podpisy',
+      payments: 'úhrada prenájmu a prijatie depozitu',
+    }
     return `Protokol nie je úplný – chýba: ${labels[what] ?? what}.`
   }
   return null

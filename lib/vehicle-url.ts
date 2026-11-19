@@ -13,7 +13,10 @@ export function buildVehicleSlug(v: { brand: string; model: string; variant?: st
 }
 
 export function buildVehicleName(v: { brand: string; model: string; variant?: string | null }): string {
-  return [v.brand, v.model, v.variant ?? ''].map((part) => part.trim()).filter(Boolean).join(' ')
+  return [v.brand, v.model, v.variant ?? '']
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(' ')
 }
 
 /** VIN as stored and shown in URLs: upper case, no surrounding whitespace. */
@@ -40,8 +43,21 @@ export function parseVehicleSegment(segment: string): { namePart: string; vin: s
 
 /** Category slugs that would collide with static routes. Mirrors the DB CHECK constraint. */
 export const RESERVED_SLUGS = [
-  'rezervacia', 'prihlasenie', 'nastavit-heslo', 'zabudnute-heslo', 'moj-ucet', 'admin', 'api', 'auth',
-  'en', 'sk', 'images', 'static', 'sitemap', 'robots', 'favicon',
+  'rezervacia',
+  'prihlasenie',
+  'nastavit-heslo',
+  'zabudnute-heslo',
+  'moj-ucet',
+  'admin',
+  'api',
+  'auth',
+  'en',
+  'sk',
+  'images',
+  'static',
+  'sitemap',
+  'robots',
+  'favicon',
 ] as const
 
 export function isReservedSlug(slug: string): boolean {

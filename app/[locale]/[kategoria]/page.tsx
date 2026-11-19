@@ -23,7 +23,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const name = localize(category.name, locale)
   const vehicles = catalog.vehicles.filter((v) => v.categorySlug === category.slug)
   const prices = vehicles.map((v) => v.priceFromCents).filter((p): p is number => p !== null)
-  const filters = parseCatalogFilters(query, catalog.categories.map((c) => c.slug), category.slug)
+  const filters = parseCatalogFilters(
+    query,
+    catalog.categories.map((c) => c.slug),
+    category.slug,
+  )
   const description = t('categoryMetaDescription', { category: name, count: vehicles.length, price: prices.length ? formatEuro(Math.min(...prices), locale) : '—' })
   return {
     title: t('categoryMetaTitle', { category: name }),
@@ -41,7 +45,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   if (!category) notFound()
 
   const t = await getTranslations('catalog')
-  const filters = parseCatalogFilters(query, catalog.categories.map((c) => c.slug), category.slug)
+  const filters = parseCatalogFilters(
+    query,
+    catalog.categories.map((c) => c.slug),
+    category.slug,
+  )
 
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20 pt-32">

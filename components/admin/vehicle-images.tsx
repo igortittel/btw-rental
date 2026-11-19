@@ -2,12 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
-import {
-  deleteVehicleImageAction,
-  registerVehicleImagesAction,
-  reorderVehicleImagesAction,
-  setMainVehicleImageAction,
-} from '@/app/admin/vozidla/actions'
+import { deleteVehicleImageAction, registerVehicleImagesAction, reorderVehicleImagesAction, setMainVehicleImageAction } from '@/app/admin/vozidla/actions'
 import { Feedback, type FormState } from '@/components/admin/ui'
 import { Button } from '@/components/ui/button'
 import { VEHICLE_IMAGES_BUCKET } from '@/lib/storage'
@@ -63,7 +58,12 @@ export function VehicleImages({ vehicleId, images, canEdit }: { vehicleId: strin
     const next = [...order]
     next.splice(to, 0, ...next.splice(from, 1))
     setOrder(next)
-    run(() => reorderVehicleImagesAction(vehicleId, next.map((i) => i.id)))
+    run(() =>
+      reorderVehicleImagesAction(
+        vehicleId,
+        next.map((i) => i.id),
+      ),
+    )
   }
 
   const upload = async (files: FileList | null) => {
@@ -163,9 +163,7 @@ export function VehicleImages({ vehicleId, images, canEdit }: { vehicleId: strin
             onChange={(e) => upload(e.target.files)}
             className="block w-full text-sm text-muted2 file:mr-4 file:h-10 file:cursor-pointer file:rounded-lg file:border-0 file:bg-gold file:px-4 file:font-semibold file:text-white"
           />
-          <p className="text-xs text-muted2">
-            JPG, PNG alebo WebP. Fotky sa pred nahratím zmenšia na max. {MAX_EDGE} px. Poradie zmeníte ťahaním alebo šípkami.
-          </p>
+          <p className="text-xs text-muted2">JPG, PNG alebo WebP. Fotky sa pred nahratím zmenšia na max. {MAX_EDGE} px. Poradie zmeníte ťahaním alebo šípkami.</p>
           {progress ? <p className="text-sm text-white">{progress}</p> : null}
         </div>
       ) : null}

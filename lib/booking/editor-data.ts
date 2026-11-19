@@ -22,7 +22,15 @@ export async function loadEditorData() {
     minDriverAge: v.minDriverAge,
     minLicenseMonths: v.minLicenseMonths,
   }))
-  const locations: BookingLocation[] = catalog.locations.map((l) => ({ id: l.id, name: localize(l.name, 'sk'), address: l.address, surchargeCents: l.surchargeCents, forPickup: l.forPickup, forReturn: l.forReturn, isDefault: l.isDefault }))
+  const locations: BookingLocation[] = catalog.locations.map((l) => ({
+    id: l.id,
+    name: localize(l.name, 'sk'),
+    address: l.address,
+    surchargeCents: l.surchargeCents,
+    forPickup: l.forPickup,
+    forReturn: l.forReturn,
+    isDefault: l.isDefault,
+  }))
   const { settings } = catalog
   const defaultLocation = (locations.find((l) => l.isDefault) ?? locations[0])?.id ?? ''
   const config = { vatRate: settings.vat_rate, toleranceMinutes: settings.return_tolerance_minutes, individualFromDays: settings.individual_price_from_days, paymentMethods: settings.payment_methods }

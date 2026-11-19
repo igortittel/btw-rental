@@ -101,14 +101,7 @@ export const selectClass =
 export const textareaClass =
   'min-h-24 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-gold/50 focus:outline-none focus:ring-2 focus:ring-gold/50'
 
-export function Field({
-  label,
-  name,
-  hint,
-  className,
-  children,
-  ...input
-}: InputProps & { label: string; name: string; hint?: string; children?: ReactNode }) {
+export function Field({ label, name, hint, className, children, ...input }: InputProps & { label: string; name: string; hint?: string; children?: ReactNode }) {
   const id = input.id ?? name
   return (
     <div className={cn('space-y-2', className)}>

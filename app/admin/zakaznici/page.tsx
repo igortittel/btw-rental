@@ -25,7 +25,8 @@ export default async function CustomersPage({ searchParams }: Props) {
     return qs ? `/admin/zakaznici?${qs}` : '/admin/zakaznici'
   }
   const exportQs = customerQueryParams(query).toString()
-  const chip = (active: boolean) => `inline-flex h-10 shrink-0 items-center rounded-full px-4 text-sm font-medium transition-colors ${active ? 'bg-white text-black' : 'border border-line text-muted2 hover:border-gold hover:text-white'}`
+  const chip = (active: boolean) =>
+    `inline-flex h-10 shrink-0 items-center rounded-full px-4 text-sm font-medium transition-colors ${active ? 'bg-white text-black' : 'border border-line text-muted2 hover:border-gold hover:text-white'}`
   const badge = 'rounded-full border px-2 py-0.5 text-xs font-semibold'
 
   return (
@@ -33,7 +34,10 @@ export default async function CustomersPage({ searchParams }: Props) {
       <PageHeader
         title="Zákazníci"
         action={
-          <a href={`/admin/zakaznici/export${exportQs ? `?${exportQs}` : ''}`} className="inline-flex h-10 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
+          <a
+            href={`/admin/zakaznici/export${exportQs ? `?${exportQs}` : ''}`}
+            className="inline-flex h-10 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15"
+          >
             Export CSV
           </a>
         }
@@ -97,13 +101,27 @@ export default async function CustomersPage({ searchParams }: Props) {
         <table className="w-full min-w-[860px] text-left text-sm">
           <thead className="text-xs uppercase tracking-wider text-muted2">
             <tr>
-              <th scope="col" className="py-3 pr-3 font-semibold">Zákazník</th>
-              <th scope="col" className="py-3 pr-3 font-semibold">Telefón</th>
-              <th scope="col" className="py-3 pr-3 font-semibold">Firma</th>
-              <th scope="col" className="py-3 pr-3 text-right font-semibold">Rezervácie</th>
-              <th scope="col" className="py-3 pr-3 text-right font-semibold">Obrat s DPH</th>
-              <th scope="col" className="py-3 pr-3 font-semibold">Posledná</th>
-              <th scope="col" className="py-3 font-semibold">Príznaky</th>
+              <th scope="col" className="py-3 pr-3 font-semibold">
+                Zákazník
+              </th>
+              <th scope="col" className="py-3 pr-3 font-semibold">
+                Telefón
+              </th>
+              <th scope="col" className="py-3 pr-3 font-semibold">
+                Firma
+              </th>
+              <th scope="col" className="py-3 pr-3 text-right font-semibold">
+                Rezervácie
+              </th>
+              <th scope="col" className="py-3 pr-3 text-right font-semibold">
+                Obrat s DPH
+              </th>
+              <th scope="col" className="py-3 pr-3 font-semibold">
+                Posledná
+              </th>
+              <th scope="col" className="py-3 font-semibold">
+                Príznaky
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">

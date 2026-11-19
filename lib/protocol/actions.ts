@@ -22,13 +22,27 @@ const draftSchema = z.object({
   chargeLevel: z.number().int().min(0).max(100).nullable(),
   interior: cleanliness,
   exterior: cleanliness,
-  accessories: z.array(z.object({ key: z.string().max(80), label: z.string().max(200), hint: z.string().max(200).optional(), present: z.boolean(), quantity: z.number().int().min(0).max(20).optional() })).max(60),
+  accessories: z
+    .array(z.object({ key: z.string().max(80), label: z.string().max(200), hint: z.string().max(200).optional(), present: z.boolean(), quantity: z.number().int().min(0).max(20).optional() }))
+    .max(60),
   note: z.string().max(4000),
   customerName: z.string().max(200),
   staffName: z.string().max(200),
   driverLicenseNo: z.string().max(60),
   idDocumentNo: z.string().max(60),
-  damages: z.array(z.object({ id: z.string().regex(UUID), view: z.enum(keys(DAMAGE_VIEWS)), x: z.number().min(0).max(100), y: z.number().min(0).max(100), kind: z.enum(keys(DAMAGE_KINDS)), description: z.string().max(500), photoPath: z.string().max(300).nullable() })).max(100),
+  damages: z
+    .array(
+      z.object({
+        id: z.string().regex(UUID),
+        view: z.enum(keys(DAMAGE_VIEWS)),
+        x: z.number().min(0).max(100),
+        y: z.number().min(0).max(100),
+        kind: z.enum(keys(DAMAGE_KINDS)),
+        description: z.string().max(500),
+        photoPath: z.string().max(300).nullable(),
+      }),
+    )
+    .max(100),
   photos: z.array(z.object({ angle: z.enum(keys(PHOTO_ANGLES)), path: z.string().max(300) })).max(40),
 })
 
@@ -164,7 +178,10 @@ export async function discardProtocolDraftAction(_prev: ActionState, formData: F
       supabase.from('protocol_photos').select('protocol_id, storage_path').in('protocol_id', ids),
       supabase.from('protocol_damages').select('protocol_id, photo_path').in('protocol_id', ids),
     ])
-    const files = [...(photos ?? []).map((p) => ({ owner: p.protocol_id, path: p.storage_path })), ...(damages ?? []).flatMap((d) => (d.photo_path ? [{ owner: d.protocol_id, path: d.photo_path }] : []))]
+    const files = [
+      ...(photos ?? []).map((p) => ({ owner: p.protocol_id, path: p.storage_path })),
+      ...(damages ?? []).flatMap((d) => (d.photo_path ? [{ owner: d.protocol_id, path: d.photo_path }] : [])),
+    ]
     const keep = new Set(files.filter((f) => f.owner !== protocolId).map((f) => f.path))
     const remove = [...new Set(files.filter((f) => f.owner === protocolId && !keep.has(f.path)).map((f) => f.path))]
 

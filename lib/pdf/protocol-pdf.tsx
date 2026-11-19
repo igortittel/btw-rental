@@ -53,13 +53,38 @@ function registerFonts() {
 
 const s = StyleSheet.create({
   page: { fontFamily: 'Montserrat', fontSize: 8.5, color: INK, lineHeight: 1.4, paddingTop: 92, paddingBottom: 44, paddingHorizontal: 34 },
-  header: { position: 'absolute', top: 0, left: 0, right: 0, height: 74, backgroundColor: '#111111', borderBottomWidth: 2, borderBottomColor: GOLD, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 34 },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 74,
+    backgroundColor: '#111111',
+    borderBottomWidth: 2,
+    borderBottomColor: GOLD,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 34,
+  },
   brand: { flexDirection: 'row', alignItems: 'center' },
   brandName: { color: GOLD, fontSize: 13, fontWeight: 700, letterSpacing: 2.6 },
   brandSub: { color: '#bbbbbb', fontSize: 6.5, letterSpacing: 1.2, marginTop: 2 },
   docTitle: { color: '#ffffff', fontSize: 13, fontWeight: 600, letterSpacing: 1, textAlign: 'right' },
   docSub: { color: '#bbbbbb', fontSize: 7.5, textAlign: 'right', marginTop: 2 },
-  footer: { position: 'absolute', bottom: 16, left: 34, right: 34, borderTopWidth: 0.75, borderTopColor: GOLD, paddingTop: 6, flexDirection: 'row', justifyContent: 'space-between', fontSize: 6.5, color: MUTED },
+  footer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 34,
+    right: 34,
+    borderTopWidth: 0.75,
+    borderTopColor: GOLD,
+    paddingTop: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    fontSize: 6.5,
+    color: MUTED,
+  },
   section: { marginBottom: 14 },
   h: { fontSize: 7, fontWeight: 700, letterSpacing: 1.3, color: GOLD_DARK, textTransform: 'uppercase', borderBottomWidth: 0.75, borderBottomColor: GOLD, paddingBottom: 3, marginBottom: 6 },
   cols: { flexDirection: 'row', gap: 16 },
@@ -75,7 +100,19 @@ const s = StyleSheet.create({
   diagrams: { flexDirection: 'row', gap: 6 },
   diagram: { width: 100.5, borderWidth: 0.5, borderColor: LINE },
   diagramLabel: { fontSize: 6.5, color: MUTED, textAlign: 'center', paddingBottom: 2 },
-  mark: { position: 'absolute', width: 11, height: 11, marginLeft: -5.5, marginTop: -5.5, borderRadius: 5.5, borderWidth: 0.75, borderColor: '#333333', backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' },
+  mark: {
+    position: 'absolute',
+    width: 11,
+    height: 11,
+    marginLeft: -5.5,
+    marginTop: -5.5,
+    borderRadius: 5.5,
+    borderWidth: 0.75,
+    borderColor: '#333333',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   markNew: { backgroundColor: RED, borderColor: RED },
   markText: { fontSize: 6, fontWeight: 700, lineHeight: 1 },
   tag: { fontSize: 6.5, fontWeight: 700, letterSpacing: 0.5, color: RED },
@@ -111,18 +148,25 @@ function Diagram({ view, damages }: { view: DamageView; damages: ProtocolPdfData
         <Svg viewBox={`0 0 ${DIAGRAM_WIDTH} ${DIAGRAM_HEIGHT}`}>
           <G transform={transform}>
             {shapes.map((shape, index) =>
-              shape.t === 'path' ? <Path key={index} d={shape.d} {...stroke} />
-              : shape.t === 'circle' ? <Circle key={index} cx={shape.cx} cy={shape.cy} r={shape.r} {...stroke} />
-              : shape.t === 'ellipse' ? <Ellipse key={index} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} {...stroke} />
-              : <Rect key={index} x={shape.x} y={shape.y} width={shape.w} height={shape.h} rx={shape.rx} ry={shape.rx} {...stroke} />,
+              shape.t === 'path' ? (
+                <Path key={index} d={shape.d} {...stroke} />
+              ) : shape.t === 'circle' ? (
+                <Circle key={index} cx={shape.cx} cy={shape.cy} r={shape.r} {...stroke} />
+              ) : shape.t === 'ellipse' ? (
+                <Ellipse key={index} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} {...stroke} />
+              ) : (
+                <Rect key={index} x={shape.x} y={shape.y} width={shape.w} height={shape.h} rx={shape.rx} ry={shape.rx} {...stroke} />
+              ),
             )}
           </G>
         </Svg>
-        {damages.filter((damage) => damage.view === view).map((damage) => (
-          <View key={damage.no} style={[s.mark, damage.isNew ? s.markNew : {}, { left: `${damage.x}%`, top: `${damage.y}%` }]}>
-            <Text style={[s.markText, damage.isNew ? { color: '#ffffff' } : {}]}>{damage.no}</Text>
-          </View>
-        ))}
+        {damages
+          .filter((damage) => damage.view === view)
+          .map((damage) => (
+            <View key={damage.no} style={[s.mark, damage.isNew ? s.markNew : {}, { left: `${damage.x}%`, top: `${damage.y}%` }]}>
+              <Text style={[s.markText, damage.isNew ? { color: '#ffffff' } : {}]}>{damage.no}</Text>
+            </View>
+          ))}
       </View>
       <Text style={s.diagramLabel}>{DAMAGE_VIEW_LABEL[view]}</Text>
     </View>
@@ -163,13 +207,21 @@ export function ProtocolDocument({ data }: { data: ProtocolPdfData }) {
             <Text style={s.h}>Prenajímateľ</Text>
             <Text style={s.bold}>{data.company.name}</Text>
             <Text>{data.company.address}</Text>
-            {data.company.ids.map((line) => <Text key={line} style={s.muted}>{line}</Text>)}
+            {data.company.ids.map((line) => (
+              <Text key={line} style={s.muted}>
+                {line}
+              </Text>
+            ))}
             <Text style={s.muted}>zastúpený: {data.staffName}</Text>
           </View>
           <View style={s.col}>
             <Text style={s.h}>Nájomca</Text>
             <Text style={s.bold}>{data.customer.name}</Text>
-            {data.customer.lines.map((line) => <Text key={line} style={s.muted}>{line}</Text>)}
+            {data.customer.lines.map((line) => (
+              <Text key={line} style={s.muted}>
+                {line}
+              </Text>
+            ))}
           </View>
           <View style={s.col}>
             <Text style={s.h}>Vozidlo</Text>
@@ -228,7 +280,9 @@ export function ProtocolDocument({ data }: { data: ProtocolPdfData }) {
         <View style={s.section} wrap={false}>
           <Text style={s.h}>Poškodenia{isReturn ? ' – porovnanie s odovzdávacím protokolom' : ''}</Text>
           <View style={s.diagrams}>
-            {DAMAGE_VIEWS.map((view) => <Diagram key={view.key} view={view.key} damages={data.damages} />)}
+            {DAMAGE_VIEWS.map((view) => (
+              <Diagram key={view.key} view={view.key} damages={data.damages} />
+            ))}
           </View>
         </View>
         <View style={s.section}>

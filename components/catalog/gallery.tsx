@@ -63,7 +63,14 @@ export function Gallery({ images }: { images: GalleryImage[] }) {
             }}
             aria-label={`${t('openPhoto')} – ${t('photoOf', { index: i + 1, count: images.length })}`}
           >
-            <Image src={image.url} alt={image.alt} fill sizes="(min-width: 1024px) 560px, 100vw" className={image.fit === 'contain' ? 'object-contain p-4 sm:p-6' : 'object-cover'} priority={i === 0} />
+            <Image
+              src={image.url}
+              alt={image.alt}
+              fill
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className={image.fit === 'contain' ? 'object-contain p-4 sm:p-6' : 'object-cover'}
+              priority={i === 0}
+            />
           </button>
         ))}
       </div>
@@ -120,7 +127,10 @@ export function Gallery({ images }: { images: GalleryImage[] }) {
             <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white" aria-hidden="true">
               {index + 1} / {images.length}
             </p>
-            <Dialog.Close className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full border border-gold bg-black/70 text-xl text-white hover:bg-black" aria-label={t('close')}>
+            <Dialog.Close
+              className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full border border-gold bg-black/70 text-xl text-white hover:bg-black"
+              aria-label={t('close')}
+            >
               ×
             </Dialog.Close>
           </Dialog.Content>

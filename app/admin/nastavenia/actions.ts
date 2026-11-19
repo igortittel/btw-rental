@@ -73,7 +73,12 @@ export async function saveBankAction(_prev: ActionState, formData: FormData): Pr
     return saveSettings(
       supabase,
       userId,
-      { bank: { iban: formatIban(iban), swift, account_name: accountName, is_placeholder: false }, payment_methods: methods, payment_due_days: due, require_payment_before_pickup: checkbox(formData, 'require_payment_before_pickup') },
+      {
+        bank: { iban: formatIban(iban), swift, account_name: accountName, is_placeholder: false },
+        payment_methods: methods,
+        payment_due_days: due,
+        require_payment_before_pickup: checkbox(formData, 'require_payment_before_pickup'),
+      },
       'Bankové údaje a platby uložené.',
     )
   })
@@ -161,7 +166,10 @@ export async function saveAssistanceAction(_prev: ActionState, formData: FormDat
 
 export async function saveNotificationsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return staffAction('owner', async ({ supabase, userId }) => {
-    const emails = text(formData, 'emails').split(/[\s,;]+/).map((e) => e.toLowerCase()).filter(Boolean)
+    const emails = text(formData, 'emails')
+      .split(/[\s,;]+/)
+      .map((e) => e.toLowerCase())
+      .filter(Boolean)
     if (emails.length === 0 || emails.some((e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))) {
       return { error: 'Zadajte aspoň jednu platnú e-mailovú adresu (viac adries oddeľte čiarkou).' }
     }

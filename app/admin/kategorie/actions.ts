@@ -18,9 +18,7 @@ export async function saveCategoryAction(_prev: ActionState, formData: FormData)
     if (Number.isNaN(sortOrder)) return { error: 'Poradie musí byť celé číslo.' }
 
     const values = { name, slug, sort_order: sortOrder, is_active: checkbox(formData, 'is_active') }
-    const { error } = id
-      ? await supabase.from('vehicle_categories').update(values).eq('id', id)
-      : await supabase.from('vehicle_categories').insert(values)
+    const { error } = id ? await supabase.from('vehicle_categories').update(values).eq('id', id) : await supabase.from('vehicle_categories').insert(values)
     if (error) return { error: dbErrorMessage(error) }
 
     revalidatePath('/admin/kategorie')

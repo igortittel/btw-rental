@@ -31,15 +31,26 @@ describe('isPwnedPassword', () => {
   })
 
   it('accepts a password that is not in the list', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('ABC:3')))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('ABC:3')),
+    )
     expect(await isPwnedPassword('a-unique-passphrase-42')).toBe(false)
   })
 
   it('fails open when the service is down', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined)
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('network') }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('network')
+      }),
+    )
     expect(await isPwnedPassword('password123')).toBe(false)
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('busy', { status: 503 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('busy', { status: 503 })),
+    )
     expect(await isPwnedPassword('password123')).toBe(false)
   })
 })

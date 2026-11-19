@@ -24,7 +24,12 @@ import { formatIban } from '@/lib/iban'
 
 type Props = { params: Promise<{ locale: string; id: string }>; searchParams: Promise<{ zmena?: string }> }
 type Localized = { sk?: string; en?: string }
-type Snapshot = Partial<PriceBreakdown> & { vehicle?: { name?: string }; pickup_location?: { name: Localized; address: string }; return_location?: { name: Localized; address: string }; delivery_outside_city?: boolean }
+type Snapshot = Partial<PriceBreakdown> & {
+  vehicle?: { name?: string }
+  pickup_location?: { name: Localized; address: string }
+  return_location?: { name: Localized; address: string }
+  delivery_outside_city?: boolean
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
@@ -130,7 +135,11 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
       {status === 'new' || status === 'confirmed' || status === 'modified' ? (
         <Countdown target={booking.pickup_at} title={t('countdownPickup')} labels={{ days: t('countdownDays'), hours: t('countdownHours'), minutes: t('countdownMinutes'), done: t('countdownNow') }} />
       ) : status === 'active' ? (
-        <Countdown target={booking.return_at} title={t('countdownReturn')} labels={{ days: t('countdownDays'), hours: t('countdownHours'), minutes: t('countdownMinutes'), done: t('countdownReturnNow') }} />
+        <Countdown
+          target={booking.return_at}
+          title={t('countdownReturn')}
+          labels={{ days: t('countdownDays'), hours: t('countdownHours'), minutes: t('countdownMinutes'), done: t('countdownReturnNow') }}
+        />
       ) : null}
 
       {status === 'cancelled' ? (
@@ -158,14 +167,20 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               <thead className="text-xs uppercase tracking-wider text-muted2">
                 <tr>
                   <th scope="col" className="py-2 pr-4 font-semibold" />
-                  <th scope="col" className="py-2 pr-4 font-semibold">{t('pendingBefore')}</th>
-                  <th scope="col" className="py-2 font-semibold">{t('pendingAfter')}</th>
+                  <th scope="col" className="py-2 pr-4 font-semibold">
+                    {t('pendingBefore')}
+                  </th>
+                  <th scope="col" className="py-2 font-semibold">
+                    {t('pendingAfter')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {changes.map((change) => (
                   <tr key={change.label} className="align-top">
-                    <th scope="row" className="py-2 pr-4 font-normal text-muted2">{change.label}</th>
+                    <th scope="row" className="py-2 pr-4 font-normal text-muted2">
+                      {change.label}
+                    </th>
                     <td className="py-2 pr-4 text-muted2">{change.before}</td>
                     <td className="py-2 font-semibold text-white">{change.after}</td>
                   </tr>
@@ -187,9 +202,7 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
           <div className="min-w-0">
             <p className="text-lg font-bold text-white">{vehicleName}</p>
             {vehicle ? (
-              <p className="mt-1 text-sm text-muted2">
-                {[c(`fuelLabels.${vehicle.fuel}`), c(`transmissionLabels.${vehicle.transmission}`), c('seatsCount', { count: vehicle.seats })].join(' · ')}
-              </p>
+              <p className="mt-1 text-sm text-muted2">{[c(`fuelLabels.${vehicle.fuel}`), c(`transmissionLabels.${vehicle.transmission}`), c('seatsCount', { count: vehicle.seats })].join(' · ')}</p>
             ) : null}
             <p className="mt-2 text-sm text-white">
               {plate ? (
@@ -300,10 +313,16 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               <dt className="text-muted2">{t('paymentRental')}</dt>
               <dd className="text-right text-white">
                 {t(`methods.${booking.rental_payment_method}`)} · <strong>{t(`rentalStatus.${booking.rental_payment_status}`)}</strong>
-                {booking.rental_payment_status !== 'unpaid' && rentalDue > 0 ? <span className="block text-sm font-semibold text-amber-200">{t('rentalTopUp', { amount: euro(rentalDue) })}</span> : null}
+                {booking.rental_payment_status !== 'unpaid' && rentalDue > 0 ? (
+                  <span className="block text-sm font-semibold text-amber-200">{t('rentalTopUp', { amount: euro(rentalDue) })}</span>
+                ) : null}
                 {rentalOver > 0 ? <span className="block text-sm text-muted2">{t('rentalOverpaid', { amount: euro(rentalOver) })}</span> : null}
-                {booking.rental_paid_at && booking.rental_payment_status === 'paid' ? <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.rental_paid_at, locale) })}</span> : null}
-                {booking.rental_refunded_cents && booking.rental_refunded_at ? <span className="block text-sm text-muted2">{t('rentalRefundedOn', { amount: euro(booking.rental_refunded_cents), date: formatDate(booking.rental_refunded_at, locale) })}</span> : null}
+                {booking.rental_paid_at && booking.rental_payment_status === 'paid' ? (
+                  <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.rental_paid_at, locale) })}</span>
+                ) : null}
+                {booking.rental_refunded_cents && booking.rental_refunded_at ? (
+                  <span className="block text-sm text-muted2">{t('rentalRefundedOn', { amount: euro(booking.rental_refunded_cents), date: formatDate(booking.rental_refunded_at, locale) })}</span>
+                ) : null}
               </dd>
             </div>
             <div className={row}>
@@ -311,8 +330,12 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
               <dd className="text-right text-white">
                 {t(`methods.${booking.deposit_payment_method}`)} · <strong>{t(`depositStatus.${booking.deposit_status}`)}</strong>
                 {depositDue > 0 ? <span className="block text-sm font-semibold text-amber-200">{t('rentalTopUp', { amount: euro(depositDue) })}</span> : null}
-                {booking.deposit_received_at && booking.deposit_status === 'received' ? <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.deposit_received_at, locale) })}</span> : null}
-                {booking.deposit_returned_cents !== null && booking.deposit_returned_at ? <span className="block text-sm text-muted2">{t('depositReturnedOn', { amount: euro(booking.deposit_returned_cents), date: formatDate(booking.deposit_returned_at, locale) })}</span> : null}
+                {booking.deposit_received_at && booking.deposit_status === 'received' ? (
+                  <span className="block text-sm text-muted2">{t('paidOn', { date: formatDate(booking.deposit_received_at, locale) })}</span>
+                ) : null}
+                {booking.deposit_returned_cents !== null && booking.deposit_returned_at ? (
+                  <span className="block text-sm text-muted2">{t('depositReturnedOn', { amount: euro(booking.deposit_returned_cents), date: formatDate(booking.deposit_returned_at, locale) })}</span>
+                ) : null}
               </dd>
             </div>
             {status !== 'new' && (booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer') ? (
@@ -342,7 +365,13 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
             </div>
           ) : null}
           <p className="mt-3 text-sm text-muted2">
-            {status === 'new' ? t('paymentAfterConfirm') : transferDue && bank ? t('paymentBeforePickup') : booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer' ? t('transferNote') : ''}
+            {status === 'new'
+              ? t('paymentAfterConfirm')
+              : transferDue && bank
+                ? t('paymentBeforePickup')
+                : booking.rental_payment_method === 'transfer' || booking.deposit_payment_method === 'transfer'
+                  ? t('transferNote')
+                  : ''}
           </p>
         </div>
       ) : null}
@@ -357,10 +386,17 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
                   {t(`documentTypes.${doc.type}`)}
                   {doc.number ? ` ${doc.number}` : ''}
                   <span className="block text-sm text-muted2">
-                    {[doc.amount_cents !== null ? euro(doc.amount_cents) : null, doc.issued_at ? t('documentIssued', { date: formatDate(`${doc.issued_at}T12:00:00Z`, locale) }) : null].filter(Boolean).join(' · ')}
+                    {[doc.amount_cents !== null ? euro(doc.amount_cents) : null, doc.issued_at ? t('documentIssued', { date: formatDate(`${doc.issued_at}T12:00:00Z`, locale) }) : null]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                 </span>
-                <a href={`/api/documents/${doc.id}`} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
+                <a
+                  href={`/api/documents/${doc.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15"
+                >
                   {t('documentDownload')}
                 </a>
               </li>
@@ -380,7 +416,12 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
                   <span className="block text-sm text-muted2">{t('protocolSigned', { date: formatDateTime(protocol.signed_at!, locale) })}</span>
                 </span>
                 {protocol.pdf_path ? (
-                  <a href={`/api/protocols/${protocol.id}/pdf`} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15">
+                  <a
+                    href={`/api/protocols/${protocol.id}/pdf`}
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex min-h-11 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white transition-colors hover:bg-gold/15"
+                  >
                     {t('protocolDownload')}
                   </a>
                 ) : (
@@ -487,7 +528,13 @@ export default async function MyBookingPage({ params, searchParams }: Props) {
             <dl className="pb-2">
               {tiers.map((tier, index) => (
                 <div key={tier.min_hours} className="flex justify-between gap-4 py-1">
-                  <dt>{index === 0 ? t('cancelMoreThan', { hours: tier.min_hours }) : tier.min_hours > 0 ? t('cancelBetween', { from: tiers[index - 1].min_hours, to: tier.min_hours }) : t('cancelLessThan', { hours: tiers[index - 1]?.min_hours ?? 0 })}</dt>
+                  <dt>
+                    {index === 0
+                      ? t('cancelMoreThan', { hours: tier.min_hours })
+                      : tier.min_hours > 0
+                        ? t('cancelBetween', { from: tiers[index - 1].min_hours, to: tier.min_hours })
+                        : t('cancelLessThan', { hours: tiers[index - 1]?.min_hours ?? 0 })}
+                  </dt>
                   <dd className="text-white">{tier.fee_percent === 0 ? t('cancelNoFee') : `${tier.fee_percent} %`}</dd>
                 </div>
               ))}

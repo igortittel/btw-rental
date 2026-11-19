@@ -23,7 +23,10 @@ export default async function StaffPage() {
     await Promise.all(
       (staff ?? []).map(async (member) => {
         const { data } = await admin.auth.admin.mfa.listFactors({ userId: member.user_id })
-        mfa.set(member.user_id, (data?.factors ?? []).some((f) => f.status === 'verified'))
+        mfa.set(
+          member.user_id,
+          (data?.factors ?? []).some((f) => f.status === 'verified'),
+        )
       }),
     )
   } catch {
@@ -36,9 +39,7 @@ export default async function StaffPage() {
 
       <section className="rounded-xl border border-gold/50 bg-surface p-6">
         <h2 className="mb-2 text-lg font-bold text-white">Pozvať zamestnanca</h2>
-        <p className="mb-6 text-sm text-muted2">
-          Zamestnanec dostane e-mailom jednorazový odkaz na nastavenie hesla (platí 72 hodín). Heslo sa e-mailom neposiela.
-        </p>
+        <p className="mb-6 text-sm text-muted2">Zamestnanec dostane e-mailom jednorazový odkaz na nastavenie hesla (platí 72 hodín). Heslo sa e-mailom neposiela.</p>
         <InviteStaffForm />
       </section>
 
@@ -59,13 +60,7 @@ export default async function StaffPage() {
                   {mfa.has(member.user_id) ? (mfa.get(member.user_id) ? ' · 2FA zapnuté' : ' · 2FA zatiaľ nenastavené') : ''}
                 </p>
               </div>
-              <StaffRowActions
-                userId={member.user_id}
-                role={member.role}
-                isActive={member.is_active}
-                isSelf={member.user_id === owner.id}
-                passwordSet={profile?.password_set ?? false}
-              />
+              <StaffRowActions userId={member.user_id} role={member.role} isActive={member.is_active} isSelf={member.user_id === owner.id} passwordSet={profile?.password_set ?? false} />
               {member.user_id !== owner.id && mfa.get(member.user_id) ? (
                 <div className="mt-3 border-t border-line pt-3">
                   <ResetMfaButton userId={member.user_id} name={name} />

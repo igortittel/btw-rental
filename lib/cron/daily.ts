@@ -25,11 +25,19 @@ type Row = Booking & { vehicles: { name: string; assistance: unknown } | null }
  * the same email. Returns false when another run was faster.
  */
 async function claim(admin: Admin, id: string, column: 'pickup_reminder_sent_at' | 'return_reminder_sent_at' | 'review_requested_at', at: string): Promise<boolean> {
-  const { data } = await admin.from('bookings').update({ [column]: at } as BookingUpdate).eq('id', id).is(column, null).select('id')
+  const { data } = await admin
+    .from('bookings')
+    .update({ [column]: at } as BookingUpdate)
+    .eq('id', id)
+    .is(column, null)
+    .select('id')
   return (data ?? []).length === 1
 }
 async function release(admin: Admin, id: string, column: 'pickup_reminder_sent_at' | 'return_reminder_sent_at' | 'review_requested_at') {
-  await admin.from('bookings').update({ [column]: null } as BookingUpdate).eq('id', id)
+  await admin
+    .from('bookings')
+    .update({ [column]: null } as BookingUpdate)
+    .eq('id', id)
 }
 
 /**
@@ -144,7 +152,10 @@ export async function runDaily(now = new Date()): Promise<DailyResult> {
         continue
       }
       asked.add(row.customer_id)
-      const sent = await sendReviewRequest({ booking: data, reviewUrl: settings.google_review_url, siteUrl: `${origin}${localizedPath(data.locale, '/')}` }, { bookingId: row.id, profileId: row.customer_id })
+      const sent = await sendReviewRequest(
+        { booking: data, reviewUrl: settings.google_review_url, siteUrl: `${origin}${localizedPath(data.locale, '/')}` },
+        { bookingId: row.id, profileId: row.customer_id },
+      )
       if (sent.sent) result.review.sent++
       else {
         result.review.failed++
@@ -156,7 +167,10 @@ export async function runDaily(now = new Date()): Promise<DailyResult> {
   // ── housekeeping: expired one-time links and old rate-limit counters ──
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString()
   const { count: tokens } = await admin.from('auth_tokens').delete({ count: 'exact' }).lt('expires_at', weekAgo)
-  const { count: limits } = await admin.from('rate_limits').delete({ count: 'exact' }).lt('window_start', new Date(now.getTime() - 86_400_000).toISOString())
+  const { count: limits } = await admin
+    .from('rate_limits')
+    .delete({ count: 'exact' })
+    .lt('window_start', new Date(now.getTime() - 86_400_000).toISOString())
   result.cleanup = { tokens: tokens ?? 0, rateLimits: limits ?? 0 }
   return result
 }

@@ -52,7 +52,11 @@ export const customerSchema = z
   .object({
     firstName: requiredText(80),
     lastName: requiredText(80),
-    email: z.string().trim().toLowerCase().pipe(z.email({ message: 'email_invalid' }).max(254, { message: 'email_invalid' })),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .pipe(z.email({ message: 'email_invalid' }).max(254, { message: 'email_invalid' })),
     phonePrefix: z.enum(PHONE_PREFIXES.map((p) => p.dial) as [string, ...string[]], { message: 'required' }),
     phoneNumber: z
       .string()

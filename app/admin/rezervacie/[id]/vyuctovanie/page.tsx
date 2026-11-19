@@ -31,7 +31,10 @@ export default async function SettlementPage({ params }: { params: Promise<{ id:
         <PageHeader title="Vyúčtovanie" back={back} />
         <Section title="Zatiaľ nie je čo vyúčtovať">
           <p className="text-sm text-muted2">Návrh vyúčtovania vznikne po podpise preberacieho protokolu.</p>
-          <a href={`/admin/rezervacie/${id}/protokol/preberaci`} className="mt-4 inline-flex min-h-12 items-center rounded-lg border border-gold px-5 text-[15px] font-semibold text-white hover:bg-gold/15">
+          <a
+            href={`/admin/rezervacie/${id}/protokol/preberaci`}
+            className="mt-4 inline-flex min-h-12 items-center rounded-lg border border-gold px-5 text-[15px] font-semibold text-white hover:bg-gold/15"
+          >
             Preberací protokol
           </a>
         </Section>
@@ -41,7 +44,15 @@ export default async function SettlementPage({ params }: { params: Promise<{ id:
 
   const stored = settlement ? Object.fromEntries(damageItemsOf(settlement.damage_items).map((item) => [item.damage_id, item.cents])) : {}
   const initial: SettlementFormValues = settlement
-    ? { km: settlement.extra_km_cents, fuel: settlement.fuel_cents, late: settlement.late_cents, other: settlement.other_cents, otherLabel: settlement.other_label ?? '', note: settlement.note ?? '', damages: stored }
+    ? {
+        km: settlement.extra_km_cents,
+        fuel: settlement.fuel_cents,
+        late: settlement.late_cents,
+        other: settlement.other_cents,
+        otherLabel: settlement.other_label ?? '',
+        note: settlement.note ?? '',
+        damages: stored,
+      }
     : { km: proposal.extraKmCents, fuel: 0, late: proposal.lateCents, other: 0, otherLabel: '', note: '', damages: {} }
 
   const before = percentToEighths(pickup?.fuel_level)
@@ -70,12 +81,19 @@ export default async function SettlementPage({ params }: { params: Promise<{ id:
       <div className="mb-4 rounded-xl border border-gold/50 px-4 py-3">
         <p className="flex items-center justify-between gap-3 text-[11px] font-semibold tracking-[0.12em] text-gold">
           <span>{booking.number}</span>
-          <span className={`rounded-full border px-2.5 py-0.5 text-[10.5px] uppercase ${settlement?.approved_at ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-200' : 'border-gold text-gold'}`}>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-[10.5px] uppercase ${settlement?.approved_at ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-200' : 'border-gold text-gold'}`}
+          >
             {settlement?.approved_at ? 'Potvrdené' : settlement ? 'Uložený návrh' : 'Návrh'}
           </span>
         </p>
-        <p className="mt-0.5 text-[17px] font-semibold text-white">{booking.vehicles?.name}{booking.vehicles?.license_plate ? ` · ${booking.vehicles.license_plate}` : ''}</p>
-        <p className="text-[13px] text-muted2">{`${customer.first_name ?? ''} ${customer.last_name ?? ''}`.trim()} · {formatDateTime(booking.pickup_at)} – {formatDateTime(booking.return_at)}</p>
+        <p className="mt-0.5 text-[17px] font-semibold text-white">
+          {booking.vehicles?.name}
+          {booking.vehicles?.license_plate ? ` · ${booking.vehicles.license_plate}` : ''}
+        </p>
+        <p className="text-[13px] text-muted2">
+          {`${customer.first_name ?? ''} ${customer.last_name ?? ''}`.trim()} · {formatDateTime(booking.pickup_at)} – {formatDateTime(booking.return_at)}
+        </p>
       </div>
       <p className="mb-4 text-[13px] text-muted2">
         Sumy sú s DPH. Zlato orámované pole navrhol systém z protokolov; každú sumu môžete prepísať.

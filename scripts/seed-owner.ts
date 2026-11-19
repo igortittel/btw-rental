@@ -27,11 +27,7 @@ async function main() {
 
   const supabase = createClient<Database>(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .ilike('email', OWNER_EMAIL)
-    .maybeSingle()
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('id').ilike('email', OWNER_EMAIL).maybeSingle()
   if (profileError) throw new Error(`[seed-owner] cannot read profiles: ${profileError.message}`)
 
   let userId = profile?.id ?? null
@@ -57,10 +53,7 @@ async function main() {
     userId = data.user.id
   }
 
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ type: 'staff', password_set: true })
-    .eq('id', userId)
+  const { error: updateError } = await supabase.from('profiles').update({ type: 'staff', password_set: true }).eq('id', userId)
   if (updateError) throw new Error(`[seed-owner] cannot update profile: ${updateError.message}`)
 
   const { error: roleError } = await supabase.from('staff_roles').insert({ user_id: userId, role: 'owner' })

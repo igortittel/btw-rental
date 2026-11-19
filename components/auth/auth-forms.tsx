@@ -8,12 +8,7 @@ import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  loginAction,
-  requestPasswordLinkAction,
-  setPasswordAction,
-  type AuthFormState,
-} from '@/lib/auth/actions'
+import { loginAction, requestPasswordLinkAction, setPasswordAction, type AuthFormState } from '@/lib/auth/actions'
 import { PASSWORD_MIN_LENGTH } from '@/lib/auth/password'
 
 const initial: AuthFormState = {}
@@ -113,15 +108,7 @@ export function SetPasswordForm({ token, next }: { token: string; next?: string 
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <div className="space-y-2">
         <Label htmlFor="password">{t('newPassword')}</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          minLength={PASSWORD_MIN_LENGTH}
-          aria-describedby="password-hint"
-          required
-        />
+        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={PASSWORD_MIN_LENGTH} aria-describedby="password-hint" required />
         <p id="password-hint" className="text-xs text-muted2">
           {t('passwordHint', { min: PASSWORD_MIN_LENGTH })}
         </p>

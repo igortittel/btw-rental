@@ -98,7 +98,12 @@ export default async function VehiclePage({ params }: Props) {
 
   const tiers = [...settings.cancellation_tiers].sort((a, b) => b.min_hours - a.min_hours)
   const cancellationRows = tiers.map((tier, i) => ({
-    when: i === 0 ? t('cancelMoreThan', { hours: tier.min_hours }) : tier.min_hours === 0 ? t('cancelLessThan', { hours: tiers[i - 1].min_hours }) : t('cancelBetween', { from: tiers[i - 1].min_hours, to: tier.min_hours }),
+    when:
+      i === 0
+        ? t('cancelMoreThan', { hours: tier.min_hours })
+        : tier.min_hours === 0
+          ? t('cancelLessThan', { hours: tiers[i - 1].min_hours })
+          : t('cancelBetween', { from: tiers[i - 1].min_hours, to: tier.min_hours }),
     fee: tier.fee_percent === 0 ? t('cancelFree') : `${tier.fee_percent} %`,
   }))
 
@@ -126,7 +131,9 @@ export default async function VehiclePage({ params }: Props) {
     vehicleTransmission: c(`transmissionLabels.${vehicle.transmission}`),
     seatingCapacity: vehicle.seats,
     numberOfForwardGears: vehicle.gears ?? undefined,
-    vehicleEngine: vehicle.engine ? { '@type': 'EngineSpecification', name: vehicle.engine, enginePower: vehicle.powerKw ? { '@type': 'QuantitativeValue', value: vehicle.powerKw, unitCode: 'KWT' } : undefined } : undefined,
+    vehicleEngine: vehicle.engine
+      ? { '@type': 'EngineSpecification', name: vehicle.engine, enginePower: vehicle.powerKw ? { '@type': 'QuantitativeValue', value: vehicle.powerKw, unitCode: 'KWT' } : undefined }
+      : undefined,
     url: absoluteUrl(canonical, locale),
     offers:
       vehicle.priceFromCents !== null
@@ -150,7 +157,11 @@ export default async function VehiclePage({ params }: Props) {
   const row = 'flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-line py-3 text-sm last:border-0'
   const minDate = localDateInHours(settings.min_lead_hours)
   const book = (
-    <Link href={bookingHref(vehicle)} rel="nofollow" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover sm:w-auto">
+    <Link
+      href={bookingHref(vehicle)}
+      rel="nofollow"
+      className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-gold px-8 text-base font-semibold text-white transition-colors hover:bg-gold-hover sm:w-auto"
+    >
       {t('book')}
     </Link>
   )
@@ -170,9 +181,7 @@ export default async function VehiclePage({ params }: Props) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gold">{localize(vehicle.categoryName, locale)}</p>
             <h1 className="mt-2 text-3xl font-bold tracking-wide text-white md:text-4xl">{vehicle.name}</h1>
-            <p className="mt-3 text-xl font-semibold text-white">
-              {vehicle.priceFromCents !== null ? t('priceFrom', { price: euro(vehicle.priceFromCents) }) : c('priceOnRequest')}
-            </p>
+            <p className="mt-3 text-xl font-semibold text-white">{vehicle.priceFromCents !== null ? t('priceFrom', { price: euro(vehicle.priceFromCents) }) : c('priceOnRequest')}</p>
             {description ? <p className="mt-5 leading-7 text-muted2">{description}</p> : null}
 
             <h2 className="sr-only">{t('parameters')}</h2>
@@ -236,7 +245,9 @@ export default async function VehiclePage({ params }: Props) {
               {vehicle.prices.map((price) => (
                 <div key={price.tierId} className={row}>
                   <dt className="text-muted2">{tierLabel(price.minDays, price.maxDays)}</dt>
-                  <dd className="text-right font-semibold text-white">{price.maxDays === null || price.pricePerDayCents === null ? t('individualPrice') : `${euro(price.pricePerDayCents)} ${t('perDay')}`}</dd>
+                  <dd className="text-right font-semibold text-white">
+                    {price.maxDays === null || price.pricePerDayCents === null ? t('individualPrice') : `${euro(price.pricePerDayCents)} ${t('perDay')}`}
+                  </dd>
                 </div>
               ))}
             </dl>

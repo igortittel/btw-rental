@@ -3,7 +3,16 @@ import { renderProtocolSigned, renderSettlement } from '@/lib/email/booking-emai
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { DIAGRAMS } from '@/lib/protocol/diagram'
 import {
-  DAMAGE_VIEWS, defaultAccessories, eighthsToPercent, fuelLabel, missingAccessories, percentToEighths, protocolErrorMessage, protocolMissing, protocolTypeFromSlug, returnAccessories,
+  DAMAGE_VIEWS,
+  defaultAccessories,
+  eighthsToPercent,
+  fuelLabel,
+  missingAccessories,
+  percentToEighths,
+  protocolErrorMessage,
+  protocolMissing,
+  protocolTypeFromSlug,
+  returnAccessories,
   type ProtocolDraft,
 } from '@/lib/protocol/model'
 import { depositOutcome, formatDuration, proposeSettlement, settlementLines, settlementTotal, type SettlementInput } from '@/lib/settlement'
@@ -40,8 +49,19 @@ describe('accessories', () => {
 
 describe('protocolMissing', () => {
   const full: ProtocolDraft = {
-    handoverAt: '2026-11-09T10:05', odometerKm: 48210, fuelLevel: 100, chargeLevel: null, interior: 'clean', exterior: 'clean', accessories: [], note: '',
-    customerName: 'Martin Kováč', staffName: 'Jana Horváthová', driverLicenseNo: '', idDocumentNo: '', damages: [],
+    handoverAt: '2026-11-09T10:05',
+    odometerKm: 48210,
+    fuelLevel: 100,
+    chargeLevel: null,
+    interior: 'clean',
+    exterior: 'clean',
+    accessories: [],
+    note: '',
+    customerName: 'Martin Kováč',
+    staffName: 'Jana Horváthová',
+    driverLicenseNo: '',
+    idDocumentNo: '',
+    damages: [],
     photos: (['front', 'rear', 'left', 'right'] as const).map((angle) => ({ angle, path: `b/p/${angle}.jpg` })),
   }
   const signed = { fuel: 'diesel', customerSigned: true, staffSigned: true }
@@ -49,7 +69,10 @@ describe('protocolMissing', () => {
     expect(protocolMissing(full, signed)).toEqual([])
   })
   it('lists every gap', () => {
-    const missing = protocolMissing({ ...full, odometerKm: null, fuelLevel: null, photos: full.photos.slice(0, 3), damages: [{ id: 'd', view: 'left', x: 1, y: 1, kind: 'dent', description: ' ', photoPath: null }] }, { fuel: 'diesel', customerSigned: false, staffSigned: true })
+    const missing = protocolMissing(
+      { ...full, odometerKm: null, fuelLevel: null, photos: full.photos.slice(0, 3), damages: [{ id: 'd', view: 'left', x: 1, y: 1, kind: 'dent', description: ' ', photoPath: null }] },
+      { fuel: 'diesel', customerSigned: false, staffSigned: true },
+    )
     expect(missing).toEqual(['stav tachometra', 'stav paliva', 'fotka: pravý bok', 'popis nového poškodenia (1.)', 'podpis zákazníka'])
   })
   it('an electric car needs the charge, not fuel', () => {
@@ -79,8 +102,18 @@ describe('protocol helpers', () => {
 
 describe('proposeSettlement', () => {
   const base: SettlementInput = {
-    pickupOdometerKm: 48210, returnOdometerKm: 50195, pickupFuel: 100, returnFuel: 63, days: 5, kmLimitPerDay: 300, extraKmCents: 62,
-    pickupAt: at('2026-11-09T10:00'), plannedReturnAt: at('2026-11-14T10:00'), actualReturnAt: at('2026-11-14T11:40'), toleranceMinutes: 59, ratePerDayCents: 7900,
+    pickupOdometerKm: 48210,
+    returnOdometerKm: 50195,
+    pickupFuel: 100,
+    returnFuel: 63,
+    days: 5,
+    kmLimitPerDay: 300,
+    extraKmCents: 62,
+    pickupAt: at('2026-11-09T10:00'),
+    plannedReturnAt: at('2026-11-14T10:00'),
+    actualReturnAt: at('2026-11-14T11:40'),
+    toleranceMinutes: 59,
+    ratePerDayCents: 7900,
   }
   it('charges km over limit × days', () => {
     const p = proposeSettlement(base)
@@ -107,7 +140,22 @@ describe('proposeSettlement', () => {
 })
 
 describe('settlement display', () => {
-  const row = { km_driven: 1985, extra_km: 485, extra_km_cents: 30070, fuel_diff: -37, fuel_cents: 4500, damage_cents: 18000, damage_items: [{ damage_id: 'a', label: 'Preliačina · Pravý bok', cents: 18000 }, { damage_id: 'b', label: 'Škrabanec', cents: 0 }], late_minutes: 100, late_cents: 7900, other_cents: 0, other_label: null }
+  const row = {
+    km_driven: 1985,
+    extra_km: 485,
+    extra_km_cents: 30070,
+    fuel_diff: -37,
+    fuel_cents: 4500,
+    damage_cents: 18000,
+    damage_items: [
+      { damage_id: 'a', label: 'Preliačina · Pravý bok', cents: 18000 },
+      { damage_id: 'b', label: 'Škrabanec', cents: 0 },
+    ],
+    late_minutes: 100,
+    late_cents: 7900,
+    other_cents: 0,
+    other_label: null,
+  }
   it('lists charged items only', () => {
     expect(settlementLines(row)).toEqual([
       { label: 'Kilometre nad limit', detail: '485 km', cents: 30070 },
@@ -130,7 +178,15 @@ describe('settlement display', () => {
 })
 
 describe('emails 8 and 10', () => {
-  const common = { handoverAt: '14. 6. 2027 10:05', odometer: '48 210 km', fuel: '8/8 · 100 %', newDamages: 0, hasAttachment: true, accountUrl: 'https://rental.btw.sk/moj-ucet', assistancePhone: '+421900000000' }
+  const common = {
+    handoverAt: '14. 6. 2027 10:05',
+    odometer: '48 210 km',
+    fuel: '8/8 · 100 %',
+    newDamages: 0,
+    hasAttachment: true,
+    accountUrl: 'https://rental.btw.sk/moj-ucet',
+    assistancePhone: '+421900000000',
+  }
   it('pickup protocol: subject, return term, assistance', async () => {
     const email = await renderProtocolSigned({ ...common, booking: sampleBookingEmailData('sk'), type: 'pickup' })
     expect(email.subject).toBe('Odovzdávací protokol k rezervácii BTW-2027-0042 – BY THE WAVE')
@@ -149,7 +205,17 @@ describe('emails 8 and 10', () => {
   })
   it('settlement: items, total and refund; clean return', async () => {
     const booking = sampleBookingEmailData('sk')
-    const email = await renderSettlement({ booking, lines: [{ label: 'Kilometre nad limit', detail: '485 km', amount: '300,70 €' }], total: '300,70 €', hasCharges: true, deposit: '1 000 €', refund: '699,30 €', due: null, note: 'Ďakujeme.', accountUrl: 'https://rental.btw.sk/moj-ucet' })
+    const email = await renderSettlement({
+      booking,
+      lines: [{ label: 'Kilometre nad limit', detail: '485 km', amount: '300,70 €' }],
+      total: '300,70 €',
+      hasCharges: true,
+      deposit: '1 000 €',
+      refund: '699,30 €',
+      due: null,
+      note: 'Ďakujeme.',
+      accountUrl: 'https://rental.btw.sk/moj-ucet',
+    })
     expect(email.subject).toBe('Vyúčtovanie prenájmu BTW-2027-0042 – BY THE WAVE')
     for (const part of ['Kilometre nad limit (485 km)', '300,70 €', 'Vrátime vám', '699,30 €', 'Ďakujeme.']) expect(email.text).toContain(part)
     const clean = await renderSettlement({ booking, lines: [], total: '0 €', hasCharges: false, deposit: '1 000 €', refund: '1 000 €', due: null, note: null, accountUrl: 'x' })

@@ -26,12 +26,20 @@ export async function GET(request: NextRequest) {
   try {
     const result = await runDaily()
     const failed = result.pickup.failed + result.return.failed + result.review.failed
-    if (run) await admin.from('cron_runs').update({ finished_at: new Date().toISOString(), ok: failed === 0, result }).eq('id', run.id)
+    if (run)
+      await admin
+        .from('cron_runs')
+        .update({ finished_at: new Date().toISOString(), ok: failed === 0, result })
+        .eq('id', run.id)
     return NextResponse.json({ ok: true, result })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown error'
     console.error('daily cron failed', e)
-    if (run) await admin.from('cron_runs').update({ finished_at: new Date().toISOString(), ok: false, error: message.slice(0, 500) }).eq('id', run.id)
+    if (run)
+      await admin
+        .from('cron_runs')
+        .update({ finished_at: new Date().toISOString(), ok: false, error: message.slice(0, 500) })
+        .eq('id', run.id)
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }

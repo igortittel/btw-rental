@@ -58,7 +58,10 @@ describe('describeBookingChange', () => {
 
   it('describes places, extras, travel abroad and the note', () => {
     const after: ChangeableBooking = { ...base, pickup_custom_address: 'Hlavná stanica, Bratislava', abroad_trip: true, abroad_countries: 'Rakúsko', customer_note: 'Prídem neskôr' }
-    const rows = describeBookingChange(base, [seat], after, [{ ...seat, quantity: 1 }, { name_snapshot: { sk: 'Strešný box' }, quantity: 1 }])
+    const rows = describeBookingChange(base, [seat], after, [
+      { ...seat, quantity: 1 },
+      { name_snapshot: { sk: 'Strešný box' }, quantity: 1 },
+    ])
     expect(rows).toEqual([
       { label: 'Miesto vyzdvihnutia', before: 'Bratislava – Trenčianska 56/A', after: 'Hlavná stanica, Bratislava' },
       { label: 'Doplnky', before: 'Autosedačka (2 ks)', after: 'Autosedačka, Strešný box' },
@@ -95,7 +98,11 @@ describe('customer area helpers', () => {
 
   it('shows the customer the same fee the database will charge (default tiers)', () => {
     // Mirrors the cases in supabase/tests/03_customer_zone.sql.
-    const tiers = [{ min_hours: 72, fee_percent: 0 }, { min_hours: 24, fee_percent: 20 }, { min_hours: 0, fee_percent: 100 }]
+    const tiers = [
+      { min_hours: 72, fee_percent: 0 },
+      { min_hours: 24, fee_percent: 20 },
+      { min_hours: 0, fee_percent: 100 },
+    ]
     const now = new Date('2027-06-01T00:00:00Z')
     const fee = (hours: number, total: number | null) => cancellationQuote(new Date(now.getTime() + hours * 3600_000), total, tiers, now).feeCents
     expect([fee(200, 23700), fee(72, 23700), fee(24 + 1 / 60, 23700), fee(24, 23700), fee(-5, 23700), fee(1, null), fee(30, 3333)]).toEqual([0, 4740, 4740, 23700, 23700, 0, 667])

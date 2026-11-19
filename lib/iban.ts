@@ -19,5 +19,7 @@ export function isValidIban(value: string): boolean {
 
 /** Groups of four for display: SK31 1200 0000 1987 4263 7541. */
 export function formatIban(value: string): string {
-  return normalizeIban(value).replace(/(.{4})/g, '$1 ').trim()
+  return normalizeIban(value)
+    .replace(/(.{4})/g, '$1 ')
+    .trim()
 }

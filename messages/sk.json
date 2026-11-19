@@ -323,15 +323,7 @@
     "prevMonth": "Predchádzajúci mesiac",
     "nextMonth": "Nasledujúci mesiac",
     "calendarError": "Dostupnosť sa nepodarilo načítať.",
-    "weekdays": [
-      "Po",
-      "Ut",
-      "St",
-      "Št",
-      "Pi",
-      "So",
-      "Ne"
-    ],
+    "weekdays": ["Po", "Ut", "St", "Št", "Pi", "So", "Ne"],
     "pricing": "Cenník",
     "pricingLead": "Ceny sú s DPH. Sadzba podľa celkovej dĺžky prenájmu platí pre všetky dni.",
     "rentalLength": "Dĺžka prenájmu",
@@ -392,11 +384,7 @@
   "booking": {
     "title": "Rezervácia",
     "metaTitle": "Rezervácia vozidla",
-    "steps": [
-      "Termín a miesto",
-      "Údaje a doplnky",
-      "Sumarizácia"
-    ],
+    "steps": ["Termín a miesto", "Údaje a doplnky", "Sumarizácia"],
     "stepOf": "Krok {step} z {total}",
     "continue": "Pokračovať",
     "back": "Späť",

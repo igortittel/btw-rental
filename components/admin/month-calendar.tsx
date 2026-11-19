@@ -43,7 +43,11 @@ export function MonthCalendar({ year, month, ranges, hrefFor }: { year: number; 
   return (
     <div className="max-w-md">
       <div className="mb-3 flex items-center justify-between">
-        <a href={hrefFor(shiftMonth(year, month, -1))} className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-white hover:border-gold" aria-label="Predchádzajúci mesiac">
+        <a
+          href={hrefFor(shiftMonth(year, month, -1))}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-white hover:border-gold"
+          aria-label="Predchádzajúci mesiac"
+        >
           ←
         </a>
         <p className="font-semibold text-white">

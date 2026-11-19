@@ -3,10 +3,7 @@ import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
+const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root>, React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>>(({ className, ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
@@ -15,7 +12,7 @@ const Checkbox = React.forwardRef<
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:bg-gold-gradient data-[state=checked]:border-gold/80',
       'transition-colors',
-      className
+      className,
     )}
     {...props}
   >

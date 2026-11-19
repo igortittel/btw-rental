@@ -8,7 +8,10 @@ export function variableSymbol(bookingNumber: string): string {
 
 /** IBAN in groups of four for reading aloud / retyping. */
 export function formatIban(iban: string): string {
-  return iban.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim()
+  return iban
+    .replace(/\s/g, '')
+    .replace(/(.{4})/g, '$1 ')
+    .trim()
 }
 
 /**

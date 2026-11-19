@@ -3,7 +3,15 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { localizedPath } from '@/i18n/routing'
 import { bookingEmailDataFromRow } from '@/lib/booking/email-data'
 import { describeBookingChange, type ChangeableBooking } from '@/lib/booking/change'
-import { sendBookingCancelled, sendBookingChangeRequested, sendBookingChangeResolved, sendBookingConfirmed, sendDocumentAvailable, sendProtocolSigned, sendSettlement } from '@/lib/email/booking-emails'
+import {
+  sendBookingCancelled,
+  sendBookingChangeRequested,
+  sendBookingChangeResolved,
+  sendBookingConfirmed,
+  sendDocumentAvailable,
+  sendProtocolSigned,
+  sendSettlement,
+} from '@/lib/email/booking-emails'
 import { DOCUMENTS_BUCKET, DOCUMENT_TYPE_LABELS, documentFileName } from '@/lib/documents'
 import { formatEuro } from '@/lib/format'
 import { buildIcs } from '@/lib/ics'
@@ -18,11 +26,7 @@ import type { Database } from '@/types/database'
 type Client = SupabaseClient<Database>
 
 async function load(supabase: Client, bookingId: string) {
-  const [{ data: booking }, settings, origin] = await Promise.all([
-    supabase.from('bookings').select('*, vehicles(name)').eq('id', bookingId).maybeSingle(),
-    getSettings(supabase),
-    getSiteOrigin(),
-  ])
+  const [{ data: booking }, settings, origin] = await Promise.all([supabase.from('bookings').select('*, vehicles(name)').eq('id', bookingId).maybeSingle(), getSettings(supabase), getSiteOrigin()])
   return booking ? { booking, settings, origin, vehicleName: booking.vehicles?.name ?? '' } : null
 }
 
@@ -137,7 +141,10 @@ export async function notifyBookingChangeResolved(supabase: Client, bookingId: s
     if (!loaded) return false
     const { booking, settings, origin, vehicleName } = loaded
     const data = bookingEmailDataFromRow(booking, vehicleName, settings.company)
-    const result = await sendBookingChangeResolved({ booking: data, approved, note, accountUrl: `${origin}${localizedPath(data.locale, `/moj-ucet/rezervacie/${bookingId}`)}` }, { bookingId, profileId: booking.customer_id })
+    const result = await sendBookingChangeResolved(
+      { booking: data, approved, note, accountUrl: `${origin}${localizedPath(data.locale, `/moj-ucet/rezervacie/${bookingId}`)}` },
+      { bookingId, profileId: booking.customer_id },
+    )
     return result.sent
   } catch (e) {
     console.error('booking change resolved email failed', e)

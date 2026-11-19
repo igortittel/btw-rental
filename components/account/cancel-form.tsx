@@ -47,7 +47,11 @@ export function CancelBookingForm({ id, feeCents, feePercent }: { id: string; fe
           {t.has(`errors.${state.error}`) ? t(`errors.${state.error}`) : t('errors.unknown')}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-red-400/70 px-6 text-base font-semibold text-red-100 transition-colors hover:bg-red-500/10 disabled:opacity-60 sm:w-auto">
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-red-400/70 px-6 text-base font-semibold text-red-100 transition-colors hover:bg-red-500/10 disabled:opacity-60 sm:w-auto"
+      >
         {pending ? t('cancelPending') : t('cancelSubmit')}
       </button>
     </form>

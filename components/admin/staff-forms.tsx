@@ -9,8 +9,7 @@ import { Label } from '@/components/ui/label'
 import { STAFF_ROLE_LABELS, STAFF_ROLES, type StaffRole } from '@/lib/auth/roles'
 
 const initial: AdminFormState = {}
-const selectClass =
-  'h-10 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm text-white focus:border-gold/50 focus:outline-none focus:ring-2 focus:ring-gold/50'
+const selectClass = 'h-10 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm text-white focus:border-gold/50 focus:outline-none focus:ring-2 focus:ring-gold/50'
 
 export function InviteStaffForm() {
   const { state: state, onSubmit: action, pending: pending } = useFormAction(inviteStaffAction, initial)

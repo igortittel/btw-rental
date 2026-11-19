@@ -1,6 +1,10 @@
 export type IcsEvent = { uid: string; start: Date; end: Date; summary: string; description?: string; location?: string; url?: string }
 
-const stamp = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+const stamp = (date: Date) =>
+  date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z')
 const escape = (text: string) => text.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n')
 
 /** Folds a content line to 75 octets as RFC 5545 requires. */

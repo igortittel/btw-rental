@@ -29,6 +29,11 @@ export function looksLikePdf(bytes: Uint8Array): boolean {
 /** Download name: "Faktura-FA2026-0102.pdf" (ASCII only, safe in a header). */
 export function documentFileName(type: DocumentType, number: string | null, fallback: string): string {
   const base = `${DOCUMENT_TYPE_LABELS.sk[type]}${number ? `-${number}` : ''}`
-  const ascii = base.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+  const ascii = base
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
   return `${ascii || fallback}.pdf`
 }

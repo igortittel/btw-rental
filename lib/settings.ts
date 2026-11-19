@@ -90,10 +90,26 @@ export const DEFAULT_SETTINGS: Settings = {
 
 /** Keys exposed to the public site through the `public_settings` view. */
 export const PUBLIC_SETTING_KEYS: SettingKey[] = [
-  'company', 'vat_rate', 'operating_24_7', 'payment_methods', 'min_lead_hours', 'min_rental_days',
-  'return_tolerance_minutes', 'individual_price_from_days', 'cancellation_tiers', 'modification_deadline_hours',
-  'deposit_cents', 'km_limit_per_day', 'extra_km_cents', 'min_driver_age', 'min_license_months',
-  'terms_version', 'gdpr_version', 'terms_url', 'gdpr_url', 'timezone',
+  'company',
+  'vat_rate',
+  'operating_24_7',
+  'payment_methods',
+  'min_lead_hours',
+  'min_rental_days',
+  'return_tolerance_minutes',
+  'individual_price_from_days',
+  'cancellation_tiers',
+  'modification_deadline_hours',
+  'deposit_cents',
+  'km_limit_per_day',
+  'extra_km_cents',
+  'min_driver_age',
+  'min_license_months',
+  'terms_version',
+  'gdpr_version',
+  'terms_url',
+  'gdpr_url',
+  'timezone',
 ]
 
 /** Merges rows of {key, value} over the defaults, validating each key separately. */

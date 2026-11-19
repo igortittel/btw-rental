@@ -123,7 +123,14 @@ describe('bookingSchema', () => {
     const result = bookingSchema.safeParse({ ...valid, firstName: '', email: 'not-an-email', phoneNumber: '12', street: ' ', rentalPaymentMethod: 'bitcoin', vin: 'x' })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(fieldErrors(result.error)).toEqual({ vin: 'vehicle_required', firstName: 'required', email: 'email_invalid', phoneNumber: 'phone_invalid', street: 'required', rentalPaymentMethod: 'required' })
+      expect(fieldErrors(result.error)).toEqual({
+        vin: 'vehicle_required',
+        firstName: 'required',
+        email: 'email_invalid',
+        phoneNumber: 'phone_invalid',
+        street: 'required',
+        rentalPaymentMethod: 'required',
+      })
     }
   })
 

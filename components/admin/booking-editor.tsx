@@ -89,7 +89,28 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
     })
   }
 
-  const text = (key: 'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'abroadCountries' | 'pickupAddress' | 'returnAddress' | 'customPrice' | 'priceReason', label: string, props: React.ComponentProps<'input'> = {}, className?: string) => (
+  const text = (
+    key:
+      | 'firstName'
+      | 'lastName'
+      | 'email'
+      | 'phoneNumber'
+      | 'companyName'
+      | 'ico'
+      | 'dic'
+      | 'icDph'
+      | 'street'
+      | 'city'
+      | 'zip'
+      | 'abroadCountries'
+      | 'pickupAddress'
+      | 'returnAddress'
+      | 'customPrice'
+      | 'priceReason',
+    label: string,
+    props: React.ComponentProps<'input'> = {},
+    className?: string,
+  ) => (
     <Field id={key} label={label} error={err(key)} className={className}>
       <TextInput id={key} value={values[key]} onChange={(event) => set(key, event.target.value)} {...describe(key, err(key))} {...props} />
     </Field>
@@ -152,8 +173,22 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
           <div className="grid gap-6 sm:grid-cols-2">
             {(
               [
-                { field: 'pickupLocationId', custom: 'pickupCustom', address: 'pickupAddress', outside: 'pickupOutsideCity', label: 'Miesto vyzdvihnutia', options: locations.filter((l) => l.forPickup) },
-                { field: 'returnLocationId', custom: 'returnCustom', address: 'returnAddress', outside: 'returnOutsideCity', label: 'Miesto odovzdania', options: locations.filter((l) => l.forReturn) },
+                {
+                  field: 'pickupLocationId',
+                  custom: 'pickupCustom',
+                  address: 'pickupAddress',
+                  outside: 'pickupOutsideCity',
+                  label: 'Miesto vyzdvihnutia',
+                  options: locations.filter((l) => l.forPickup),
+                },
+                {
+                  field: 'returnLocationId',
+                  custom: 'returnCustom',
+                  address: 'returnAddress',
+                  outside: 'returnOutsideCity',
+                  label: 'Miesto odovzdania',
+                  options: locations.filter((l) => l.forReturn),
+                },
               ] as const
             ).map((place) => (
               <div key={place.field} className="min-w-0">
@@ -194,8 +229,23 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
           <div className="grid gap-4 sm:grid-cols-2">
             {text('firstName', 'Meno', { maxLength: 80 })}
             {text('lastName', 'Priezvisko', { maxLength: 80 })}
-            <Field id="email" label="E-mail" error={err('email')} hint={mode === 'edit' ? 'E-mail určuje účet zákazníka a tu sa nemení.' : 'Podľa e-mailu sa rezervácia priradí k existujúcemu účtu, inak sa vytvorí nový.'} className="sm:col-span-2">
-              <TextInput id="email" type="email" inputMode="email" value={values.email} readOnly={mode === 'edit'} spellCheck={false} onChange={(event) => set('email', event.target.value)} {...describe('email', err('email'), 'hint')} />
+            <Field
+              id="email"
+              label="E-mail"
+              error={err('email')}
+              hint={mode === 'edit' ? 'E-mail určuje účet zákazníka a tu sa nemení.' : 'Podľa e-mailu sa rezervácia priradí k existujúcemu účtu, inak sa vytvorí nový.'}
+              className="sm:col-span-2"
+            >
+              <TextInput
+                id="email"
+                type="email"
+                inputMode="email"
+                value={values.email}
+                readOnly={mode === 'edit'}
+                spellCheck={false}
+                onChange={(event) => set('email', event.target.value)}
+                {...describe('email', err('email'), 'hint')}
+              />
             </Field>
             <div className="grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-3 sm:col-span-2">
               <Field id="phonePrefix" label="Predvoľba">
@@ -256,7 +306,10 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
                 return (
                   <li key={extra.id} className="flex items-center justify-between gap-4 py-2.5">
                     <label htmlFor={`extra-${extra.id}`} className="text-sm text-white">
-                      {extra.name.sk} <span className="text-muted2">· {euro(extra.priceCents)} {extra.pricingType === 'per_day' ? '/ deň' : '/ prenájom'}</span>
+                      {extra.name.sk}{' '}
+                      <span className="text-muted2">
+                        · {euro(extra.priceCents)} {extra.pricingType === 'per_day' ? '/ deň' : '/ prenájom'}
+                      </span>
                     </label>
                     <SelectInput id={`extra-${extra.id}`} className="w-24" value={quantity} onChange={(event) => set('extras', { ...values.extras, [extra.id]: Number(event.target.value) })}>
                       {Array.from({ length: extra.maxQuantity + 1 }, (_, n) => (
@@ -314,7 +367,9 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
                   <dd className="text-lg font-bold text-white">{price.final.totalCents !== null ? euro(price.final.totalCents) : 'bez ceny'}</dd>
                 </div>
                 {price.final.totalCents === null ? (
-                  <p className={`pt-1 text-xs ${needsPrice ? 'text-red-300' : 'text-muted2'}`}>{needsPrice ? 'Potvrdená rezervácia musí mať cenu – zvoľte „Vlastná cena“.' : 'Dlhodobý prenájom: cenu doplníte neskôr, potom sa dá rezervácia potvrdiť.'}</p>
+                  <p className={`pt-1 text-xs ${needsPrice ? 'text-red-300' : 'text-muted2'}`}>
+                    {needsPrice ? 'Potvrdená rezervácia musí mať cenu – zvoľte „Vlastná cena“.' : 'Dlhodobý prenájom: cenu doplníte neskôr, potom sa dá rezervácia potvrdiť.'}
+                  </p>
                 ) : null}
                 {vehicle ? <Row label="Depozit" value={euro(vehicle.depositCents)} /> : null}
               </>

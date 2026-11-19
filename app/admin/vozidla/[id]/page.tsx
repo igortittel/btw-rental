@@ -51,27 +51,26 @@ export default async function VehiclePage({ params, searchParams }: Props) {
   const supabase = await createClient()
   const nowIso = new Date().toISOString()
 
-  const [vehicleRes, categoriesRes, tiersRes, pricesRes, featuresRes, vehicleFeaturesRes, extrasRes, vehicleExtrasRes, imagesRes, blocksRes, bookingsRes, settings] =
-    await Promise.all([
-      supabase.from('vehicles').select('*').eq('id', id).maybeSingle(),
-      supabase.from('vehicle_categories').select('id, slug, name').order('sort_order'),
-      supabase.from('price_tiers').select('*').order('min_days'),
-      supabase.from('vehicle_prices').select('tier_id, price_per_day_cents').eq('vehicle_id', id),
-      supabase.from('features').select('*').order('sort_order'),
-      supabase.from('vehicle_features').select('feature_id').eq('vehicle_id', id),
-      supabase.from('extras').select('*').order('sort_order'),
-      supabase.from('vehicle_extras').select('*').eq('vehicle_id', id),
-      supabase.from('vehicle_images').select('*').eq('vehicle_id', id).order('sort_order'),
-      supabase.from('availability_blocks').select('*').eq('vehicle_id', id).gte('ends_at', nowIso).order('starts_at'),
-      supabase
-        .from('bookings')
-        .select('id, number, status, pickup_at, return_at, blocked_until')
-        .eq('vehicle_id', id)
-        .in('status', ['new', 'confirmed', 'modified', 'active'])
-        .gte('blocked_until', nowIso)
-        .order('pickup_at'),
-      getSettings(supabase),
-    ])
+  const [vehicleRes, categoriesRes, tiersRes, pricesRes, featuresRes, vehicleFeaturesRes, extrasRes, vehicleExtrasRes, imagesRes, blocksRes, bookingsRes, settings] = await Promise.all([
+    supabase.from('vehicles').select('*').eq('id', id).maybeSingle(),
+    supabase.from('vehicle_categories').select('id, slug, name').order('sort_order'),
+    supabase.from('price_tiers').select('*').order('min_days'),
+    supabase.from('vehicle_prices').select('tier_id, price_per_day_cents').eq('vehicle_id', id),
+    supabase.from('features').select('*').order('sort_order'),
+    supabase.from('vehicle_features').select('feature_id').eq('vehicle_id', id),
+    supabase.from('extras').select('*').order('sort_order'),
+    supabase.from('vehicle_extras').select('*').eq('vehicle_id', id),
+    supabase.from('vehicle_images').select('*').eq('vehicle_id', id).order('sort_order'),
+    supabase.from('availability_blocks').select('*').eq('vehicle_id', id).gte('ends_at', nowIso).order('starts_at'),
+    supabase
+      .from('bookings')
+      .select('id, number, status, pickup_at, return_at, blocked_until')
+      .eq('vehicle_id', id)
+      .in('status', ['new', 'confirmed', 'modified', 'active'])
+      .gte('blocked_until', nowIso)
+      .order('pickup_at'),
+    getSettings(supabase),
+  ])
 
   const vehicle = vehicleRes.data
   if (!vehicle) notFound()
@@ -156,7 +155,14 @@ export default async function VehiclePage({ params, searchParams }: Props) {
                     <p className="flex h-10 items-center text-sm text-muted2">Individuálna cena</p>
                   </div>
                 ) : (
-                  <Field key={tier.id} label={`${tierLabel(tier.min_days, tier.max_days)} (€)`} name={`price_${tier.id}`} inputMode="decimal" defaultValue={centsToInput(prices.get(tier.id))} required />
+                  <Field
+                    key={tier.id}
+                    label={`${tierLabel(tier.min_days, tier.max_days)} (€)`}
+                    name={`price_${tier.id}`}
+                    inputMode="decimal"
+                    defaultValue={centsToInput(prices.get(tier.id))}
+                    required
+                  />
                 ),
               )}
             </div>
@@ -247,7 +253,14 @@ export default async function VehiclePage({ params, searchParams }: Props) {
               <Field label="Limit km / deň" name="km_limit_per_day" type="number" min={1} defaultValue={vehicle.km_limit_per_day ?? ''} placeholder={String(settings.km_limit_per_day)} />
               <Field label="Cena za km navyše (€)" name="extra_km" inputMode="decimal" defaultValue={centsToInput(vehicle.extra_km_cents)} placeholder={centsToInput(settings.extra_km_cents)} />
               <Field label="Min. vek vodiča" name="min_driver_age" type="number" min={18} max={99} defaultValue={vehicle.min_driver_age ?? ''} placeholder={String(settings.min_driver_age)} />
-              <Field label="Min. vlastníctvo VP (mesiace)" name="min_license_months" type="number" min={0} defaultValue={vehicle.min_license_months ?? ''} placeholder={String(settings.min_license_months)} />
+              <Field
+                label="Min. vlastníctvo VP (mesiace)"
+                name="min_license_months"
+                type="number"
+                min={0}
+                defaultValue={vehicle.min_license_months ?? ''}
+                placeholder={String(settings.min_license_months)}
+              />
               <Field
                 label="Príprava medzi prenájmami (hodiny)"
                 name="buffer_hours"

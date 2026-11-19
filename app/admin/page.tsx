@@ -45,7 +45,12 @@ export default async function AdminHomePage({ searchParams }: Props) {
     day('return_at', today),
     day('pickup_at', tomorrow),
     day('return_at', tomorrow),
-    supabase.from('bookings').select('pickup_at, return_at, total_cents').in('status', ['confirmed', 'active', 'completed']).lt('pickup_at', iso(periodTo, '00:00')).gt('return_at', iso(periodFrom, '00:00')),
+    supabase
+      .from('bookings')
+      .select('pickup_at, return_at, total_cents')
+      .in('status', ['confirmed', 'active', 'completed'])
+      .lt('pickup_at', iso(periodTo, '00:00'))
+      .gt('return_at', iso(periodFrom, '00:00')),
     supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('for_rental', true),
   ])
   // Returned vehicles whose settlement has not been approved yet.
@@ -65,7 +70,8 @@ export default async function AdminHomePage({ searchParams }: Props) {
   const user = await requireStaff('operator')
   const now = new Date()
   const horizon = new Date(now.getTime() + 14 * 86_400_000).toISOString()
-  const paySelect = 'id, number, status, pickup_at, return_at, total_cents, deposit_cents, rental_payment_status, deposit_status, rental_paid_cents, rental_refunded_cents, deposit_received_cents, rental_payment_method, deposit_payment_method, customer_snapshot, vehicles(name)'
+  const paySelect =
+    'id, number, status, pickup_at, return_at, total_cents, deposit_cents, rental_payment_status, deposit_status, rental_paid_cents, rental_refunded_cents, deposit_received_cents, rental_payment_method, deposit_payment_method, customer_snapshot, vehicles(name)'
   const [{ data: upcoming }, { data: finished }, { data: deletionRequests }, { data: lastRun }] = await Promise.all([
     supabase.from('bookings').select(paySelect).in('status', ['confirmed', 'modified']).lte('pickup_at', horizon).order('pickup_at').limit(200),
     supabase.from('bookings').select(`${paySelect}, settlements(total_cents, approved_at)`).in('status', ['completed', 'cancelled']).eq('deposit_status', 'received').order('return_at').limit(100),
@@ -94,9 +100,31 @@ export default async function AdminHomePage({ searchParams }: Props) {
     { label: 'Dnes vyzdvihnutia / odovzdania', value: `${pickupsToday.data?.length ?? 0} / ${returnsToday.data?.length ?? 0}`, href: `/admin/rezervacie?od=${today}&do=${today}`, highlight: false },
   ]
   const paymentTiles = [
-    { label: 'Neuhradené pred vyzdvihnutím', value: unpaid.length, sub: unpaid.length > 0 ? `spolu ${formatEuro(unpaidSum)} · najbližších 14 dní` : 'najbližších 14 dní', href: '#neuhradene', highlight: unpaid.length > 0 },
-    { label: 'Depozity na vrátenie', value: deposits.length, sub: deposits.length > 0 ? `${formatEuro(depositsReadySum)} pripravené${deposits.some((d) => !d.ready) ? ` · ${deposits.filter((d) => !d.ready).length} čaká na vyúčtovanie` : ''}` : 'žiadne', href: '#depozity', highlight: deposits.some((d) => d.ready) },
-    ...(hasRole(user.role, 'manager') ? [{ label: 'Žiadosti o vymazanie účtu', value: (deletionRequests ?? []).length, sub: (deletionRequests ?? []).length > 0 ? `najstaršia ${formatDateTime((deletionRequests ?? [])[0].deletion_requested_at!).split(' ')[0]} · lehota 30 dní` : 'žiadne', href: '/admin/zakaznici?filter=vymazanie', highlight: (deletionRequests ?? []).length > 0 }] : []),
+    {
+      label: 'Neuhradené pred vyzdvihnutím',
+      value: unpaid.length,
+      sub: unpaid.length > 0 ? `spolu ${formatEuro(unpaidSum)} · najbližších 14 dní` : 'najbližších 14 dní',
+      href: '#neuhradene',
+      highlight: unpaid.length > 0,
+    },
+    {
+      label: 'Depozity na vrátenie',
+      value: deposits.length,
+      sub: deposits.length > 0 ? `${formatEuro(depositsReadySum)} pripravené${deposits.some((d) => !d.ready) ? ` · ${deposits.filter((d) => !d.ready).length} čaká na vyúčtovanie` : ''}` : 'žiadne',
+      href: '#depozity',
+      highlight: deposits.some((d) => d.ready),
+    },
+    ...(hasRole(user.role, 'manager')
+      ? [
+          {
+            label: 'Žiadosti o vymazanie účtu',
+            value: (deletionRequests ?? []).length,
+            sub: (deletionRequests ?? []).length > 0 ? `najstaršia ${formatDateTime((deletionRequests ?? [])[0].deletion_requested_at!).split(' ')[0]} · lehota 30 dní` : 'žiadne',
+            href: '/admin/zakaznici?filter=vymazanie',
+            highlight: (deletionRequests ?? []).length > 0,
+          },
+        ]
+      : []),
   ]
   const methodShort = (m: string) => (m === 'transfer' ? 'prevod' : m === 'terminal' ? 'terminál' : 'hotovosť')
   const customerName = (snapshot: unknown) => {
@@ -145,8 +173,12 @@ export default async function AdminHomePage({ searchParams }: Props) {
             {missedPickups.map((b) => (
               <li key={b.id}>
                 <Link href={`/admin/rezervacie/${b.id}`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold">
-                  <span><strong>{b.number}</strong> · {b.vehicles?.name}</span>
-                  <span className="text-muted2">{customerName(b.customer_snapshot)} · vyzdvihnutie {formatDateTime(b.pickup_at)}</span>
+                  <span>
+                    <strong>{b.number}</strong> · {b.vehicles?.name}
+                  </span>
+                  <span className="text-muted2">
+                    {customerName(b.customer_snapshot)} · vyzdvihnutie {formatDateTime(b.pickup_at)}
+                  </span>
                 </Link>
               </li>
             ))}
@@ -169,7 +201,9 @@ export default async function AdminHomePage({ searchParams }: Props) {
                   <a href={`/admin/rezervacie/${b.id}#platby`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-sm text-white hover:text-gold">
                     <span>
                       <strong>{b.number}</strong> · {b.vehicles?.name}
-                      <span className="block text-muted2">{customerName(b.customer_snapshot)} · vyzdvihnutie {formatDateTime(b.pickup_at)}</span>
+                      <span className="block text-muted2">
+                        {customerName(b.customer_snapshot)} · vyzdvihnutie {formatDateTime(b.pickup_at)}
+                      </span>
                     </span>
                     <span className="flex flex-wrap items-center gap-2">
                       <span>
@@ -200,10 +234,15 @@ export default async function AdminHomePage({ searchParams }: Props) {
             <ul className="mt-2 divide-y divide-line">
               {deposits.map((d) => (
                 <li key={d.id}>
-                  <a href={d.ready ? `/admin/rezervacie/${d.id}#platby` : `/admin/rezervacie/${d.id}/vyuctovanie`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-sm text-white hover:text-gold">
+                  <a
+                    href={d.ready ? `/admin/rezervacie/${d.id}#platby` : `/admin/rezervacie/${d.id}/vyuctovanie`}
+                    className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-sm text-white hover:text-gold"
+                  >
                     <span>
                       <strong>{d.number}</strong> · {d.vehicles?.name}
-                      <span className="block text-muted2">{customerName(d.customer_snapshot)} · {d.status === 'cancelled' ? 'zrušená' : `vrátené ${formatDateTime(d.return_at).split(' ')[0]}`}</span>
+                      <span className="block text-muted2">
+                        {customerName(d.customer_snapshot)} · {d.status === 'cancelled' ? 'zrušená' : `vrátené ${formatDateTime(d.return_at).split(' ')[0]}`}
+                      </span>
                     </span>
                     {d.ready ? <strong className="text-gold">vrátiť {formatEuro(d.refundCents)}</strong> : <span className="text-muted2">najprv potvrďte vyúčtovanie</span>}
                   </a>
@@ -217,7 +256,9 @@ export default async function AdminHomePage({ searchParams }: Props) {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-white">Automatické e-maily</h2>
             {lastRun ? (
-              <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${lastRun.ok ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-200' : 'border-red-400/60 bg-red-500/10 text-red-200'}`}>
+              <span
+                className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${lastRun.ok ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-200' : 'border-red-400/60 bg-red-500/10 text-red-200'}`}
+              >
                 {lastRun.ok ? 'v poriadku' : lastRun.finished_at ? 's chybami' : 'nedokončený'}
               </span>
             ) : null}
@@ -257,7 +298,9 @@ export default async function AdminHomePage({ searchParams }: Props) {
             {(deletionRequests ?? []).map((p) => (
               <li key={p.id}>
                 <Link href={`/admin/zakaznici/${p.id}`} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold">
-                  <span><strong>{`${p.first_name} ${p.last_name}`.trim()}</strong> · {p.email}</span>
+                  <span>
+                    <strong>{`${p.first_name} ${p.last_name}`.trim()}</strong> · {p.email}
+                  </span>
                   <span className="text-muted2">žiadosť {formatDateTime(p.deletion_requested_at!)}</span>
                 </Link>
               </li>
@@ -274,7 +317,11 @@ export default async function AdminHomePage({ searchParams }: Props) {
               const customer = (row.bookings?.customer_snapshot ?? {}) as Snapshot
               return (
                 <li key={row.booking_id}>
-                  <Link href={`/admin/rezervacie/${row.booking_id}/vyuctovanie`} prefetch={false} className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold">
+                  <Link
+                    href={`/admin/rezervacie/${row.booking_id}/vyuctovanie`}
+                    prefetch={false}
+                    className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-2 text-sm text-white hover:text-gold"
+                  >
                     <span>
                       <strong>{row.bookings?.number}</strong> · {row.bookings?.vehicles?.name}
                     </span>
@@ -323,7 +370,12 @@ export default async function AdminHomePage({ searchParams }: Props) {
           <h2 className="text-base font-bold text-white">Výsledky</h2>
           <nav aria-label="Obdobie" className="flex flex-wrap gap-2">
             {(Object.keys(PERIODS) as Period[]).map((key) => (
-              <Link key={key} href={key === 'mesiac' ? '/admin' : `/admin?obdobie=${key}`} aria-current={period === key ? 'page' : undefined} className={`inline-flex h-9 items-center rounded-full px-3 text-xs font-medium ${period === key ? 'bg-white text-black' : 'border border-line text-muted2 hover:border-gold hover:text-white'}`}>
+              <Link
+                key={key}
+                href={key === 'mesiac' ? '/admin' : `/admin?obdobie=${key}`}
+                aria-current={period === key ? 'page' : undefined}
+                className={`inline-flex h-9 items-center rounded-full px-3 text-xs font-medium ${period === key ? 'bg-white text-black' : 'border border-line text-muted2 hover:border-gold hover:text-white'}`}
+              >
                 {PERIODS[key]}
               </Link>
             ))}

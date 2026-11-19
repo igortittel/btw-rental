@@ -95,9 +95,33 @@ export default async function SettingsPage() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Min. predstih rezervácie (hodiny)" name="min_lead_hours" type="number" min={0} defaultValue={settings.min_lead_hours} required />
             <Field label="Min. dĺžka prenájmu (dni)" name="min_rental_days" type="number" min={1} defaultValue={settings.min_rental_days} required />
-            <Field label="Tolerancia vrátenia (minúty)" name="return_tolerance_minutes" type="number" min={0} defaultValue={settings.return_tolerance_minutes} hint="Meškanie do tejto hranice sa nepočíta ako ďalší deň." required />
-            <Field label="Príprava medzi prenájmami (hodiny)" name="default_buffer_hours" type="number" min={0} defaultValue={Math.round(settings.default_buffer_minutes / 60)} hint="Dá sa zmeniť pri jednotlivých vozidlách." required />
-            <Field label="Lehota na úpravu zákazníkom (hodiny)" name="modification_deadline_hours" type="number" min={0} defaultValue={settings.modification_deadline_hours} hint="Koľko hodín pred vyzdvihnutím si zákazník ešte môže rezerváciu upraviť sám." required />
+            <Field
+              label="Tolerancia vrátenia (minúty)"
+              name="return_tolerance_minutes"
+              type="number"
+              min={0}
+              defaultValue={settings.return_tolerance_minutes}
+              hint="Meškanie do tejto hranice sa nepočíta ako ďalší deň."
+              required
+            />
+            <Field
+              label="Príprava medzi prenájmami (hodiny)"
+              name="default_buffer_hours"
+              type="number"
+              min={0}
+              defaultValue={Math.round(settings.default_buffer_minutes / 60)}
+              hint="Dá sa zmeniť pri jednotlivých vozidlách."
+              required
+            />
+            <Field
+              label="Lehota na úpravu zákazníkom (hodiny)"
+              name="modification_deadline_hours"
+              type="number"
+              min={0}
+              defaultValue={settings.modification_deadline_hours}
+              hint="Koľko hodín pred vyzdvihnutím si zákazník ešte môže rezerváciu upraviť sám."
+              required
+            />
           </div>
           <div className="mt-5">
             <SubmitButton />
@@ -136,11 +160,24 @@ export default async function SettingsPage() {
         </ActionForm>
       </Section>
 
-      <Section title="Cenové hladiny" description="Horná hranica každej hladiny v dňoch. Dlhší prenájom ako posledná hranica je dopyt s individuálnou cenou. Ceny vozidiel zostávajú priradené k hladinám.">
+      <Section
+        title="Cenové hladiny"
+        description="Horná hranica každej hladiny v dňoch. Dlhší prenájom ako posledná hranica je dopyt s individuálnou cenou. Ceny vozidiel zostávajú priradené k hladinám."
+      >
         <ActionForm action={savePriceTiersAction} confirm="Zmena hraníc sa prejaví v cenníku všetkých vozidiel. Pokračovať?">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {pricedTiers.map((tier, index) => (
-              <Field key={tier.id} label={`${index + 1}. hladina – do (dní)`} name={`max_${tier.id}`} type="number" min={1} max={365} defaultValue={tier.max_days ?? ''} hint={`teraz ${tier.min_days}–${tier.max_days} dní`} required />
+              <Field
+                key={tier.id}
+                label={`${index + 1}. hladina – do (dní)`}
+                name={`max_${tier.id}`}
+                type="number"
+                min={1}
+                max={365}
+                defaultValue={tier.max_days ?? ''}
+                hint={`teraz ${tier.min_days}–${tier.max_days} dní`}
+                required
+              />
             ))}
           </div>
           <p className="mt-4 text-sm text-muted2">Individuálna cena od {settings.individual_price_from_days}. dňa.</p>
@@ -167,7 +204,14 @@ export default async function SettingsPage() {
       <Section title="Notifikácie a recenzie">
         <ActionForm action={saveNotificationsAction}>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Notifikačné e-maily pre admina" name="emails" defaultValue={settings.admin_notification_emails.join(', ')} hint="Viac adries oddeľte čiarkou." className="sm:col-span-2" required />
+            <Field
+              label="Notifikačné e-maily pre admina"
+              name="emails"
+              defaultValue={settings.admin_notification_emails.join(', ')}
+              hint="Viac adries oddeľte čiarkou."
+              className="sm:col-span-2"
+              required
+            />
             <Field label="Žiadosť o recenziu (dní po ukončení)" name="review_request_days" type="number" min={0} defaultValue={settings.review_request_days} />
             <Field label="Odkaz na Google recenziu" name="google_review_url" type="url" defaultValue={settings.google_review_url ?? ''} placeholder="https://g.page/r/…" />
           </div>

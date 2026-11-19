@@ -1,6 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getStaff } from '@/lib/auth/session'
-import { renderBookingAdminNotification, renderBookingCancelled, renderBookingChangeRequested, renderBookingChangeResolved, renderBookingConfirmed, renderBookingReceived, renderBookingReminder, renderDocumentAvailable, renderProtocolSigned, renderReviewRequest, renderSettlement } from '@/lib/email/booking-emails'
+import {
+  renderBookingAdminNotification,
+  renderBookingCancelled,
+  renderBookingChangeRequested,
+  renderBookingChangeResolved,
+  renderBookingConfirmed,
+  renderBookingReceived,
+  renderBookingReminder,
+  renderDocumentAvailable,
+  renderProtocolSigned,
+  renderReviewRequest,
+  renderSettlement,
+} from '@/lib/email/booking-emails'
 import { sampleBookingEmailData } from '@/lib/email/samples'
 import { DEFAULT_SETTINGS } from '@/lib/settings'
 

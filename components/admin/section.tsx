@@ -27,9 +27,5 @@ export function PageHeader({ title, action, back }: { title: string; action?: Re
 }
 
 export function ReadOnlyNotice() {
-  return (
-    <p className="mb-6 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-muted2">
-      Máte prístup len na čítanie. Úpravy môže robiť manažér alebo majiteľ.
-    </p>
-  )
+  return <p className="mb-6 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-muted2">Máte prístup len na čítanie. Úpravy môže robiť manažér alebo majiteľ.</p>
 }

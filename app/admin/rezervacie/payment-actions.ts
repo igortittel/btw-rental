@@ -65,7 +65,11 @@ export async function returnDepositAction(_prev: ActionState, formData: FormData
     const amount = parseEuroToCents(text(formData, 'amount'))
     if (amount === null || amount < 0) return { error: 'Zadajte vrátenú sumu (môže byť aj 0).' }
     const { error } = await supabase.rpc('record_deposit_return', {
-      p_booking_id: common.id, p_amount: amount, p_at: common.at, p_method: common.method, p_note: text(formData, 'note') || undefined,
+      p_booking_id: common.id,
+      p_amount: amount,
+      p_at: common.at,
+      p_method: common.method,
+      p_note: text(formData, 'note') || undefined,
     })
     if (error) return rpcError(error)
     refresh(common.id)
@@ -81,7 +85,11 @@ export async function refundRentalAction(_prev: ActionState, formData: FormData)
     const amount = parseEuroToCents(text(formData, 'amount'))
     if (amount === null || amount <= 0) return { error: 'Zadajte vrátenú sumu.' }
     const { error } = await supabase.rpc('record_rental_refund', {
-      p_booking_id: common.id, p_amount: amount, p_at: common.at, p_method: common.method, p_note: text(formData, 'note') || undefined,
+      p_booking_id: common.id,
+      p_amount: amount,
+      p_at: common.at,
+      p_method: common.method,
+      p_note: text(formData, 'note') || undefined,
     })
     if (error) return rpcError(error)
     refresh(common.id)

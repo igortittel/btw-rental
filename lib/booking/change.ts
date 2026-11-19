@@ -20,8 +20,36 @@ export type ChangeableBooking = {
 type Extra = { name_snapshot: unknown; quantity: number }
 
 const LABELS = {
-  sk: { pickup: 'Vyzdvihnutie', ret: 'Odovzdanie', pickupPlace: 'Miesto vyzdvihnutia', returnPlace: 'Miesto odovzdania', extras: 'Doplnky', note: 'Poznámka', abroad: 'Cesta do zahraničia', price: 'Cena s DPH', none: '—', yes: 'áno', no: 'nie', individual: 'individuálna', pcs: 'ks' },
-  en: { pickup: 'Pick-up', ret: 'Return', pickupPlace: 'Pick-up location', returnPlace: 'Return location', extras: 'Extras', note: 'Note', abroad: 'Travel abroad', price: 'Price incl. VAT', none: '—', yes: 'yes', no: 'no', individual: 'individual', pcs: 'pcs' },
+  sk: {
+    pickup: 'Vyzdvihnutie',
+    ret: 'Odovzdanie',
+    pickupPlace: 'Miesto vyzdvihnutia',
+    returnPlace: 'Miesto odovzdania',
+    extras: 'Doplnky',
+    note: 'Poznámka',
+    abroad: 'Cesta do zahraničia',
+    price: 'Cena s DPH',
+    none: '—',
+    yes: 'áno',
+    no: 'nie',
+    individual: 'individuálna',
+    pcs: 'ks',
+  },
+  en: {
+    pickup: 'Pick-up',
+    ret: 'Return',
+    pickupPlace: 'Pick-up location',
+    returnPlace: 'Return location',
+    extras: 'Extras',
+    note: 'Note',
+    abroad: 'Travel abroad',
+    price: 'Price incl. VAT',
+    none: '—',
+    yes: 'yes',
+    no: 'no',
+    individual: 'individual',
+    pcs: 'pcs',
+  },
 }
 
 /** Rows that differ between the stored booking and a proposed change, formatted for display. */
@@ -71,7 +99,11 @@ export type CustomerEditBlock = 'status' | 'deadline' | 'manual_price' | null
  * until the deadline, and not when the price was agreed individually (then staff must
  * recalculate it by hand).
  */
-export function customerEditBlock(booking: { status: string; pickup_at: string; total_cents: number | null; price_override_reason: string | null }, deadlineHours: number, now: Date = new Date()): CustomerEditBlock {
+export function customerEditBlock(
+  booking: { status: string; pickup_at: string; total_cents: number | null; price_override_reason: string | null },
+  deadlineHours: number,
+  now: Date = new Date(),
+): CustomerEditBlock {
   if (booking.status !== 'new' && booking.status !== 'confirmed') return 'status'
   if (now > modificationDeadline(new Date(booking.pickup_at), deadlineHours)) return 'deadline'
   if (booking.total_cents === null || booking.price_override_reason) return 'manual_price'

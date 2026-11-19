@@ -23,7 +23,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
   const user = await requireUser(localizedPath(locale, '/moj-ucet/profil'))
   const [t, a] = await Promise.all([getTranslations('account.profile'), getTranslations('account')])
   const supabase = await createClient()
-  const { data: profile } = await supabase.from('profiles').select('first_name, last_name, phone, is_company, company_name, ico, dic, ic_dph, billing_address, refund_iban, deletion_requested_at').eq('id', user.id).maybeSingle()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, phone, is_company, company_name, ico, dic, ic_dph, billing_address, refund_iban, deletion_requested_at')
+    .eq('id', user.id)
+    .maybeSingle()
   const address = (profile?.billing_address ?? {}) as { street?: string; city?: string; zip?: string; country?: string }
   const initial: ProfileValues = {
     firstName: profile?.first_name ?? '',

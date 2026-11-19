@@ -1,16 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { centsToInput, formatEuro, parseEuroToCents } from '@/lib/format'
 import { utcToZonedLocal, zonedLocalToUtc } from '@/lib/time'
-import {
-  buildVehicleName,
-  buildVehicleSlug,
-  isReservedSlug,
-  normalizeVin,
-  parseVehicleSegment,
-  slugify,
-  vehiclePath,
-  VIN_PATTERN,
-} from '@/lib/vehicle-url'
+import { buildVehicleName, buildVehicleSlug, isReservedSlug, normalizeVin, parseVehicleSegment, slugify, vehiclePath, VIN_PATTERN } from '@/lib/vehicle-url'
 
 describe('money', () => {
   it('parses what people type into integer cents', () => {

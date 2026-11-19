@@ -323,7 +323,11 @@ export async function registerVehicleImagesAction(vehicleId: string, images: Upl
 export async function reorderVehicleImagesAction(vehicleId: string, orderedIds: string[]): Promise<ActionState> {
   return staffAction('manager', async ({ supabase }) => {
     for (const [index, id] of orderedIds.slice(0, 100).entries()) {
-      const { error } = await supabase.from('vehicle_images').update({ sort_order: (index + 1) * 10 }).eq('id', id).eq('vehicle_id', vehicleId)
+      const { error } = await supabase
+        .from('vehicle_images')
+        .update({ sort_order: (index + 1) * 10 })
+        .eq('id', id)
+        .eq('vehicle_id', vehicleId)
       if (error) return { error: dbErrorMessage(error) }
     }
     revalidateVehicle(vehicleId)

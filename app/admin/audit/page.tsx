@@ -27,7 +27,12 @@ export default async function AuditPage({ searchParams }: Props) {
   const to = sp.do && DATE.test(sp.do) ? sp.do : ''
   const actor = sp.kto === 'system' || (sp.kto && UUID.test(sp.kto)) ? sp.kto : ''
   const area = sp.oblast && sp.oblast in AUDIT_AREAS ? (sp.oblast as AuditArea) : ''
-  const bookingNumber = sp.rez?.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) ?? ''
+  const bookingNumber =
+    sp.rez
+      ?.trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, '')
+      .slice(0, 20) ?? ''
   const before = sp.pred && /^\d+$/.test(sp.pred) ? Number(sp.pred) : null
 
   const supabase = await createClient()
@@ -41,7 +46,11 @@ export default async function AuditPage({ searchParams }: Props) {
     bookingNotFound = !data
   }
 
-  let query = supabase.from('audit_log').select('id, actor_id, entity, entity_id, action, diff, created_at').order('id', { ascending: false }).limit(PAGE + 1)
+  let query = supabase
+    .from('audit_log')
+    .select('id, actor_id, entity, entity_id, action, diff, created_at')
+    .order('id', { ascending: false })
+    .limit(PAGE + 1)
   if (from) query = query.gte('created_at', zonedLocalToUtc(`${from}T00:00`)!.toISOString())
   if (to) query = query.lte('created_at', zonedLocalToUtc(`${to}T23:59`)!.toISOString())
   if (actor === 'system') query = query.is('actor_id', null)
@@ -63,7 +72,9 @@ export default async function AuditPage({ searchParams }: Props) {
   const profileIds = [...new Set([...ids('profiles'), ...ids('customer_internal'), ...ids('staff_roles'), ...entries.map((e) => e.actor_id).filter((v): v is string => !!v)])]
   const [{ data: bookings }, { data: profiles }, { data: vehicles }] = await Promise.all([
     bookingIds.length > 0 ? supabase.from('bookings').select('id, number').in('id', bookingIds) : Promise.resolve({ data: [] as { id: string; number: string }[] }),
-    profileIds.length > 0 ? supabase.from('profiles').select('id, first_name, last_name').in('id', profileIds) : Promise.resolve({ data: [] as { id: string; first_name: string; last_name: string }[] }),
+    profileIds.length > 0
+      ? supabase.from('profiles').select('id, first_name, last_name').in('id', profileIds)
+      : Promise.resolve({ data: [] as { id: string; first_name: string; last_name: string }[] }),
     ids('vehicles').length > 0 ? supabase.from('vehicles').select('id, name').in('id', ids('vehicles')) : Promise.resolve({ data: [] as { id: string; name: string }[] }),
   ])
   const bookingNo = new Map((bookings ?? []).map((b) => [b.id, b.number]))
@@ -90,7 +101,9 @@ export default async function AuditPage({ searchParams }: Props) {
   return (
     <div>
       <PageHeader title="Audit log" />
-      <p className="-mt-6 mb-6 text-sm text-muted2">Všetky zápisy v administrácii: kto, kedy, čo a ktoré polia zmenil. Záznamy sa nedajú zmeniť ani zmazať. Úpravy profilu zákazníka sú zapísané bez hodnôt (osobné údaje).</p>
+      <p className="-mt-6 mb-6 text-sm text-muted2">
+        Všetky zápisy v administrácii: kto, kedy, čo a ktoré polia zmenil. Záznamy sa nedajú zmeniť ani zmazať. Úpravy profilu zákazníka sú zapísané bez hodnôt (osobné údaje).
+      </p>
 
       <form method="get" action="/admin/audit" className="grid gap-3 rounded-xl border border-gold/40 bg-surface p-4 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
         <label className="space-y-1 text-xs text-muted2">
@@ -150,7 +163,11 @@ export default async function AuditPage({ searchParams }: Props) {
         {entries.map((entry, index) => {
           const action = actionLabel(entry.action)
           const changes = auditChanges(entry.action, entry.diff)
-          const summary = changes.slice(0, 4).map((c) => c.field).join(', ') + (changes.length > 4 ? ` a ďalšie (${changes.length - 4})` : '')
+          const summary =
+            changes
+              .slice(0, 4)
+              .map((c) => c.field)
+              .join(', ') + (changes.length > 4 ? ` a ďalšie (${changes.length - 4})` : '')
           return (
             <li key={entry.id}>
               <details className="group">
@@ -168,9 +185,15 @@ export default async function AuditPage({ searchParams }: Props) {
                     <table className="w-full min-w-[480px] text-left text-sm">
                       <thead className="text-xs uppercase tracking-wider text-muted2">
                         <tr>
-                          <th scope="col" className="py-1.5 pr-3 font-semibold">Pole</th>
-                          <th scope="col" className="py-1.5 pr-3 font-semibold">Pôvodne</th>
-                          <th scope="col" className="py-1.5 font-semibold">Nové</th>
+                          <th scope="col" className="py-1.5 pr-3 font-semibold">
+                            Pole
+                          </th>
+                          <th scope="col" className="py-1.5 pr-3 font-semibold">
+                            Pôvodne
+                          </th>
+                          <th scope="col" className="py-1.5 font-semibold">
+                            Nové
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-line">
@@ -195,7 +218,10 @@ export default async function AuditPage({ searchParams }: Props) {
       </ul>
       {nextCursor ? (
         <div className="mt-4">
-          <Link href={`/admin/audit?${params({ pred: String(nextCursor) })}`} className="inline-flex h-10 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white hover:bg-gold/15">
+          <Link
+            href={`/admin/audit?${params({ pred: String(nextCursor) })}`}
+            className="inline-flex h-10 items-center rounded-lg border border-gold px-4 text-sm font-semibold text-white hover:bg-gold/15"
+          >
             Staršie záznamy
           </Link>
         </div>

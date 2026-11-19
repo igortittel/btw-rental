@@ -1,7 +1,14 @@
 import 'server-only'
 import { render } from '@react-email/render'
 import BookingAdminNotificationEmail, { bookingAdminSubject, type BookingAdminNotificationProps } from '@/emails/booking-admin-notification'
-import { BookingChangeRequestedEmail, BookingChangeResolvedEmail, bookingChangeRequestedSubject, bookingChangeResolvedSubject, type BookingChangeRequestedProps, type BookingChangeResolvedProps } from '@/emails/booking-change'
+import {
+  BookingChangeRequestedEmail,
+  BookingChangeResolvedEmail,
+  bookingChangeRequestedSubject,
+  bookingChangeResolvedSubject,
+  type BookingChangeRequestedProps,
+  type BookingChangeResolvedProps,
+} from '@/emails/booking-change'
 import BookingCancelledEmail, { bookingCancelledSubject, type BookingCancelledProps } from '@/emails/booking-cancelled'
 import BookingConfirmedEmail, { bookingConfirmedSubject, type BookingConfirmedProps } from '@/emails/booking-confirmed'
 import BookingReceivedEmail, { bookingReceivedSubject, type BookingReceivedProps } from '@/emails/booking-received'
@@ -35,9 +42,7 @@ export async function sendBookingReceived(props: BookingReceivedProps, meta: { b
 /** Email 2 – new booking (staff). Replies go straight to the customer. */
 export async function sendBookingAdminNotification(props: BookingAdminNotificationProps, recipients: string[], meta: { bookingId: string }) {
   const email = await renderBookingAdminNotification(props)
-  return Promise.all(
-    recipients.map((to) => sendEmail({ type: 'booking_admin_new', to, locale: 'sk', bookingId: meta.bookingId, replyTo: props.booking.customer.email, ...email })),
-  )
+  return Promise.all(recipients.map((to) => sendEmail({ type: 'booking_admin_new', to, locale: 'sk', bookingId: meta.bookingId, replyTo: props.booking.customer.email, ...email })))
 }
 
 export async function renderBookingConfirmed(props: BookingConfirmedProps) {
@@ -63,7 +68,11 @@ export async function sendBookingConfirmed(props: BookingConfirmedProps, meta: {
 }
 
 /** Email 6 – booking cancelled: the customer and every staff notification address. */
-export async function sendBookingCancelled(props: Omit<BookingCancelledProps, 'audience' | 'booking'> & { booking: BookingCancelledProps['booking']; staffBooking: BookingCancelledProps['booking'] }, staffRecipients: string[], meta: { bookingId: string; profileId: string }) {
+export async function sendBookingCancelled(
+  props: Omit<BookingCancelledProps, 'audience' | 'booking'> & { booking: BookingCancelledProps['booking']; staffBooking: BookingCancelledProps['booking'] },
+  staffRecipients: string[],
+  meta: { bookingId: string; profileId: string },
+) {
   const { staffBooking, ...rest } = props
   const [customer, staff] = await Promise.all([renderBookingCancelled({ ...rest, audience: 'customer' }), renderBookingCancelled({ ...rest, booking: staffBooking, audience: 'staff' })])
   return Promise.all([

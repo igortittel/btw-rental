@@ -50,12 +50,12 @@ export function BookingChangeRequestedEmail({ booking, changes, needsApproval, c
     <EmailLayout locale="sk" preview={`${customerName} · ${booking.number}`} company={booking.company}>
       <Text style={styles.h1}>{needsApproval ? `Úprava rezervácie ${booking.number} čaká na schválenie` : `Zákazník upravil rezerváciu ${booking.number}`}</Text>
       <Text style={{ ...styles.p, marginTop: '12px' }}>
-        {needsApproval
-          ? 'Potvrdená rezervácia ostáva v pôvodnom znení, kým úpravu neschválite alebo nezamietnete.'
-          : 'Rezervácia ešte nebola potvrdená, zmeny sa preto zapísali priamo.'}
+        {needsApproval ? 'Potvrdená rezervácia ostáva v pôvodnom znení, kým úpravu neschválite alebo nezamietnete.' : 'Rezervácia ešte nebola potvrdená, zmeny sa preto zapísali priamo.'}
       </Text>
       {collision ? (
-        <Text style={{ margin: '8px 0 16px', padding: '12px 16px', border: '1px solid #E0A458', borderRadius: '8px', backgroundColor: '#2A2114', fontSize: '14px', lineHeight: '20px', color: '#FFD9A0' }}>
+        <Text
+          style={{ margin: '8px 0 16px', padding: '12px 16px', border: '1px solid #E0A458', borderRadius: '8px', backgroundColor: '#2A2114', fontSize: '14px', lineHeight: '20px', color: '#FFD9A0' }}
+        >
           ⚠ Navrhovaný termín koliduje s inou potvrdenou rezerváciou alebo blokáciou – úpravu nebude možné schváliť.
         </Text>
       ) : null}

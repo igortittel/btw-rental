@@ -14,7 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
     alternates: { languages: { sk: absoluteUrl(path, 'sk'), en: absoluteUrl(path, 'en') } },
   })
-  const latest = catalog.vehicles.map((v) => v.updatedAt).sort().at(-1)
+  const latest = catalog.vehicles
+    .map((v) => v.updatedAt)
+    .sort()
+    .at(-1)
 
   return [
     entry('/', latest, 1),

@@ -53,21 +53,21 @@
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #B88746;
+    background: #b88746;
   }
 }
 
 @layer utilities {
   .bg-gold-gradient {
-    background: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%);
+    background: linear-gradient(90deg, #b88746 48%, #fdf5a6 100%);
   }
   .text-gold-gradient {
-    background: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%);
+    background: linear-gradient(90deg, #b88746 48%, #fdf5a6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .border-gold-gradient {
-    border-image: linear-gradient(90deg, #B88746 48%, #FDF5A6 100%) 1;
+    border-image: linear-gradient(90deg, #b88746 48%, #fdf5a6 100%) 1;
   }
 }

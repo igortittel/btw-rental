@@ -102,7 +102,7 @@ export function VehicleBasicsFields({ vehicle, categories, nextSort }: { vehicle
       </div>
 
       <div className="grid gap-2 sm:grid-cols-3">
-        <Check label="Aktívne" name="is_active" defaultChecked={vehicle?.is_active ?? false} hint={vehicle ? "Neaktívne vozidlo je na webe skryté." : "Zapnite až po doplnení cien a fotiek."} />
+        <Check label="Aktívne" name="is_active" defaultChecked={vehicle?.is_active ?? false} hint={vehicle ? 'Neaktívne vozidlo je na webe skryté.' : 'Zapnite až po doplnení cien a fotiek.'} />
         <Check label="Na prenájom" name="for_rental" defaultChecked={vehicle?.for_rental ?? true} hint="Zobrazuje sa v katalógu." />
         <Check label="Na transfer" name="for_transfer" defaultChecked={vehicle?.for_transfer ?? false} hint="Len evidenčný príznak." />
       </div>

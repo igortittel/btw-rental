@@ -29,16 +29,7 @@ export async function VehicleCard({ vehicle, priority = false, dates }: { vehicl
     <article className="flex h-full flex-col rounded-xl border border-gold/50 bg-surface transition-colors hover:border-gold">
       <Link href={href} className="block p-6 pb-0" tabIndex={-1} aria-hidden="true">
         <div className="relative aspect-[10/7]">
-          {image ? (
-            <Image
-              src={vehicleImageUrl(image.path)}
-              alt=""
-              fill
-              sizes="(min-width: 1024px) 340px, (min-width: 640px) 45vw, 90vw"
-              className="object-contain"
-              priority={priority}
-            />
-          ) : null}
+          {image ? <Image src={vehicleImageUrl(image.path)} alt="" fill sizes="(min-width: 1024px) 340px, (min-width: 640px) 45vw, 90vw" className="object-contain" priority={priority} /> : null}
         </div>
       </Link>
       <div className="flex flex-1 flex-col p-6">
@@ -58,14 +49,16 @@ export async function VehicleCard({ vehicle, priority = false, dates }: { vehicl
             </li>
           ))}
         </ul>
-        <p className="mt-5 text-base font-semibold text-white">
-          {vehicle.priceFromCents !== null ? t('priceFrom', { price: formatEuro(vehicle.priceFromCents, locale) }) : t('priceOnRequest')}
-        </p>
+        <p className="mt-5 text-base font-semibold text-white">{vehicle.priceFromCents !== null ? t('priceFrom', { price: formatEuro(vehicle.priceFromCents, locale) }) : t('priceOnRequest')}</p>
         <div className="mt-5 grid grid-cols-2 gap-3 pt-1">
           <Link href={href} className="flex h-11 items-center justify-center rounded-lg border border-gold text-sm font-semibold text-white transition-colors hover:bg-gold/15">
             {t('detail')}
           </Link>
-          <Link href={bookingHref(vehicle, dates)} className="flex h-11 items-center justify-center rounded-lg bg-gold text-sm font-semibold text-white transition-colors hover:bg-gold-hover" rel="nofollow">
+          <Link
+            href={bookingHref(vehicle, dates)}
+            className="flex h-11 items-center justify-center rounded-lg bg-gold text-sm font-semibold text-white transition-colors hover:bg-gold-hover"
+            rel="nofollow"
+          >
             {t('book')}
           </Link>
         </div>

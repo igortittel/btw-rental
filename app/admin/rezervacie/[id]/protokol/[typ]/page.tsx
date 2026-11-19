@@ -7,7 +7,20 @@ import { requireStaff } from '@/lib/auth/session'
 import { BOOKING_STATUS_LABELS } from '@/lib/booking/status'
 import { discardProtocolDraftAction, generateProtocolPdfAction, resendProtocolEmailAction, startProtocolAction } from '@/lib/protocol/actions'
 import { accessoriesOf, cleanlinessOf, draftOf, latestSigned, loadProtocols, protocolToDraft, signedMediaUrls } from '@/lib/protocol/load'
-import { CLEANLINESS_LABEL, PROTOCOL_TITLE, defaultAccessories, fuelLabel, missingAccessories, protocolTypeFromSlug, returnAccessories, usesCharge, usesFuel, type DamageKind, type DamageView, type PhotoAngle } from '@/lib/protocol/model'
+import {
+  CLEANLINESS_LABEL,
+  PROTOCOL_TITLE,
+  defaultAccessories,
+  fuelLabel,
+  missingAccessories,
+  protocolTypeFromSlug,
+  returnAccessories,
+  usesCharge,
+  usesFuel,
+  type DamageKind,
+  type DamageView,
+  type PhotoAngle,
+} from '@/lib/protocol/model'
 import { getSettings } from '@/lib/settings'
 import { createClient } from '@/lib/supabase/server'
 import { formatEuro } from '@/lib/format'
@@ -64,7 +77,15 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
           chargeLevel: referenceRow.charge_level,
           ...cleanlinessOf(referenceRow),
           accessories: accessoriesOf(referenceRow),
-          damages: referenceRow.damages.map((d) => ({ id: d.id, view: d.view as DamageView, x: Number(d.x), y: Number(d.y), kind: d.kind as DamageKind, description: d.description, photoPath: d.photo_path })),
+          damages: referenceRow.damages.map((d) => ({
+            id: d.id,
+            view: d.view as DamageView,
+            x: Number(d.x),
+            y: Number(d.y),
+            kind: d.kind as DamageKind,
+            description: d.description,
+            photoPath: d.photo_path,
+          })),
           photos: referenceRow.photos.map((p) => ({ angle: p.angle as PhotoAngle, path: p.storage_path })),
         }
       : null
@@ -108,8 +129,16 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
               type === 'pickup' && !draft.supersedes_id && settings.require_payment_before_pickup
                 ? missingPayments(booking).map((kind) =>
                     kind === 'rental'
-                      ? { kind, label: `${booking.rental_payment_status === 'unpaid' ? 'Prenájom' : 'Doplatok prenájmu'} ${formatEuro(rentalOutstandingCents(booking))}`, method: booking.rental_payment_method }
-                      : { kind, label: `${booking.deposit_status === 'pending' ? 'Depozit' : 'Doplatok depozitu'} ${formatEuro(depositOutstandingCents(booking))}`, method: booking.deposit_payment_method },
+                      ? {
+                          kind,
+                          label: `${booking.rental_payment_status === 'unpaid' ? 'Prenájom' : 'Doplatok prenájmu'} ${formatEuro(rentalOutstandingCents(booking))}`,
+                          method: booking.rental_payment_method,
+                        }
+                      : {
+                          kind,
+                          label: `${booking.deposit_status === 'pending' ? 'Depozit' : 'Doplatok depozitu'} ${formatEuro(depositOutstandingCents(booking))}`,
+                          method: booking.deposit_payment_method,
+                        },
                   )
                 : [],
             today: utcToZonedLocal(new Date()).slice(0, 10),
@@ -134,7 +163,12 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
     const notReturned = type === 'return' && pickup ? missingAccessories(accessoriesOf(pickup), accessoriesOf(signed)) : []
     const rows: [string, string][] = [
       [type === 'pickup' ? 'Odovzdané' : 'Prevzaté', signed.handover_at ? formatDateTime(signed.handover_at) : '—'],
-      ['Tachometer', signed.odometer_km === null ? '—' : `${new Intl.NumberFormat('sk-SK').format(signed.odometer_km)} km${type === 'return' && pickup?.odometer_km != null ? ` · najazdené ${new Intl.NumberFormat('sk-SK').format(signed.odometer_km - pickup.odometer_km)} km` : ''}`],
+      [
+        'Tachometer',
+        signed.odometer_km === null
+          ? '—'
+          : `${new Intl.NumberFormat('sk-SK').format(signed.odometer_km)} km${type === 'return' && pickup?.odometer_km != null ? ` · najazdené ${new Intl.NumberFormat('sk-SK').format(signed.odometer_km - pickup.odometer_km)} km` : ''}`,
+      ],
       ...(usesFuel(fuel) ? ([['Palivo', fuelLabel(signed.fuel_level)]] as [string, string][]) : []),
       ...(usesCharge(fuel) ? ([['Nabitie batérie', signed.charge_level === null ? '—' : `${signed.charge_level} %`]] as [string, string][]) : []),
       ['Čistota', `interiér ${CLEANLINESS_LABEL[clean.interior].toLowerCase()} · exteriér ${CLEANLINESS_LABEL[clean.exterior].toLowerCase()}`],
@@ -191,13 +225,17 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
               <ActionForm action={resendProtocolEmailAction}>
                 <input type="hidden" name="protocolId" value={signed.id} />
                 <p className="mb-2 text-sm text-muted2">Zákazník dostal protokol e-mailom pri podpise. Ak e-mail neodišiel, pošlite ho znova.</p>
-                <SubmitButton variant="outline" pendingLabel="Odosielam…">Poslať protokol e-mailom znova</SubmitButton>
+                <SubmitButton variant="outline" pendingLabel="Odosielam…">
+                  Poslať protokol e-mailom znova
+                </SubmitButton>
               </ActionForm>
               <ActionForm action={startProtocolAction} confirm="Vytvoriť opravnú verziu? Otvorí sa kópia protokolu, ktorú treba upraviť a znova podpísať so zákazníkom.">
                 <input type="hidden" name="bookingId" value={id} />
                 <input type="hidden" name="type" value={type} />
                 <p className="mb-2 text-sm text-muted2">Podpísaný protokol sa nedá meniť. Chybu opraví len nová verzia, ktorú zákazník znova podpíše; pôvodná ostáva uložená.</p>
-                <SubmitButton variant="outline" pendingLabel="Otváram…">Vytvoriť opravnú verziu</SubmitButton>
+                <SubmitButton variant="outline" pendingLabel="Otváram…">
+                  Vytvoriť opravnú verziu
+                </SubmitButton>
               </ActionForm>
             </div>
           </Section>
@@ -207,9 +245,16 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
               <ul className="space-y-2 text-sm text-white">
                 {versions.map((version) => (
                   <li key={version.id} className="flex flex-wrap gap-x-3">
-                    <span>Verzia {version.version}{version.id === signed.id ? ' (platná)' : ' (nahradená)'}</span>
+                    <span>
+                      Verzia {version.version}
+                      {version.id === signed.id ? ' (platná)' : ' (nahradená)'}
+                    </span>
                     <span className="text-muted2">{formatDateTime(version.signed_at!)}</span>
-                    {version.pdf_path ? <a href={`/api/protocols/${version.id}/pdf`} target="_blank" rel="noopener" className="text-gold underline-offset-4 hover:underline">PDF</a> : null}
+                    {version.pdf_path ? (
+                      <a href={`/api/protocols/${version.id}/pdf`} target="_blank" rel="noopener" className="text-gold underline-offset-4 hover:underline">
+                        PDF
+                      </a>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -225,7 +270,10 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
   return (
     <div>
       <PageHeader title={title} back={back} />
-      <Section title={`${booking.vehicles?.name ?? ''}${booking.vehicles?.license_plate ? ` · ${booking.vehicles.license_plate}` : ''}`} description={`${customerName} · ${formatDateTime(booking.pickup_at)} – ${formatDateTime(booking.return_at)}`}>
+      <Section
+        title={`${booking.vehicles?.name ?? ''}${booking.vehicles?.license_plate ? ` · ${booking.vehicles.license_plate}` : ''}`}
+        description={`${customerName} · ${formatDateTime(booking.pickup_at)} – ${formatDateTime(booking.return_at)}`}
+      >
         {allowed ? (
           <ActionForm action={startProtocolAction}>
             <input type="hidden" name="bookingId" value={id} />
@@ -241,11 +289,11 @@ export default async function ProtocolPage({ params }: { params: Promise<{ id: s
           </ActionForm>
         ) : (
           <p className="text-sm text-muted2">
-            Rezervácia je v stave „{BOOKING_STATUS_LABELS[booking.status]}“. {type === 'pickup' ? 'Odovzdávací protokol sa vypĺňa pri potvrdenej rezervácii.' : 'Preberací protokol sa vypĺňa pri prebiehajúcej rezervácii.'}
+            Rezervácia je v stave „{BOOKING_STATUS_LABELS[booking.status]}“.{' '}
+            {type === 'pickup' ? 'Odovzdávací protokol sa vypĺňa pri potvrdenej rezervácii.' : 'Preberací protokol sa vypĺňa pri prebiehajúcej rezervácii.'}
           </p>
         )}
       </Section>
     </div>
   )
 }
-

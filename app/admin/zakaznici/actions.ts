@@ -43,9 +43,7 @@ export async function saveBlacklistAction(_prev: ActionState, formData: FormData
     const on = checkbox(formData, 'blacklisted')
     const note = text(formData, 'reason').slice(0, 1000)
     if (on && !note) return { error: 'Napíšte dôvod – zobrazí sa kolegom pri ďalšej rezervácii.' }
-    const { error } = await supabase
-      .from('customer_internal')
-      .upsert({ profile_id: id, is_blacklisted: on, blacklist_note: on ? note : null, updated_by: userId }, { onConflict: 'profile_id' })
+    const { error } = await supabase.from('customer_internal').upsert({ profile_id: id, is_blacklisted: on, blacklist_note: on ? note : null, updated_by: userId }, { onConflict: 'profile_id' })
     if (error) return { error: dbErrorMessage(error) }
     refresh(id)
     return { ok: true, message: on ? 'Zákazník je na blackliste.' : 'Zákazník odstránený z blacklistu.' }
@@ -59,7 +57,11 @@ export async function saveRefundIbanAction(_prev: ActionState, formData: FormDat
     if (!id) return { error: 'Zákazník sa nenašiel.' }
     const iban = normalizeIban(text(formData, 'iban'))
     if (iban && !isValidIban(iban)) return { error: 'IBAN nie je platný.' }
-    const { error } = await supabase.from('profiles').update({ refund_iban: iban || null }).eq('id', id).eq('type', 'customer')
+    const { error } = await supabase
+      .from('profiles')
+      .update({ refund_iban: iban || null })
+      .eq('id', id)
+      .eq('type', 'customer')
     if (error) return { error: dbErrorMessage(error) }
     refresh(id)
     return { ok: true, message: 'Účet na vrátenie depozitu uložený.' }
