@@ -33,7 +33,7 @@ export async function SiteHeader() {
     <header className="fixed top-0 z-50 w-full border-b border-gold/30 bg-[#111111]">
       <div className="flex items-center justify-between gap-4 px-6 py-4">
         <Link href="/" aria-label={`${t('name')} – ${t('tagline')}`} className="flex shrink-0 items-center">
-          <Image src="/images/logo.svg" alt={t('name')} width={120} height={40} className="h-10 w-auto" priority />
+          <Image src="/images/logo.svg" alt={t('name')} width={44} height={40} className="h-10 w-auto" preload />
         </Link>
 
         <nav aria-label={c('navCategories')} className="hidden items-center gap-8 lg:flex">

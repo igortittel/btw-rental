@@ -51,7 +51,7 @@ export function AdminNav({ primary, secondary, userName, roleLabel }: Props) {
       <header className="sticky top-0 z-40 border-b border-gold/40 bg-black">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link href="/admin" className="flex shrink-0 items-center gap-3">
-            <Image src="/images/logo.svg" alt="BY THE WAVE" width={84} height={28} className="h-7 w-auto" />
+            <Image src="/images/logo.svg" alt="BY THE WAVE" width={31} height={28} className="h-7 w-auto" />
             <span className="text-xs font-semibold uppercase tracking-widest text-gold">Admin</span>
           </Link>
 

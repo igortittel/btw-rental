@@ -9,7 +9,7 @@ export async function SiteFooter() {
     <footer className="border-t border-gold/30 bg-black px-6 py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 md:flex-row md:justify-between">
         <a href="https://www.btw.sk">
-          <Image src="/images/logo.svg" alt={t('name')} width={120} height={40} className="h-10 w-auto" />
+          <Image src="/images/logo.svg" alt={t('name')} width={44} height={40} className="h-10 w-auto" />
         </a>
         <div className="space-y-3 text-center md:text-left">
           <a className={linkClass} href="https://www.btw.sk/vseobecne-obchodne-podmienky">

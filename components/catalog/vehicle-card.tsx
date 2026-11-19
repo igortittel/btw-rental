@@ -29,7 +29,7 @@ export async function VehicleCard({ vehicle, priority = false, dates }: { vehicl
     <article className="flex h-full flex-col rounded-xl border border-gold/50 bg-surface transition-colors hover:border-gold">
       <Link href={href} className="block p-6 pb-0" tabIndex={-1} aria-hidden="true">
         <div className="relative aspect-[10/7]">
-          {image ? <Image src={vehicleImageUrl(image.path)} alt="" fill sizes="(min-width: 1024px) 340px, (min-width: 640px) 45vw, 90vw" className="object-contain" priority={priority} /> : null}
+          {image ? <Image src={vehicleImageUrl(image.path)} alt="" fill sizes="(min-width: 1024px) 340px, (min-width: 640px) 45vw, 90vw" className="object-contain" preload={priority} /> : null}
         </div>
       </Link>
       <div className="flex flex-1 flex-col p-6">

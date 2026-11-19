@@ -14,7 +14,16 @@ const shift = (year: number, month: number, delta: number) => {
   const index = year * 12 + (month - 1) + delta
   return { year: Math.floor(index / 12), month: (index % 12) + 1 }
 }
-const dayStart = (date: string) => zonedLocalToUtc(`${date}T00:00`)!.getTime()
+// Midnight of a local day as an instant; memoised because every render evaluates each visible day twice.
+const dayStarts = new Map<string, number>()
+const dayStart = (date: string) => {
+  let value = dayStarts.get(date)
+  if (value === undefined) {
+    value = zonedLocalToUtc(`${date}T00:00`)!.getTime()
+    dayStarts.set(date, value)
+  }
+  return value
+}
 const nextDate = (date: string) => new Date(Date.parse(`${date}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10)
 
 function currentMonth() {

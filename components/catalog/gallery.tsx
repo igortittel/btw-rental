@@ -63,14 +63,7 @@ export function Gallery({ images }: { images: GalleryImage[] }) {
             }}
             aria-label={`${t('openPhoto')} – ${t('photoOf', { index: i + 1, count: images.length })}`}
           >
-            <Image
-              src={image.url}
-              alt={image.alt}
-              fill
-              sizes="(min-width: 1024px) 560px, 100vw"
-              className={image.fit === 'contain' ? 'object-contain p-4 sm:p-6' : 'object-cover'}
-              priority={i === 0}
-            />
+            <Image src={image.url} alt={image.alt} fill sizes="(min-width: 1024px) 560px, 100vw" className={image.fit === 'contain' ? 'object-contain p-4 sm:p-6' : 'object-cover'} preload={i === 0} />
           </button>
         ))}
       </div>
