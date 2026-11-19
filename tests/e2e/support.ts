@@ -123,6 +123,10 @@ export async function signInCustomer(page: Page, email: string, password: string
   await page.locator('#email').fill(email)
   await page.locator('#password').fill(password)
   await page.locator('form:has(#password) button[type=submit]').click()
-  await expect(page.getByRole('alert')).toHaveCount(0)
-  await expect(page).toHaveURL((url) => url.pathname === '/moj-ucet')
+  // Either Môj účet opens or the form shows its error (Next.js also has a page-wide role="alert" announcer).
+  const formError = page.locator('form:has(#password) [role=alert]')
+  await expect(async () => {
+    if ((await formError.count()) > 0) throw new Error(`sign-in failed: ${await formError.first().textContent()}`)
+    expect(new URL(page.url()).pathname).toBe('/moj-ucet')
+  }).toPass({ timeout: 20_000 })
 }
