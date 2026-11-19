@@ -87,6 +87,7 @@ Podrobne v `docs/SECURITY.md` (sekcia Fáza 10):
   | audit log | natrvalo |
 
 - Security Advisor bez nových nálezov.
+- **Formuláre majú `method="post"`** – ak by niekto formulár odoslal skôr, než sa načíta JavaScript (pomalé pripojenie), prehliadač by ho inak poslal metódou GET a heslo či iné údaje by skončili v URL (história prehliadača, logy). Odhalil to E2E test.
 
 ## 8. Doména `rental.btw.sk`
 
@@ -152,7 +153,7 @@ npm run build && npx playwright test
 
 - `npm test` – **196 unit testov** (pribudli lehoty uchovávania).
 - `npm run lint`, `npm run typecheck`, `npm run format:check` – čisté.
-- E2E – 7 krokov (výsledok behu v GitHub Actions je v zhrnutí fázy).
+- **E2E – 7 z 7 krokov prešlo** v GitHub Actions (19. 11. 2026, beh „E2E“ #6, 18 s testov, ~2,5 min celý job vrátane Supabase a buildu).
 - Prehliadač lokálne: všetky verejné a admin stránky (bez chýb a porušení CSP), oprava „Ukladám…“, Výbava, EN detail.
 - **Lokálne sa nedalo overiť:**
   - odoslanie e-mailov a cron (chýba service role kľúč),

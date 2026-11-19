@@ -50,6 +50,9 @@ Overené: všetky verejné aj admin stránky, prihlásenie s 2FA, server akcie a
 ### Server akcie a API
 Prejdené všetky exportované server akcie: admin akcie cez `staffAction(min)` alebo `getStaff()`, zákaznícka zóna cez `getSessionUser()` (+ RLS), prihlásenie a odkazy na heslo s rate limitom (a Turnstile). Verejné sú zámerne len `checkTermAction` (overenie voľného termínu – rovnaký údaj ako `/api/availability`) a odhlásenie. Route handlery: `/api/availability` (len obsadené intervaly, bez osobných údajov), `/api/cron/daily` (`CRON_SECRET`), `/api/documents/[id]` a `/api/protocols/[id]/pdf` (RLS), `/admin/*/export` (rola).
 
+### Formuláre bez JavaScriptu
+Všetky formuláre odosielané cez JavaScript (prihlásenie, heslá, profil, admin) majú `method="post"`. Bez toho by odoslanie pred načítaním JavaScriptu poslalo údaje metódou GET – heslo by bolo v URL, histórii a logoch.
+
 ### Lehoty uchovávania (`lib/retention.ts`, denný cron)
 | Údaj | Lehota | Rozhodnutie |
 |---|---|---|
