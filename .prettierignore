@@ -10,3 +10,5 @@ docs
 public
 test-results
 playwright-report
+supabase/.temp
+.github
