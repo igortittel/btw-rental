@@ -234,3 +234,18 @@ describe('emails 7, 9, 11, 12', () => {
     expect(vi.mocked(sendEmail).mock.lastCall?.[0]).toMatchObject({ type: 'return_reminder' })
   })
 })
+
+describe('retention (Fáza 10)', async () => {
+  const { retentionCutoffs, RETENTION } = await import('@/lib/retention')
+  it('matches the client decision: e-mail log 12 months, cron runs 30 days', () => {
+    expect(RETENTION.emailLogMonths).toBe(12)
+    expect(RETENTION.cronRunsDays).toBe(30)
+  })
+  it('computes cut-off instants', () => {
+    const c = retentionCutoffs(new Date('2026-11-19T05:00:00Z'))
+    expect(c.emailLog).toBe('2025-11-19T05:00:00.000Z')
+    expect(c.cronRuns).toBe('2026-10-20T05:00:00.000Z')
+    expect(c.authTokens).toBe('2026-11-12T05:00:00.000Z')
+    expect(c.rateLimits).toBe('2026-11-18T05:00:00.000Z')
+  })
+})

@@ -1,7 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 import { createServerClient } from '@supabase/ssr'
 import { routing } from '@/i18n/routing'
+import { buildCsp, createNonce } from '@/lib/csp'
 
 const handleI18nRouting = createIntlMiddleware(routing)
 
@@ -11,8 +12,19 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/')
 
-  // Admin is Slovak only and lives outside the locale routing.
-  const response = isAdmin ? NextResponse.next({ request }) : handleI18nRouting(request)
+  // Per-request nonce for the Content-Security-Policy: passed to Next.js in the request headers
+  // (it marks its scripts with it) and sent to the browser in the response.
+  const nonce = createNonce()
+  const csp = buildCsp(nonce, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!, dev: process.env.NODE_ENV === 'development' })
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('content-security-policy', csp)
+  const forwarded = new NextRequest(request, { headers: requestHeaders })
+
+  // Admin is Slovak only and lives outside the locale routing. next-intl copies the request
+  // headers into its rewrite, so the nonce reaches the page in both cases.
+  const response = isAdmin ? NextResponse.next({ request: { headers: requestHeaders } }) : handleI18nRouting(forwarded)
+  response.headers.set('Content-Security-Policy', csp)
 
   // Refresh the Supabase session cookie. Authorisation itself (roles) is checked in
   // the layouts and server actions against the database, not here.

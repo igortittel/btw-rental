@@ -2,6 +2,7 @@ import 'server-only'
 import { localizedPath } from '@/i18n/routing'
 import { bookingEmailDataFromRow } from '@/lib/booking/email-data'
 import { dailyWindows } from '@/lib/cron/windows'
+import { retentionCutoffs } from '@/lib/retention'
 import { sendBookingReminder, sendReviewRequest } from '@/lib/email/booking-emails'
 import { formatEuro } from '@/lib/format'
 import { depositOutstandingCents, missingPayments, rentalOutstandingCents } from '@/lib/payment'
@@ -14,7 +15,7 @@ type Booking = Database['public']['Tables']['bookings']['Row']
 type BookingUpdate = Database['public']['Tables']['bookings']['Update']
 type Admin = ReturnType<typeof createAdminClient>
 type Counter = { sent: number; failed: number; skipped: number }
-export type DailyResult = { pickup: Counter; return: Counter; review: Counter; cleanup: { tokens: number; rateLimits: number } }
+export type DailyResult = { pickup: Counter; return: Counter; review: Counter; cleanup: { tokens: number; rateLimits: number; emailLog: number; cronRuns: number } }
 
 const counter = (): Counter => ({ sent: 0, failed: 0, skipped: 0 })
 const SELECT = '*, vehicles(name, assistance)'
@@ -52,7 +53,7 @@ export async function runDaily(now = new Date()): Promise<DailyResult> {
   const origin = getConfiguredOrigin()
   const w = dailyWindows(now, settings.review_request_days)
   const at = now.toISOString()
-  const result: DailyResult = { pickup: counter(), return: counter(), review: counter(), cleanup: { tokens: 0, rateLimits: 0 } }
+  const result: DailyResult = { pickup: counter(), return: counter(), review: counter(), cleanup: { tokens: 0, rateLimits: 0, emailLog: 0, cronRuns: 0 } }
   const accountUrl = (b: Booking, locale: 'sk' | 'en') => `${origin}${localizedPath(locale, `/moj-ucet/rezervacie/${b.id}`)}`
   const assistanceOf = (row: Row) => ((row.vehicles?.assistance ?? null) as { phone?: string } | null)?.phone || settings.assistance.phone || null
 
@@ -164,13 +165,12 @@ export async function runDaily(now = new Date()): Promise<DailyResult> {
     }
   }
 
-  // ── housekeeping: expired one-time links and old rate-limit counters ──
-  const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString()
-  const { count: tokens } = await admin.from('auth_tokens').delete({ count: 'exact' }).lt('expires_at', weekAgo)
-  const { count: limits } = await admin
-    .from('rate_limits')
-    .delete({ count: 'exact' })
-    .lt('window_start', new Date(now.getTime() - 86_400_000).toISOString())
-  result.cleanup = { tokens: tokens ?? 0, rateLimits: limits ?? 0 }
+  // ── housekeeping: retention periods (lib/retention.ts) ──
+  const cutoff = retentionCutoffs(now)
+  const { count: tokens } = await admin.from('auth_tokens').delete({ count: 'exact' }).lt('expires_at', cutoff.authTokens)
+  const { count: limits } = await admin.from('rate_limits').delete({ count: 'exact' }).lt('window_start', cutoff.rateLimits)
+  const { count: emails } = await admin.from('email_log').delete({ count: 'exact' }).lt('created_at', cutoff.emailLog)
+  const { count: runs } = await admin.from('cron_runs').delete({ count: 'exact' }).lt('started_at', cutoff.cronRuns)
+  result.cleanup = { tokens: tokens ?? 0, rateLimits: limits ?? 0, emailLog: emails ?? 0, cronRuns: runs ?? 0 }
   return result
 }

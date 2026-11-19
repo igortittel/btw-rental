@@ -12,9 +12,9 @@ Views `public_locations`, `public_settings`, `public_price_tiers`, `public_categ
 - V `audit_log` nie je žiadna zmena týchto tabuliek bez prihláseného zamestnanca. Nastavenia a cenové pásma však audit nezaznamenáva, takže zneužitie sa nedá úplne vylúčiť. Odporúčanie: klient nech skontroluje v admine miesta, cenové pásma a nastavenia.
 - Regresný test: `supabase/tests/05_security.sql` (žiadny view nie je zapisovateľný, `anon` nečíta žiadnu tabuľku, všetky tabuľky majú RLS).
 
-### 2. Bezpečnostné HTTP hlavičky – doplnené (`next.config.js`)
+### 2. Bezpečnostné HTTP hlavičky – doplnené (`next.config.mjs`)
 HSTS, `X-Frame-Options: SAMEORIGIN` + CSP `frame-ancestors 'self'` (proti clickjackingu adminu), `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` (tokeny z odkazov neodídu cez Referer), `Permissions-Policy`, `Cross-Origin-Opener-Policy`, bez `X-Powered-By`, `/admin` s `X-Robots-Tag: noindex`.
-CSP zámerne neobmedzuje skripty – to by vyžadovalo nonce a dynamické renderovanie všetkých stránok.
+CSP pre skripty doplnila Fáza 10 (nižšie).
 
 ## Skontrolované, v poriadku
 
@@ -41,10 +41,34 @@ CSP zámerne neobmedzuje skripty – to by vyžadovalo nonce a dynamické render
 ### Kontrola uniknutých hesiel v aplikácii
 Náhrada za Supabase „Leaked password protection“: `lib/auth/pwned.ts` overí nové heslo cez Have I Been Pwned (Pwned Passwords) pri nastavení hesla cez odkaz (`setPasswordAction`) aj pri zmene v profile (`changeMyPasswordAction`) – iné cesty k nastaveniu hesla nie sú, verejná registrácia je vypnutá. Zo servera odchádza len prvých 5 znakov SHA-1 hashu (k-anonymita), heslo ani celý hash nie. Pri výpadku služby (timeout 3 s) sa heslo prijme. Chyba pre používateľa: `password_pwned`.
 
-## Ešte v pláne (aplikácia)
+## Fáza 10 – bezpečnostný review (19. 11. 2026)
 
-- 2FA pre zamestnancov (aspoň owner a manager) – pred ostrým spustením.
-- Fáza 9: obrazovka audit logu, vykonanie žiadosti o vymazanie (GDPR), lehoty uchovávania.
+### Content-Security-Policy s nonce (`lib/csp.ts`, `proxy.ts`)
+Každá HTML stránka dostane nový náhodný nonce (128 bitov). Skripty smú bežať len s ním (`script-src 'self' 'nonce-…' 'strict-dynamic'`), takže vložený cudzí `<script>` (XSS) sa nespustí. Next.js nonce prečíta z hlavičky požiadavky a doplní ho na svoje skripty; Turnstile načíta náš skript, preto prejde cez `'strict-dynamic'`. Ďalej: obrázky len z vlastnej domény a Supabase, spojenia len na vlastnú doménu, Supabase a Cloudflare Turnstile, iframe len Turnstile a vlastná doména, `object-src 'none'`, `upgrade-insecure-requests`. `'unsafe-eval'` len vo vývojovom režime. Štýly ostávajú `'unsafe-inline'` (React a next/image používajú inline štýly).
+Overené: všetky verejné aj admin stránky, prihlásenie s 2FA, server akcie a kalendár bez jediného porušenia CSP. Panel Vercel Toolbar (komentáre na preview) CSP blokuje – na funkciu webu to nemá vplyv.
+
+### Server akcie a API
+Prejdené všetky exportované server akcie: admin akcie cez `staffAction(min)` alebo `getStaff()`, zákaznícka zóna cez `getSessionUser()` (+ RLS), prihlásenie a odkazy na heslo s rate limitom (a Turnstile). Verejné sú zámerne len `checkTermAction` (overenie voľného termínu – rovnaký údaj ako `/api/availability`) a odhlásenie. Route handlery: `/api/availability` (len obsadené intervaly, bez osobných údajov), `/api/cron/daily` (`CRON_SECRET`), `/api/documents/[id]` a `/api/protocols/[id]/pdf` (RLS), `/admin/*/export` (rola).
+
+### Lehoty uchovávania (`lib/retention.ts`, denný cron)
+| Údaj | Lehota | Rozhodnutie |
+|---|---|---|
+| `email_log` (príjemca, typ, stav e-mailu) | 12 mesiacov | klient 19. 11. 2026 |
+| `cron_runs` | 30 dní | klient |
+| `auth_tokens` (odkazy na heslo) | 7 dní po expirácii | Fáza 9 |
+| `rate_limits` | 1 deň | Fáza 9 |
+| `audit_log` | natrvalo (nemenný) | klient |
+| rezervácie, protokoly, doklady | neobmedzene; osobné údaje odstraňuje anonymizácia (GDPR) | Fáza 9 |
+
+### Security Advisor (19. 11. 2026) – bez nových nálezov
+- `security_definer_view` (5× `public_*`): zámer – views obchádzajú RLS, ale vyberajú len verejné stĺpce a sú len na čítanie (test `05_security.sql`).
+- `*_security_definer_function_executable`: RPC si rolu / vlastníka overujú vo vnútri (`private.is_staff`, `auth.uid()`); `is_vehicle_available` a `vehicle_availability` sú verejné zámerne (dostupnosť bez osobných údajov).
+- `rls_enabled_no_policy` (`auth_tokens`, `rate_limits`): zámer – prístup len cez service role.
+- `auth_leaked_password_protection`: nedostupné na pláne, nahradené v aplikácii (`lib/auth/pwned.ts`).
+
+## Ešte v pláne
+
+- Pred spustením: 2FA na všetkých účtoch dashboardov (Supabase, Vercel, GitHub, Resend, Cloudflare, DNS), Turnstile kľúče, celkové zmazanie testovacích údajov – viď `docs/RELEASE-CHECKLIST.md`.
 
 ## Pravidlá do budúcna
 
