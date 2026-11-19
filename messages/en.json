@@ -8,7 +8,15 @@
     "admin": "Administration",
     "logout": "Sign out",
     "terms": "Terms and conditions",
-    "privacy": "Privacy policy"
+    "privacy": "Privacy policy",
+    "skipToContent": "Skip to content",
+    "notFoundTitle": "Page not found",
+    "notFoundText": "The address does not exist or the vehicle is no longer available.",
+    "notFoundCta": "Back to our vehicles",
+    "errorTitle": "Something went wrong",
+    "errorText": "The page could not be loaded. Please try again in a moment.",
+    "errorRetry": "Try again",
+    "orgDescription": "Premium car rental in Bratislava – Mercedes-Benz sedans, SUVs, limousines and vans."
   },
   "auth": {
     "loginTitle": "Sign in",

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { AdminNav } from '@/components/admin/admin-nav'
 import { TwoFactorGate } from '@/components/admin/two-factor-gate'
+import { SkipLink } from '@/components/site/skip-link'
 import { hasRole, STAFF_ROLE_LABELS } from '@/lib/auth/roles'
 import { requireStaff } from '@/lib/auth/session'
 
@@ -45,8 +46,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-[#111111]">
+      <SkipLink label="Preskočiť na obsah" />
       <AdminNav primary={primary} secondary={secondary} userName={[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email} roleLabel={STAFF_ROLE_LABELS[user.role]} />
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 md:pb-12 md:pt-8">{children}</main>
+      <main id="obsah" tabIndex={-1} className="mx-auto max-w-6xl px-4 pb-28 pt-6 focus:outline-none sm:px-6 md:pb-12 md:pt-8">
+        {children}
+      </main>
     </div>
   )
 }

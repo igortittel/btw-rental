@@ -22,6 +22,9 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // Render metadata (title, description, canonical, hreflang) in <head> for every visitor instead of
+  // streaming it into <body>: search engines ignore canonical/hreflang outside <head>.
+  htmlLimitedBots: /.*/,
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },

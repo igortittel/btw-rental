@@ -5,7 +5,7 @@ import { CatalogView, isFilteredVariant } from '@/components/catalog/catalog-vie
 import { getCatalog, localize } from '@/lib/catalog'
 import { parseCatalogFilters } from '@/lib/catalog-filters'
 import { formatEuro } from '@/lib/format'
-import { alternates } from '@/lib/seo'
+import { alternates, DEFAULT_OG_IMAGE, ogLocale } from '@/lib/seo'
 
 type Props = { params: Promise<{ locale: string; kategoria: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }
 
@@ -34,7 +34,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     description,
     alternates: alternates(`/${category.slug}`, locale),
     robots: isFilteredVariant(filters) || vehicles.length === 0 ? { index: false, follow: true } : undefined,
-    openGraph: { title: t('categoryMetaTitle', { category: name }), description, type: 'website', locale: locale === 'en' ? 'en_GB' : 'sk_SK' },
+    openGraph: { title: t('categoryMetaTitle', { category: name }), description, type: 'website', locale: ogLocale(locale), siteName: 'BY THE WAVE', images: [DEFAULT_OG_IMAGE] },
   }
 }
 

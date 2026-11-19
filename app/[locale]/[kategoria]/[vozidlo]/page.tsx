@@ -8,7 +8,7 @@ import { Link } from '@/i18n/navigation'
 import { localizedPath } from '@/i18n/routing'
 import { getCatalog, localize, type PublicVehicle } from '@/lib/catalog'
 import { formatEuro } from '@/lib/format'
-import { absoluteUrl, alternates } from '@/lib/seo'
+import { absoluteUrl, alternates, jsonLdScript, ogLocale, SITE_URL } from '@/lib/seo'
 import { vehicleImageUrl } from '@/lib/storage'
 import { localDateInHours } from '@/lib/time'
 import { parseVehicleSegment, vehiclePath } from '@/lib/vehicle-url'
@@ -59,7 +59,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'website',
       url: absoluteUrl(path, locale),
-      locale: locale === 'en' ? 'en_GB' : 'sk_SK',
+      locale: ogLocale(locale),
+      siteName: 'BY THE WAVE',
       images: image ? [{ url: vehicleImageUrl(image.path), width: image.width ?? undefined, height: image.height ?? undefined, alt: vehicle.name }] : undefined,
     },
   }
@@ -145,7 +146,7 @@ export default async function VehiclePage({ params }: Props) {
             priceSpecification: { '@type': 'UnitPriceSpecification', price: (vehicle.priceFromCents / 100).toFixed(2), priceCurrency: 'EUR', unitCode: 'DAY', valueAddedTaxIncluded: true },
             availability: 'https://schema.org/InStock',
             url: absoluteUrl(canonical, locale),
-            seller: { '@type': 'Organization', name: settings.company.name },
+            seller: { '@type': 'AutoRental', '@id': `${SITE_URL}/#organization`, name: settings.company.name },
           }
         : undefined,
   }
@@ -168,7 +169,7 @@ export default async function VehiclePage({ params }: Props) {
 
   return (
     <article className="pb-20 pt-24">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <div className="mx-auto max-w-6xl px-6">
         <Link href={`/${vehicle.categorySlug}`} className="inline-flex min-h-11 items-center text-sm text-muted2 hover:text-white">

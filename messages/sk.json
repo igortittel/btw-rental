@@ -8,7 +8,15 @@
     "admin": "Administrácia",
     "logout": "Odhlásiť sa",
     "terms": "Všeobecné obchodné podmienky",
-    "privacy": "Ochrana osobných údajov"
+    "privacy": "Ochrana osobných údajov",
+    "skipToContent": "Preskočiť na obsah",
+    "notFoundTitle": "Stránka sa nenašla",
+    "notFoundText": "Adresa neexistuje alebo vozidlo už nie je v ponuke.",
+    "notFoundCta": "Späť na ponuku vozidiel",
+    "errorTitle": "Niečo sa pokazilo",
+    "errorText": "Stránku sa nepodarilo načítať. Skúste to znova o chvíľu.",
+    "errorRetry": "Skúsiť znova",
+    "orgDescription": "Prenájom prémiových vozidiel v Bratislave – sedany, SUV, limuzíny a vany Mercedes-Benz."
   },
   "auth": {
     "loginTitle": "Prihlásenie",
