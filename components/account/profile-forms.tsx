@@ -58,6 +58,7 @@ export function ProfileForm({ email, initial: start }: { email: string; initial:
 
   return (
     <form
+      method="post"
       noValidate
       className="space-y-6"
       onSubmit={(event) => {
@@ -133,7 +134,7 @@ export function PasswordForm() {
   const auth = useTranslations('auth')
   const { state, pending, onSubmit } = useFormAction(changeMyPasswordAction, initial)
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="space-y-4" noValidate>
       <Field id="currentPassword" label={t('currentPassword')} className="sm:max-w-sm">
         <TextInput id="currentPassword" name="currentPassword" type="password" autoComplete="current-password" required />
       </Field>
@@ -160,7 +161,7 @@ export function DeleteAccountForm() {
   const { state, pending, onSubmit } = useFormAction(requestAccountDeletionAction, initial)
   if (state.ok) return null // the page re-renders with the "request received" notice
   return (
-    <form onSubmit={onSubmit} className="space-y-3" noValidate>
+    <form method="post" onSubmit={onSubmit} className="space-y-3" noValidate>
       <label htmlFor="delete-confirm" className="flex min-h-11 cursor-pointer items-start gap-3 text-[15px] leading-6 text-white">
         <input id="delete-confirm" name="confirm" type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-gold" />
         <span>{t('deleteConfirm')}</span>

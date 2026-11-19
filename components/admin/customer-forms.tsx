@@ -99,7 +99,7 @@ export function EraseCustomerForm({ id, name, hasBookings, blocked }: { id: stri
     )
   }
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-xl border border-red-400/60 bg-red-500/5 p-4">
+    <form method="post" onSubmit={onSubmit} className="space-y-3 rounded-xl border border-red-400/60 bg-red-500/5 p-4">
       <input type="hidden" name="id" value={id} />
       <p className="text-sm text-white">
         <strong>{hasBookings ? `Anonymizovať ${name}?` : `Úplne vymazať ${name}?`}</strong> Osobné údaje sa nenávratne odstránia a zákazník sa už neprihlási. Nedá sa to vrátiť späť.

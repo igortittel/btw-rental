@@ -125,6 +125,7 @@ export function VehicleImages({ vehicleId, images, canEdit }: { vehicleId: strin
             </p>
             {canEdit && editingAlt === image.id ? (
               <form
+                method="post"
                 className="mt-2 space-y-2"
                 onSubmit={(event) => {
                   event.preventDefault()

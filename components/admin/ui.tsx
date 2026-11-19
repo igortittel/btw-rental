@@ -69,6 +69,8 @@ export function ActionForm({
   return (
     <form
       ref={ref}
+      // POST (never GET) if someone submits before the JavaScript has loaded: field values must not end up in the URL.
+      method="post"
       className={className}
       noValidate
       onSubmit={(e) => {

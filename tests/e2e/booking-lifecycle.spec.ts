@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
-import { bookingByNumber, createStaff, dayInFuture, serviceClient, sign, staffPage, strongPassword, type StaffAccount } from './support'
+import { bookingByNumber, createStaff, dayInFuture, serviceClient, sign, signInCustomer, staffPage, strongPassword, type StaffAccount } from './support'
 
 /**
  * The whole life of one booking, in order (each step needs the previous one):
@@ -37,7 +37,7 @@ test.beforeAll(async () => {
 })
 
 test('1 · visitor books a vehicle', async ({ page }) => {
-  await page.goto(`/rezervacia?vozidlo=${VIN}&od=${pickupDate}&do=${returnDate}`)
+  await page.goto(`/rezervacia?vozidlo=${VIN}&od=${pickupDate}&do=${returnDate}`, { waitUntil: 'networkidle' })
   await expect(page.getByRole('heading', { level: 1, name: 'Rezervácia' })).toBeVisible()
   const opened = Date.now()
 
@@ -97,11 +97,11 @@ test('3 · customer sets a password through the one-time link', async ({ browser
 
   const customer = await browser.newContext()
   const customerPage = await customer.newPage()
-  await customerPage.goto(link.pathname + link.search)
+  await customerPage.goto(link.pathname + link.search, { waitUntil: 'networkidle' })
   await customerPage.locator('#password').fill(customerPassword)
   await customerPage.locator('#passwordConfirm').fill(customerPassword)
   await customerPage.getByRole('button', { name: 'Uložiť heslo a prihlásiť sa' }).click()
-  await expect(customerPage).toHaveURL(/\/moj-ucet/)
+  await expect(customerPage).toHaveURL((url) => url.pathname === '/moj-ucet')
   await expect(customerPage.getByText(bookingNumber).first()).toBeVisible()
   await customer.close()
 
@@ -110,11 +110,7 @@ test('3 · customer sets a password through the one-time link', async ({ browser
 })
 
 test('4 · customer changes the confirmed booking -> modified', async ({ page }) => {
-  await page.goto('/prihlasenie?next=/moj-ucet')
-  await page.locator('#email').fill(customerEmail)
-  await page.locator('#password').fill(customerPassword)
-  await page.locator('form:has(#password) button[type=submit]').click()
-  await expect(page).toHaveURL(/\/moj-ucet$/)
+  await signInCustomer(page, customerEmail, customerPassword)
 
   const before = await bookingByNumber(bookingNumber)
   expect(before, 'booking must be confirmed with a price list price to be editable online').toMatchObject({ status: 'confirmed', price_override_reason: null })

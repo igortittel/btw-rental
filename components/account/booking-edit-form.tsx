@@ -87,6 +87,7 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
 
   return (
     <form
+      method="post"
       noValidate
       className="space-y-6"
       onSubmit={(event) => {

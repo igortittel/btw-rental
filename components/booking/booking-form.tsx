@@ -307,6 +307,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <form
+          method="post"
           noValidate
           className="space-y-6"
           onSubmit={(event) => {

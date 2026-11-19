@@ -14,7 +14,7 @@ export function ChangePasswordForm() {
   const { state: state, onSubmit: action, pending: pending } = useFormAction(changePasswordAction, initial)
 
   return (
-    <form onSubmit={action} className="max-w-md space-y-5" noValidate key={state.ok ? 'done' : 'form'}>
+    <form method="post" onSubmit={action} className="max-w-md space-y-5" noValidate key={state.ok ? 'done' : 'form'}>
       <div className="space-y-2">
         <Label htmlFor="currentPassword">Aktuálne heslo</Label>
         <Input id="currentPassword" name="currentPassword" type="password" autoComplete="current-password" required />

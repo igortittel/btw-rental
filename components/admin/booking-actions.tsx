@@ -36,6 +36,7 @@ export function BookingQuickActions({ id, number, status, cancelHref, detailHref
       <div className="flex flex-wrap gap-2">
         {options.map((to) => (
           <form
+            method="post"
             key={to}
             className="flex-1"
             onSubmit={(event) => {
@@ -127,7 +128,7 @@ export function CancelBookingForm({ id, number, quote, hasPrice }: { id: string;
 export function ResolveChangeForm({ id, collision }: { id: string; collision: boolean }) {
   const { state, pending, onSubmit } = useFormAction(resolveBookingChangeAction, {})
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form method="post" onSubmit={onSubmit} className="space-y-3">
       <input type="hidden" name="id" value={id} />
       <div className="space-y-2">
         <Label htmlFor="resolve-note">Správa pre zákazníka (pri zamietnutí povinná)</Label>

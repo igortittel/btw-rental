@@ -129,7 +129,7 @@ function UploadForm({ bookingId, hasEmail, today }: { bookingId: string; hasEmai
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate className="space-y-4 rounded-xl border border-line bg-[#161616] p-4">
+    <form method="post" ref={formRef} onSubmit={onSubmit} noValidate className="space-y-4 rounded-xl border border-line bg-[#161616] p-4">
       <h3 className="text-base font-bold text-white">Nahrať doklad</h3>
       <input type="hidden" name="bookingId" value={bookingId} />
       <input type="hidden" name="path" value={file?.path ?? ''} />

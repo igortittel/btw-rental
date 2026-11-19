@@ -15,7 +15,7 @@ export function InviteStaffForm() {
   const { state: state, onSubmit: action, pending: pending } = useFormAction(inviteStaffAction, initial)
 
   return (
-    <form onSubmit={action} className="space-y-5" noValidate>
+    <form method="post" onSubmit={action} className="space-y-5" noValidate>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="firstName">Meno</Label>
@@ -58,7 +58,7 @@ export function StaffRowActions({ userId, role, isActive, isSelf, passwordSet }:
 
   return (
     <div className="space-y-3">
-      <form onSubmit={update} className="flex flex-wrap items-end gap-3">
+      <form method="post" onSubmit={update} className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="userId" value={userId} />
         <div className="space-y-1">
           <Label htmlFor={`role-${userId}`}>Rola</Label>
@@ -81,7 +81,7 @@ export function StaffRowActions({ userId, role, isActive, isSelf, passwordSet }:
           {updating ? 'Ukladám…' : 'Uložiť'}
         </Button>
       </form>
-      <form onSubmit={resend}>
+      <form method="post" onSubmit={resend}>
         <input type="hidden" name="userId" value={userId} />
         <Button type="submit" variant="link" disabled={resending}>
           {passwordSet ? 'Poslať odkaz na nové heslo' : 'Poslať pozvánku znova'}

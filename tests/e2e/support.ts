@@ -65,7 +65,7 @@ async function freshTotp(secret: string): Promise<string> {
 
 /** Password sign-in followed by the 2FA step: enrolment (QR + secret shown) on the first sign-in, a code afterwards. */
 export async function signInStaff(page: Page, account: StaffAccount) {
-  await page.goto('/prihlasenie?next=/admin')
+  await page.goto('/prihlasenie?next=/admin', { waitUntil: 'networkidle' })
   await page.locator('#email').fill(account.email)
   await page.locator('#password').fill(account.password)
   await page.locator('form:has(#password) button[type=submit]').click()
@@ -114,4 +114,15 @@ export async function staffPage(browser: Browser, account: StaffAccount): Promis
     account.state = await context.storageState()
   }
   return page
+}
+
+/** Customer sign-in with e-mail and password; ends in Môj účet (fails with the form's error otherwise). */
+export async function signInCustomer(page: Page, email: string, password: string) {
+  // Wait for the page to be interactive: the form is submitted by JavaScript.
+  await page.goto('/prihlasenie?next=/moj-ucet', { waitUntil: 'networkidle' })
+  await page.locator('#email').fill(email)
+  await page.locator('#password').fill(password)
+  await page.locator('form:has(#password) button[type=submit]').click()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(page).toHaveURL((url) => url.pathname === '/moj-ucet')
 }

@@ -27,7 +27,7 @@ export function CancelBookingForm({ id, feeCents, feePercent }: { id: string; fe
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="space-y-4" noValidate>
       <input type="hidden" name="id" value={id} />
       <p className={`rounded-lg border px-4 py-3 text-[15px] ${fee ? 'border-amber-400/60 bg-amber-400/10 text-amber-100' : 'border-line text-white'}`}>
         {fee ? t('cancelFeeLine', { fee, percent: feePercent }) : t('cancelFree')}

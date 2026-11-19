@@ -77,7 +77,7 @@ export function SettlementForm({
   const why = 'col-span-2 text-[13px] tabular-nums text-muted2'
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-5">
+    <form method="post" onSubmit={onSubmit} noValidate className="space-y-5">
       <input type="hidden" name="bookingId" value={bookingId} />
       <div className="overflow-hidden rounded-xl border border-line">
         <div className={item}>

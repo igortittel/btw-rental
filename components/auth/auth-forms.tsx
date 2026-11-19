@@ -38,7 +38,7 @@ export function LoginForm({ next }: { next?: string }) {
   }
 
   return (
-    <form onSubmit={action} className="space-y-5" noValidate>
+    <form method="post" onSubmit={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <div className="space-y-2">
@@ -82,7 +82,7 @@ export function RequestLinkForm({ submitLabel }: { submitLabel: string }) {
   }
 
   return (
-    <form onSubmit={action} className="space-y-5" noValidate>
+    <form method="post" onSubmit={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <div className="space-y-2">
         <Label htmlFor="email">{t('email')}</Label>
@@ -102,7 +102,7 @@ export function SetPasswordForm({ token, next }: { token: string; next?: string 
   const { state: state, onSubmit: action, pending: pending } = useFormAction(setPasswordAction, initial)
 
   return (
-    <form onSubmit={action} className="space-y-5" noValidate>
+    <form method="post" onSubmit={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="token" value={token} />
       {next ? <input type="hidden" name="next" value={next} /> : null}

@@ -120,6 +120,7 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
 
   return (
     <form
+      method="post"
       noValidate
       className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"
       onSubmit={(event) => {

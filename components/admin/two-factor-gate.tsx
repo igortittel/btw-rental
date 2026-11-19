@@ -112,7 +112,7 @@ export function TwoFactorGate({ userName }: { userName: string }) {
       ) : null}
 
       {mode !== 'loading' ? (
-        <form onSubmit={verify} className="space-y-3">
+        <form method="post" onSubmit={verify} className="space-y-3">
           <label htmlFor="totp-code" className="block text-sm font-medium text-white">
             Kód z aplikácie
           </label>
