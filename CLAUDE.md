@@ -3,7 +3,8 @@
 Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 
 - **Zadanie:** [`docs/ZADANIE.md`](docs/ZADANIE.md) – čítaj ako prvé, najmä sekciu 14 (fázy).
-- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-9.md`.
+- **Čo je hotové a prečo:** `docs/ANALYSIS.md` (Fáza 0), `docs/PHASE-1.md` … `docs/PHASE-10.md`.
+- **Pred spustením:** [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md).
 
 ## Stav
 
@@ -19,7 +20,7 @@ Rezervačný systém pre prenájom vozidiel BY THE WAVE, s.r.o. (rental.btw.sk).
 | 7 Zákaznícka zóna: countdown, detail, úprava → `modified`, storno, profil; e-maily 4–5 a schvaľovanie úprav | hotová, schválená, v `main` |
 | 8 Protokoly (schéma poškodení, fotky, podpisy, PDF), vyúčtovanie, e-maily 8 a 10 | hotová, schválená, v `main` (klient ešte testuje preberací protokol a vyúčtovanie) |
 | 9 Platby a depozit, doklady, denný cron, zákazníci + GDPR, audit log, 2FA | hotová, schválená, v `main` (18. 11. 2026) |
-| 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | ďalšia na rade |
+| 10 EN, SEO, doména, E2E, výkon, bezpečnostný review | hotová, čaká na schválenie (vetva session) |
 
 Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 
@@ -34,7 +35,7 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 ## Rozhodnutia prijaté nad rámec zadania
 
 - **Existujúci prototyp bol odstránený**, schéma je postavená nanovo.
-- **Tlačidlá:** biely text na zlatej (voľba klienta, hoci nespĺňa WCAG AA 4,5 : 1).
+- **Tlačidlá:** biely text na zlatej (voľba klienta, hoci nespĺňa WCAG AA 4,5 : 1; potvrdené znova vo Fáze 10).
 - **Názvy vozidiel** v oficiálnom zápise (`Mercedes-Benz E 220 d`).
 - **Výbava má štyri skupiny:** Komfort, Technické, Bezpečnosť a „V cene prenájmu“.
 - **VIN a ŠPZ v seede sú testovacie** (`TESTBTW0000000001`–`7`, `BT001TW`–`BT007TW`); reálne doplní klient v admine.
@@ -72,13 +73,22 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **GDPR:** `anonymize_customer` (manager+) – bez rezervácií vymaže, inak anonymizuje profil, snapshoty rezervácií, súhlasy (IP), e-mail log a interné údaje; Auth účet potom zmaže server. Audit vypína `app.skip_audit` a zapíše jeden záznam bez osobných údajov. Zmeny `profiles` od zamestnanca sa auditujú bez hodnôt (trigger s argumentom `redact`).
 - **Blacklist** sa porovnáva aj podľa e-mailu a telefónu (`lib/customers/blacklist.ts`) – detail a zoznam rezervácií, e-mail 2.
 - **Kľúče v zoznamoch nesmú byť popisky, ktoré sa môžu opakovať** (napr. typ e-mailu) – duplicitné kľúče rozbili obnovu detailu rezervácie po akcii.
+- **Next 16** (Fáza 10): Next 15.5 pribaľoval React 19.2-canary, ktorého plánovač po server akcii občas stratil prebudenie („Ukladám…“ navždy na detaile rezervácie). `middleware.ts` je `proxy.ts`, konfigurácia `next.config.mjs`, build `next build --webpack` (pdfkit). V server akciách `updateTag`, nie `revalidateTag`. Pri chybe „obnova po akcii nedobehne“ najprv over verziu Reactu v `node_modules/next/dist/compiled/react-dom`.
+- **CSP s nonce** (`lib/csp.ts`, `proxy.ts`): skripty len s nonce + `'strict-dynamic'`. Nový externý zdroj (skript, iframe, fetch z prehliadača, obrázky) treba pridať do `buildCsp`, inak ho prehliadač zablokuje. `<script type="application/ld+json">` nonce nepotrebuje.
+- **Metadáta v `<head>`** (`htmlLimitedBots: /.*/` v `next.config.mjs`) – Next by ich inak streamoval do `<body>` a Google by ignoroval canonical a hreflang.
+- **Lehoty uchovávania** (`lib/retention.ts`, denný cron): e-mail log 12 mesiacov, `cron_runs` 30 dní, odkazy na heslo 7 dní, rate limit 1 deň, audit log natrvalo (rozhodnutie klienta 19. 11. 2026).
+- **Výbava** sa spravuje v Admin → Viac → Výbava (`app/admin/vybava`), skupiny v `lib/features.ts`; zmazať sa dá len nepoužitá položka.
+- **`Intl.DateTimeFormat` nevytváraj v cykle** – je drahý; `lib/time.ts` ho cachuje (kalendár ho predtým vytváral stovky krát a blokoval detail vozidla 2 s).
+- **ESLint pravidlá React Hooks 7:** žiadny `setState` v efekte (uprav stav počas renderu), žiadne `ref.current =` v renderi (`useLayoutEffect`), žiadne `Date.now()` v renderi. Výnimky len s komentárom prečo.
+- **E2E (Playwright)** v GitHub Actions proti lokálnemu Supabase (`supabase/config.toml`) – nikdy proti produkcii (`tests/e2e/support.ts` to stráži). Prihlásenie zamestnanca: TOTP z tajomstva zobrazeného pri registrácii 2FA; odkaz na heslo admin zobrazí, keď nie je e-mailová služba.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
 
-- Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit.
+- Cloudflare Turnstile: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` → po nastavení oboch sa zapne sám (formulár aj prihlásenie); dovtedy honeypot, minimálny čas vyplnenia a rate limit. CSP Turnstile povoľuje.
 - **Reálny IBAN pred spustením:** v Nastaveniach je testovací `SK73 1100 0000 0029 0000 0042` (TATRSKBX, `is_placeholder: false`, aby sa dali testovať platobné pokyny). DNS pre `rental.btw.sk`.
-- Odložené zo skorších fáz: úprava číselníka výbavy, alt texty fotiek, EN preklady obsahu a Lighthouse (Fáza 10).
+- **DNS:** CNAME `rental` → `8fcb7bf5d840bb7c.vercel-dns-017.com.` vo Websupporte (doména je už vo Verceli pridaná). Potom `NEXT_PUBLIC_SITE_URL`, presmerovanie `btw-rental.vercel.app` a Supabase Auth URL – viď `docs/RELEASE-CHECKLIST.md`.
+- Pred spustením celkové zmazanie testovacích údajov (klient povie kedy).
 - **2FA v databáze** (`settings.staff_mfa_enforced`) a **úhrada pred odovzdaním** (`require_payment_before_pickup`) sú zapnuté od nasadenia Fázy 9 do produkcie. Kto ich vypne, oslabí ochranu – 2FA vypínať len pri výpadku Supabase MFA.
 
 ## Údaje od klienta
@@ -95,7 +105,9 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 | Vercel | tím `igortittels-projects` (`team_tKyxRtkRIInsaFXlnwp9EpJf`), projekt `btw-rental` |
 | Vercel env | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SEED_OWNER_PASSWORD`, `RESEND_API_KEY`, `CRON_SECRET` (Production + Preview) |
 | Owner účet | firemný e-mail BTW (hodnota je v `scripts/seed-owner.ts`) |
-| Cloud prostredie | `btw-rental` – povolené hosty: `www.btw.sk`, `btw.sk`, `wp.btw.sk`, `wlkdhdkflbswjjdobsfs.supabase.co` |
+| Cloud prostredie | `btw-rental` – povolené hosty: `www.btw.sk`, `btw.sk`, `wp.btw.sk`, `wlkdhdkflbswjjdobsfs.supabase.co`; Docker obrazy Supabase sa tu stiahnuť nedajú → E2E len v GitHub Actions |
+| Doména | `rental.btw.sk` pridaná vo Verceli; DNS btw.sk spravuje Websupport (prístup má klient) |
+| CI | GitHub Actions: `Kvalita` (lint, typy, formát, unit testy), `E2E` (Playwright + lokálny Supabase) |
 
 ## Príkazy
 
@@ -114,6 +126,12 @@ npm run typecheck
 ```bash
 npm run build
 ```
+
+```bash
+npm run lint && npm run format:check
+```
+
+E2E (Docker, lokálny Supabase) – postup v `docs/PHASE-10.md`, v CI sa spúšťajú samy.
 
 `npm run build` je čistý build; `npm run vercel-build` navyše spúšťa seed skripty a je určený pre Vercel.
 
@@ -156,6 +174,7 @@ Lokálne nie je `SUPABASE_SERVICE_ROLE_KEY` (vo Verceli je Sensitive a nedá sa 
 2. `npm run build`, potom `next start`. V cloud prostredí musí serverový `fetch` ísť cez proxy: spusti build aj server s `NODE_USE_ENV_PROXY=1` a `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`. Pred novým štartom zabi aj proces `next-server`, inak ostane obsadený port.
 3. Prihlásenie testuj dočasnými účtami `e2e-…@btw-rental.test` vytvorenými cez SQL (`auth.users` + `auth.identities`, heslo cez `extensions.crypt`), rolu im daj v `staff_roles`. **Po teste ich zmaž** (aj z `profiles`) a klientovi o nich povedz.
 4. Preview nasadenia sú za Vercel prihlásením, Playwrightom sa na ne nedostaneš.
+5. Na reprodukciu chyby zamestnaneckej stránky: dočasný účet + TOTP tajomstvo z `auth.mfa_factors.secret` (len testovací účet), kód cez HMAC (vzor `totp()` v `tests/e2e/support.ts`).
 
 Audit log je nemazateľný; testovacie zápisy v ňom ostávajú.
 
