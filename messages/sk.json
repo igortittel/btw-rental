@@ -358,12 +358,6 @@
     "minAgeValue": "{age} rokov",
     "license": "Vodičský preukaz",
     "licenseValue": "minimálne {months} mesiacov",
-    "payment": "Platba",
-    "paymentMethods": {
-      "transfer": "bankový prevod",
-      "terminal": "platobný terminál",
-      "cash": "platba na mieste (hotovosť alebo terminál)"
-    },
     "abroad": "Cesty do zahraničia",
     "abroadValue": "povolené bez príplatku",
     "cancellation": "Storno podmienky",

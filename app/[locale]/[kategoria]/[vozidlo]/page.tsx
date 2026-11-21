@@ -113,7 +113,6 @@ export default async function VehiclePage({ params }: Props) {
     [t('extraKm'), t('extraKmValue', { price: euro(vehicle.extraKmCents) })],
     [t('minAge'), t('minAgeValue', { age: vehicle.minDriverAge })],
     [t('license'), t('licenseValue', { months: vehicle.minLicenseMonths })],
-    [t('payment'), settings.payment_methods.map((m) => t(`paymentMethods.${m}`)).join(', ')],
     [t('abroad'), t('abroadValue')],
   ]
 

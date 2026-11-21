@@ -358,12 +358,6 @@
     "minAgeValue": "{age} years",
     "license": "Driving licence",
     "licenseValue": "held for at least {months} months",
-    "payment": "Payment",
-    "paymentMethods": {
-      "transfer": "bank transfer",
-      "terminal": "card terminal",
-      "cash": "payment on site (cash or card terminal)"
-    },
     "abroad": "Trips abroad",
     "abroadValue": "allowed at no extra charge",
     "cancellation": "Cancellation terms",
