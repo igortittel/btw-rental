@@ -8,7 +8,7 @@ import { getSessionUser } from '@/lib/auth/session'
 import { issueAuthToken } from '@/lib/auth/tokens'
 import { buildBookingEmailData } from '@/lib/booking/email-data'
 import { buildBookingRecord } from '@/lib/booking/record'
-import { bookingSchema, fieldErrors, fullPhone, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors, type TermInput } from '@/lib/booking/schema'
+import { bookingSchema, fieldErrors, fullPhone, termInstants, termSchema, validateDriverAge, validateTerm, type BookingFormState, type FieldErrors, type TermFormState } from '@/lib/booking/schema'
 import { createPublicClient, getCatalog, loadCatalog } from '@/lib/catalog'
 import { sendBookingAdminNotification, sendBookingReceived } from '@/lib/email/booking-emails'
 import { loadBlacklist, matchBlacklist } from '@/lib/customers/blacklist'
@@ -32,7 +32,7 @@ const fail = (errors: FieldErrors): BookingActionResult => ({ errors })
  * Step 1 → 2: is the term valid and the vehicle free? Uses only the public RPC, so it
  * reveals nothing beyond what the availability calendar already shows.
  */
-export async function checkTermAction(input: TermInput): Promise<BookingActionResult> {
+export async function checkTermAction(input: TermFormState): Promise<BookingActionResult> {
   const parsed = termSchema.safeParse(input)
   if (!parsed.success) return fail(fieldErrors(parsed.error))
 

@@ -79,7 +79,6 @@ export default async function VehiclePage({ params }: Props) {
 
   const [t, c] = await Promise.all([getTranslations('vehicle'), getTranslations('catalog')])
   const { settings } = catalog
-  const defaultLocation = catalog.locations.find((l) => l.isDefault) ?? catalog.locations[0]
   const euro = (cents: number | null) => formatEuro(cents, locale)
   const description = localize(vehicle.description, locale)
 
@@ -115,7 +114,6 @@ export default async function VehiclePage({ params }: Props) {
     [t('minAge'), t('minAgeValue', { age: vehicle.minDriverAge })],
     [t('license'), t('licenseValue', { months: vehicle.minLicenseMonths })],
     [t('payment'), settings.payment_methods.map((m) => t(`paymentMethods.${m}`)).join(', ')],
-    ...(defaultLocation ? ([[t('pickup'), t('pickupValue', { address: defaultLocation.address })]] as [string, string][]) : []),
     [t('abroad'), t('abroadValue')],
   ]
 
@@ -206,7 +204,16 @@ export default async function VehiclePage({ params }: Props) {
           </h2>
           <p className="mb-6 mt-2 text-sm text-muted2">{t('availabilityLead')}</p>
           <div className="rounded-xl border border-gold/40 bg-surface p-5 sm:p-6">
-            <BookingCalendar vin={vehicle.vin} minDate={minDate} />
+            <BookingCalendar
+              vin={vehicle.vin}
+              minDate={minDate}
+              pricing={{
+                tiers: vehicle.prices,
+                vatRate: settings.vat_rate,
+                toleranceMinutes: settings.return_tolerance_minutes,
+                individualFromDays: settings.individual_price_from_days,
+              }}
+            />
           </div>
         </section>
 
@@ -246,7 +253,7 @@ export default async function VehiclePage({ params }: Props) {
               {vehicle.prices.map((price) => (
                 <div key={price.tierId} className={row}>
                   <dt className="text-muted2">{tierLabel(price.minDays, price.maxDays)}</dt>
-                  <dd className="text-right font-semibold text-white">
+                  <dd className="text-left font-semibold text-white sm:text-right">
                     {price.maxDays === null || price.pricePerDayCents === null ? t('individualPrice') : `${euro(price.pricePerDayCents)} ${t('perDay')}`}
                   </dd>
                 </div>
@@ -266,7 +273,7 @@ export default async function VehiclePage({ params }: Props) {
                     {localize(extra.name, locale)}
                     {extra.maxQuantity > 1 ? <span className="text-xs"> · {t('maxQuantity', { count: extra.maxQuantity })}</span> : null}
                   </dt>
-                  <dd className="whitespace-nowrap text-right font-semibold text-white">
+                  <dd className="whitespace-nowrap text-left font-semibold text-white sm:text-right">
                     {euro(extra.priceCents)} {extra.pricingType === 'per_day' ? t('perDay') : t('perRental')}
                   </dd>
                 </div>
@@ -283,7 +290,7 @@ export default async function VehiclePage({ params }: Props) {
               {conditions.map(([label, value]) => (
                 <div key={label} className={row}>
                   <dt className="text-muted2">{label}</dt>
-                  <dd className="text-right font-semibold text-white">{value}</dd>
+                  <dd className="text-left font-semibold text-white sm:text-right">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -298,7 +305,7 @@ export default async function VehiclePage({ params }: Props) {
               {cancellationRows.map((item) => (
                 <div key={item.when} className={row}>
                   <dt className="text-muted2">{item.when}</dt>
-                  <dd className="text-right font-semibold text-white">{item.fee}</dd>
+                  <dd className="text-left font-semibold text-white sm:text-right">{item.fee}</dd>
                 </div>
               ))}
             </dl>

@@ -2,7 +2,7 @@
   "site": {
     "name": "BY THE WAVE",
     "tagline": "Prenájom vozidiel",
-    "backToBtw": "btw.sk",
+    "backToBtw": "BTW.sk",
     "login": "Prihlásenie",
     "account": "Môj účet",
     "admin": "Administrácia",
@@ -16,7 +16,11 @@
     "errorTitle": "Niečo sa pokazilo",
     "errorText": "Stránku sa nepodarilo načítať. Skúste to znova o chvíľu.",
     "errorRetry": "Skúsiť znova",
-    "orgDescription": "Prenájom prémiových vozidiel v Bratislave – sedany, SUV, limuzíny a vany Mercedes-Benz."
+    "orgDescription": "Prenájom prémiových vozidiel v Bratislave – sedany, SUV, limuzíny a vany Mercedes-Benz.",
+    "language": "Jazyk",
+    "moreServices": "Ďalšie služby",
+    "transport": "Preprava osôb",
+    "transfer": "Transfer na Schwechat"
   },
   "auth": {
     "loginTitle": "Prihlásenie",
@@ -124,7 +128,7 @@
     "methods": {
       "transfer": "bankový prevod",
       "terminal": "platobný terminál",
-      "cash": "hotovosť"
+      "cash": "platba na mieste (hotovosť alebo terminál)"
     },
     "rentalStatus": {
       "unpaid": "neuhradené",
@@ -268,7 +272,6 @@
     "transmission": "Prevodovka",
     "fuel": "Palivo",
     "seats": "Počet miest",
-    "seatsMin": "{count}+ miest",
     "any": "Nezáleží",
     "dateFrom": "Dostupné od",
     "dateTo": "do",
@@ -359,10 +362,8 @@
     "paymentMethods": {
       "transfer": "bankový prevod",
       "terminal": "platobný terminál",
-      "cash": "hotovosť"
+      "cash": "platba na mieste (hotovosť alebo terminál)"
     },
-    "pickup": "Vyzdvihnutie a odovzdanie",
-    "pickupValue": "{address}, non-stop",
     "abroad": "Cesty do zahraničia",
     "abroadValue": "povolené bez príplatku",
     "cancellation": "Storno podmienky",
@@ -387,7 +388,9 @@
     "drivetrain": "Typ pohonu",
     "luggage": "Batožinový priestor",
     "extrasLead": "Voliteľné, vyberiete si ich v rezervácii.",
-    "cancelFree": "bez poplatku"
+    "cancelFree": "bez poplatku",
+    "basePrice": "Základná cena",
+    "basePriceDetail": "{count, plural, one {# deň} few {# dni} other {# dní}} × {rate}"
   },
   "booking": {
     "title": "Rezervácia",
@@ -416,8 +419,8 @@
     "returnLocation": "Miesto odovzdania",
     "locationSurcharge": "{name} (+{price})",
     "abroad": "Plánujem cestu do zahraničia",
-    "abroadHint": "Cesty do zahraničia sú povolené bez príplatku. Údaj slúži len pre našu informáciu.",
-    "abroadCountries": "Ktoré krajiny navštívite?",
+    "abroadHint": "Cesty do zahraničia sú povolené bez príplatku. Odpoveď potrebujeme kvôli poisteniu vozidla.",
+    "abroadCountries": "Ktoré krajiny vozidlo navštívi?",
     "abroadPlaceholder": "napr. Rakúsko, Chorvátsko",
     "individualTitle": "Dlhodobý prenájom – individuálna cena",
     "individualText": "Pri prenájme na {days} a viac dní pripravujeme cenu individuálne. Formulár odošlete ako nezáväzný dopyt a ponuku vám pošleme e-mailom.",
@@ -464,10 +467,9 @@
     "methods": {
       "transfer": "Bankový prevod",
       "terminal": "Platobný terminál",
-      "cash": "Hotovosť"
+      "cash": "Platba na mieste (hotovosť alebo terminál)"
     },
     "note": "Poznámka",
-    "notePlaceholder": "Napríklad číslo letu alebo špeciálne požiadavky",
     "summary": "Súhrn",
     "summaryEmpty": "Zvoľte vozidlo a termín – cenu uvidíte hneď.",
     "summaryFrom": "od {price} / deň",
@@ -497,18 +499,12 @@
     "reviewPrice": "Cena",
     "reviewPayment": "Platba",
     "transferInfo": "Platobné údaje (IBAN a variabilný symbol = číslo rezervácie) vám pošleme v potvrdzujúcom e-maile.",
-    "cancellation": "Storno podmienky",
-    "cancellationLead": "Počíta sa od času vyzdvihnutia, poplatok je z ceny rezervácie.",
-    "cancelMoreThan": "viac ako {hours} h pred vyzdvihnutím",
-    "cancelBetween": "{from} h – {to} h pred vyzdvihnutím",
-    "cancelLessThan": "menej ako {hours} h pred vyzdvihnutím",
-    "cancelFree": "bez poplatku",
     "consents": "Súhlasy",
     "termsConsent": "Súhlasím so <link>všeobecnými obchodnými podmienkami</link>.",
     "gdprConsent": "Oboznámil/a som sa so <link>spracovaním osobných údajov</link> a súhlasím s ním.",
     "marketingConsent": "Súhlasím so zasielaním noviniek a ponúk e-mailom. Súhlas môžem kedykoľvek odvolať.",
     "honeypot": "Toto pole nevypĺňajte",
-    "submit": "Záväzne rezervovať",
+    "submit": "Rezervovať vozidlo",
     "submitIndividual": "Odoslať dopyt",
     "submitting": "Odosielam…",
     "submitHint": "Rezervácia je záväzná po našom potvrdení. Teraz nič neplatíte.",
@@ -531,7 +527,10 @@
       "spam": "Odoslanie sa nepodarilo. Počkajte prosím chvíľu a skúste to znova.",
       "unknown": "Rezerváciu sa nepodarilo odoslať. Skúste to prosím znova alebo nás kontaktujte.",
       "address_required": "Zadajte celú adresu (ulica, číslo, mesto).",
-      "phone_length": "Číslo musí mať {digits} číslic bez predvoľby a úvodnej nuly, napr. 900 123 456."
+      "phone_length": "Číslo musí mať {digits} číslic bez predvoľby a úvodnej nuly, napr. 900 123 456.",
+      "abroad_required": "Vyberte, či plánujete cestu do zahraničia.",
+      "abroad_countries_required": "Uveďte krajiny, ktoré vozidlo navštívi.",
+      "date_invalid": "Zadajte platný dátum v tvare DD.MM.RRRR."
     },
     "thanks": {
       "metaTitle": "Ďakujeme za rezerváciu",
@@ -553,8 +552,8 @@
         "Pri vyzdvihnutí si pripravte občiansky preukaz alebo pas, vodičský preukaz a depozit."
       ],
       "noEmail": "E-mail neprišiel? Skontrolujte priečinok s nevyžiadanou poštou alebo nás kontaktujte na {email}.",
-      "backToCatalog": "Späť na ponuku vozidiel",
-      "account": "Zákaznícka zóna",
+      "backToCatalog": "Späť na prehľad vozidiel",
+      "account": "Vstúpiť do zákazníckej zóny",
       "leadNoEmail": "Rezerváciu sme zaevidovali. Čoskoro sa vám ozveme e-mailom alebo telefonicky."
     },
     "pickupCustom": "Chcem vozidlo pristaviť na inú adresu",
@@ -566,6 +565,13 @@
     "addressOutside": "Adresa je mimo Bratislavy – dohodneme individuálne",
     "deliveryFree": "bezplatne",
     "deliveryOutside": "Pristavenie mimo Bratislavy",
-    "deliveryIndividual": "individuálne"
+    "deliveryIndividual": "individuálne",
+    "abroadQuestion": "Plánujete cestu do zahraničia?",
+    "abroadYes": "Áno",
+    "abroadNo": "Nie",
+    "hideCalendar": "Skryť kalendár dostupnosti",
+    "requiredMark": "povinné",
+    "dateOfBirthPlaceholder": "DD.MM.RRRR",
+    "dateOfBirthFormat": "Zadajte v tvare DD.MM.RRRR, napr. 24.05.1990."
   }
 }

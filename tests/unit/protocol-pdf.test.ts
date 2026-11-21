@@ -6,7 +6,7 @@ import { renderProtocolPdf, type ProtocolPdfData } from '@/lib/pdf/protocol-pdf'
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')
 export const samplePdfData: ProtocolPdfData = {
   type: 'return',
-  bookingNumber: 'BTW-2026-0142',
+  bookingNumber: '20260142',
   version: 1,
   supersedesVersion: null,
   company: { name: 'BY THE WAVE, s.r.o.', address: 'Trenčianska 56/A, 821 09 Bratislava', ids: ['IČO: 12345678'] },

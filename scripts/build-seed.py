@@ -72,7 +72,7 @@ settings = [
     ("vat_rate", 23, True),
     ("operating_24_7", True, True),
     ("bank", {"iban": "SK00 0000 0000 0000 0000 0000", "swift": "XXXXSKBX", "account_name": "BY THE WAVE, s.r.o.", "is_placeholder": True}, False),
-    ("payment_methods", ["transfer", "terminal", "cash"], True),
+    ("payment_methods", ["transfer", "cash"], True),
     ("payment_due_days", 3, False),
     ("min_lead_hours", 24, True),
     ("min_rental_days", 1, True),

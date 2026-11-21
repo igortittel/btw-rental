@@ -26,7 +26,6 @@ export type BookingConfig = {
   toleranceMinutes: number
   individualFromDays: number
   paymentMethods: PaymentMethod[]
-  cancellationTiers: { min_hours: number; fee_percent: number }[]
   termsUrl: string
   gdprUrl: string
   turnstileSiteKey: string | null

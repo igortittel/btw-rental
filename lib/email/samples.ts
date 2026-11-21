@@ -29,7 +29,7 @@ export function sampleBookingEmailData(locale: 'sk' | 'en', individual = false) 
   return buildBookingEmailData(
     {
       locale,
-      number: 'BTW-2027-0042',
+      number: '20270042',
       price,
       customer: { firstName: 'Anna', lastName: 'Nováková', email: 'anna.novakova@example.com', phone: '+421900123456', companyName: null },
       vehicleName: 'Mercedes-Benz E 220 d',

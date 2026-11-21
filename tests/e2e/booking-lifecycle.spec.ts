@@ -43,6 +43,8 @@ test('1 · visitor books a vehicle', async ({ page }) => {
 
   // Step 1 – vehicle, term and place are prefilled from the link.
   await expect(page.locator('#pickupDate')).toHaveValue(pickupDate)
+  // Travel abroad must be answered (insurance).
+  await page.getByRole('radio', { name: 'Nie' }).check()
   await continueStep(page)
 
   // Step 2 – driver.
@@ -50,7 +52,7 @@ test('1 · visitor books a vehicle', async ({ page }) => {
   await page.locator('#lastName').fill('Testovací')
   await page.locator('#email').fill(customerEmail)
   await page.locator('#phoneNumber').fill('900123456')
-  await page.locator('#dateOfBirth').fill('1985-04-12')
+  await page.locator('#dateOfBirth').fill('12.04.1985')
   await page.locator('#licenseConfirmed').check()
   await page.locator('#street').fill('Hlavná 1')
   await page.locator('#city').fill('Bratislava')
@@ -65,9 +67,9 @@ test('1 · visitor books a vehicle', async ({ page }) => {
   // The form rejects submissions faster than a person could fill it in (anti-spam).
   const wait = 4_500 - (Date.now() - opened)
   if (wait > 0) await page.waitForTimeout(wait)
-  await page.getByRole('button', { name: 'Záväzne rezervovať' }).click()
+  await page.getByRole('button', { name: 'Rezervovať vozidlo' }).click()
 
-  await expect(page).toHaveURL(/\/rezervacia\/dakujeme\?cislo=BTW-/)
+  await expect(page).toHaveURL(/\/rezervacia\/dakujeme\?cislo=\d{8}/)
   bookingNumber = new URL(page.url()).searchParams.get('cislo')!
   const booking = await bookingByNumber(bookingNumber)
   expect(booking.status).toBe('new')

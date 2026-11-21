@@ -63,7 +63,7 @@ select pg_temp.expect((select count(*) = 5 from public.profiles where id::text l
 create temp table t_b as
 select pg_temp.book('00000000-0000-0000-0000-00000000000a', '2027-03-01 10:00+01', '2027-03-03 10:00+01') as a1;
 grant select on t_b to anon, authenticated;
-select pg_temp.expect((select number = 'BTW-2027-0001' or number ~ '^BTW-20\d\d-0001$' from public.bookings, t_b where id = a1), 'booking number BTW-YYYY-0001');
+select pg_temp.expect((select number ~ '^20\d\d0001$' from public.bookings, t_b where id = a1), 'booking number YYYY0001');
 select pg_temp.expect((select buffer_minutes = 240 and blocked_until = return_at + interval '4 hours' from public.bookings, t_b where id = a1), 'default 4 h buffer applied');
 select pg_temp.expect((select count(*) = 1 from public.booking_status_history, t_b where booking_id = a1 and from_status is null and to_status = 'new'), 'history row on insert');
 

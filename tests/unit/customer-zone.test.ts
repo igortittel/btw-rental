@@ -115,7 +115,7 @@ describe('email 4 – change requested (staff)', () => {
 
   it('shows old and new values and links to the admin', async () => {
     const email = await renderBookingChangeRequested(props())
-    expect(email.subject).toBe('Úprava na schválenie BTW-2027-0042 – Mercedes-Benz E 220 d')
+    expect(email.subject).toBe('Úprava na schválenie 20270042 – Mercedes-Benz E 220 d')
     for (const part of ['17. 6. 2027 10:00', '18. 6. 2027 10:00', 'čaká na schválenie', 'href="https://rental.btw.sk/admin/rezervacie/1"']) expect(email.html).toContain(part)
     expect(email.html).not.toContain('koliduje')
   })
@@ -140,7 +140,7 @@ describe('email 4 – change requested (staff)', () => {
 describe('email 5 – change approved / rejected (customer)', () => {
   it('approved: confirms the new term', async () => {
     const email = await renderBookingChangeResolved({ booking: sampleBookingEmailData('sk'), approved: true, note: null, accountUrl: 'https://rental.btw.sk/moj-ucet/rezervacie/1' })
-    expect(email.subject).toBe('Úprava rezervácie BTW-2027-0042 je schválená – BY THE WAVE')
+    expect(email.subject).toBe('Úprava rezervácie 20270042 je schválená – BY THE WAVE')
     expect(email.html).toContain('vašu úpravu sme schválili')
     expect(email.html).toContain('href="https://rental.btw.sk/moj-ucet/rezervacie/1"')
   })

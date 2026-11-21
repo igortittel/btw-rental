@@ -189,7 +189,7 @@ describe('emails 8 and 10', () => {
   }
   it('pickup protocol: subject, return term, assistance', async () => {
     const email = await renderProtocolSigned({ ...common, booking: sampleBookingEmailData('sk'), type: 'pickup' })
-    expect(email.subject).toBe('Odovzdávací protokol k rezervácii BTW-2027-0042 – BY THE WAVE')
+    expect(email.subject).toBe('Odovzdávací protokol k rezervácii 20270042 – BY THE WAVE')
     expect(email.text).toContain('nájdete v prílohe')
     expect(email.text).toContain('48 210 km')
     expect(email.text).toContain('+421900000000')
@@ -200,7 +200,7 @@ describe('emails 8 and 10', () => {
     expect(sk.text).toContain('Vyúčtovanie prenájmu')
     expect(sk.text).not.toContain('v prílohe')
     const en = await renderProtocolSigned({ ...common, booking: sampleBookingEmailData('en'), type: 'return' })
-    expect(en.subject).toBe('Return report for booking BTW-2027-0042 – BY THE WAVE')
+    expect(en.subject).toBe('Return report for booking 20270042 – BY THE WAVE')
     expect(en.text).toContain('none')
   })
   it('settlement: items, total and refund; clean return', async () => {
@@ -216,7 +216,7 @@ describe('emails 8 and 10', () => {
       note: 'Ďakujeme.',
       accountUrl: 'https://rental.btw.sk/moj-ucet',
     })
-    expect(email.subject).toBe('Vyúčtovanie prenájmu BTW-2027-0042 – BY THE WAVE')
+    expect(email.subject).toBe('Vyúčtovanie prenájmu 20270042 – BY THE WAVE')
     for (const part of ['Kilometre nad limit (485 km)', '300,70 €', 'Vrátime vám', '699,30 €', 'Ďakujeme.']) expect(email.text).toContain(part)
     const clean = await renderSettlement({ booking, lines: [], total: '0 €', hasCharges: false, deposit: '1 000 €', refund: '1 000 €', due: null, note: null, accountUrl: 'x' })
     expect(clean.text).toContain('nič nedoúčtovávame')

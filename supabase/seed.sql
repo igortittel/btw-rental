@@ -37,7 +37,7 @@ insert into public.settings (key, value, is_public) values ('company', '{"name":
 insert into public.settings (key, value, is_public) values ('vat_rate', '23'::jsonb, true) on conflict (key) do nothing;
 insert into public.settings (key, value, is_public) values ('operating_24_7', 'true'::jsonb, true) on conflict (key) do nothing;
 insert into public.settings (key, value, is_public) values ('bank', '{"iban": "SK00 0000 0000 0000 0000 0000", "swift": "XXXXSKBX", "account_name": "BY THE WAVE, s.r.o.", "is_placeholder": true}'::jsonb, false) on conflict (key) do nothing;
-insert into public.settings (key, value, is_public) values ('payment_methods', '["transfer", "terminal", "cash"]'::jsonb, true) on conflict (key) do nothing;
+insert into public.settings (key, value, is_public) values ('payment_methods', '["transfer", "cash"]'::jsonb, true) on conflict (key) do nothing;
 insert into public.settings (key, value, is_public) values ('payment_due_days', '3'::jsonb, false) on conflict (key) do nothing;
 insert into public.settings (key, value, is_public) values ('min_lead_hours', '24'::jsonb, true) on conflict (key) do nothing;
 insert into public.settings (key, value, is_public) values ('min_rental_days', '1'::jsonb, true) on conflict (key) do nothing;

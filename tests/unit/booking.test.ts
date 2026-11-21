@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ageOn, bookingSchema, customerSchema, fieldErrors, termInstants, termSchema, validateDriverAge, validateTerm } from '@/lib/booking/schema'
+import { maskTypedDate } from '@/components/booking/fields'
+import { abroadRuleErrors, ageOn, bookingSchema, customerSchema, fieldErrors, formatTypedDate, parseTypedDate, termInstants, termSchema, validateDriverAge, validateTerm } from '@/lib/booking/schema'
 
 const RULES = { minLeadHours: 24, minRentalDays: 1, toleranceMinutes: 59 }
 const NOW = new Date('2027-05-30T08:00:00Z') // 10:00 in Bratislava
@@ -89,8 +90,8 @@ describe('driver age', () => {
   })
 
   it('rejects nonsense dates', () => {
-    expect(validateDriverAge('', '2027-06-01', 21)).toEqual({ dateOfBirth: 'required' })
-    expect(validateDriverAge('1800-01-01', '2027-06-01', 21)).toEqual({ dateOfBirth: 'required' })
+    expect(validateDriverAge('', '2027-06-01', 21)).toEqual({ dateOfBirth: 'date_invalid' })
+    expect(validateDriverAge('1800-01-01', '2027-06-01', 21)).toEqual({ dateOfBirth: 'date_invalid' })
     expect(validateDriverAge('2031-01-01', '2027-06-01', 21)).toEqual({ dateOfBirth: 'too_young' })
   })
 })
@@ -169,5 +170,43 @@ describe('bookingSchema', () => {
     expect(codes({ pickupCustom: true })).toEqual({ pickupAddress: 'address_required' })
     expect(codes({ returnCustom: true, returnAddress: 'BA' })).toEqual({ returnAddress: 'address_required' })
     expect(codes({ pickupCustom: true, pickupAddress: 'Letisko M. R. Štefánika, Bratislava' })).toEqual({})
+  })
+
+  it('requires an answer about travel abroad and the countries when it is yes', () => {
+    const codes = (over: Record<string, unknown>) => {
+      const result = termSchema.safeParse({ ...valid, ...over })
+      return result.success ? {} : fieldErrors(result.error)
+    }
+    expect(codes({ abroadTrip: null })).toEqual({ abroadTrip: 'abroad_required' })
+    expect(codes({ abroadTrip: true, abroadCountries: ' ' })).toEqual({ abroadCountries: 'abroad_countries_required' })
+    expect(codes({ abroadTrip: true, abroadCountries: 'Rakúsko, Chorvátsko' })).toEqual({})
+    expect(codes({ abroadTrip: false, abroadCountries: '' })).toEqual({})
+    // The form calls the rule directly, so it shows up together with other errors.
+    expect(abroadRuleErrors({ abroadTrip: null, abroadCountries: '' })).toEqual({ abroadTrip: 'abroad_required' })
+  })
+})
+
+describe('typed date of birth', () => {
+  it('parses D.M.YYYY and rejects impossible dates', () => {
+    expect(parseTypedDate('24.05.1990')).toBe('1990-05-24')
+    expect(parseTypedDate('1.5.1990')).toBe('1990-05-01')
+    expect(parseTypedDate('24/05/1990')).toBe('1990-05-24')
+    expect(parseTypedDate('31.02.1990')).toBe('')
+    expect(parseTypedDate('24.05.90')).toBe('')
+    expect(parseTypedDate('24.05')).toBe('')
+    expect(formatTypedDate('1990-05-24')).toBe('24.05.1990')
+    expect(formatTypedDate('')).toBe('')
+  })
+
+  it('adds the dots while typing and normalises pasted or autofilled dates', () => {
+    expect(maskTypedDate('2')).toBe('2')
+    expect(maskTypedDate('245')).toBe('24.5')
+    expect(maskTypedDate('24051990')).toBe('24.05.1990')
+    expect(maskTypedDate('1.')).toBe('01.')
+    expect(maskTypedDate('24.')).toBe('24.')
+    expect(maskTypedDate('24')).toBe('24') // deleting back over a dot works
+    expect(maskTypedDate('1.5.1990')).toBe('01.05.1990')
+    expect(maskTypedDate('1990-05-24')).toBe('24.05.1990')
+    expect(maskTypedDate('240519901')).toBe('24.05.1990')
   })
 })

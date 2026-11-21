@@ -56,7 +56,7 @@ export const DEFAULT_SETTINGS: Settings = {
   vat_rate: 23,
   operating_24_7: true,
   bank: { iban: '', swift: '', account_name: 'BY THE WAVE, s.r.o.', is_placeholder: true },
-  payment_methods: ['transfer', 'terminal', 'cash'],
+  payment_methods: ['transfer', 'cash'],
   payment_due_days: 3,
   require_payment_before_pickup: true,
   min_lead_hours: 24,

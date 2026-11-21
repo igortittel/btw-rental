@@ -86,7 +86,6 @@ export default async function BookingPage({ params, searchParams }: Props) {
     toleranceMinutes: settings.return_tolerance_minutes,
     individualFromDays: settings.individual_price_from_days,
     paymentMethods: settings.payment_methods,
-    cancellationTiers: settings.cancellation_tiers,
     termsUrl: settings.terms_url,
     gdprUrl: settings.gdpr_url,
     turnstileSiteKey: turnstileSiteKey(),
@@ -110,7 +109,8 @@ export default async function BookingPage({ params, searchParams }: Props) {
     returnCustom: false,
     returnAddress: '',
     returnOutsideCity: false,
-    abroadTrip: false,
+    // Unanswered on purpose: the visitor must choose yes or no (insurance).
+    abroadTrip: null,
     abroadCountries: '',
     firstName: '',
     lastName: '',

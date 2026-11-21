@@ -74,7 +74,8 @@ describe('cancellationQuote', () => {
 })
 
 describe('payment helpers', () => {
-  it('variable symbol is the numeric part of the booking number', () => {
+  it('variable symbol is the booking number (older numbers with the BTW- prefix: their digits)', () => {
+    expect(variableSymbol('20260001')).toBe('20260001')
     expect(variableSymbol('BTW-2026-0001')).toBe('20260001')
     expect(variableSymbol('BTW-2027-12345')).toBe('202712345')
   })

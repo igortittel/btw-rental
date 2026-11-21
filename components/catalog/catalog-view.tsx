@@ -21,7 +21,7 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
       (filters.categories.length === 0 || filters.categories.includes(v.categorySlug)) &&
       (!filters.transmission || v.transmission === filters.transmission) &&
       (!filters.fuel || v.fuel === filters.fuel) &&
-      (!filters.minSeats || v.seats >= filters.minSeats),
+      (!filters.seats || v.seats === filters.seats),
   )
   if (window) {
     const available = await getAvailableVehicleIds(
@@ -41,9 +41,9 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
   }
   const chip = (active: boolean) =>
     `inline-flex h-11 items-center rounded-full px-6 text-sm font-medium transition-colors ${active ? 'bg-white text-black' : 'border border-[#666666] text-muted2 hover:border-gold hover:text-white'}`
-  const formAction = catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, minSeats: null, from: null, to: null })
+  const formAction = catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, seats: null, from: null, to: null })
   const [actionPath, actionQuery] = formAction.split('?')
-  const activeCount = [filters.transmission, filters.fuel, filters.minSeats, filters.from && filters.to].filter(Boolean).length
+  const activeCount = [filters.transmission, filters.fuel, filters.seats, filters.from && filters.to].filter(Boolean).length
 
   return (
     <div>
@@ -103,11 +103,11 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
             <label htmlFor="f-seats" className="block text-sm font-medium text-white">
               {t('seats')}
             </label>
-            <select id="f-seats" name="miesta" defaultValue={filters.minSeats ?? ''} className={selectClass} style={SELECT_CHEVRON_STYLE}>
+            <select id="f-seats" name="miesta" defaultValue={filters.seats ?? ''} className={selectClass} style={SELECT_CHEVRON_STYLE}>
               <option value="">{t('any')}</option>
               {SEAT_OPTIONS.map((count) => (
                 <option key={count} value={count}>
-                  {t('seatsMin', { count })}
+                  {t('seatsCount', { count })}
                 </option>
               ))}
             </select>
@@ -139,7 +139,7 @@ export async function CatalogView({ catalog, filters }: { catalog: Catalog; filt
         </p>
         {hasActiveFilters(filters) ? (
           <Link
-            href={catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, minSeats: null, from: null, to: null })}
+            href={catalogPath(filters.categories, { ...filters, transmission: null, fuel: null, seats: null, from: null, to: null })}
             className="text-gold underline-offset-4 hover:underline"
             rel="nofollow"
           >

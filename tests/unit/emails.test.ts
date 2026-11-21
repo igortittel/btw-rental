@@ -32,8 +32,8 @@ describe('email 1 – booking received', () => {
   it('shows the number, summary, price with VAT and the set-password link for a new account', async () => {
     const email = await renderBookingReceived({ booking: sampleBookingEmailData('sk'), account: setPassword, termsUrl })
     dump('booking-received-sk', email.html)
-    expect(email.subject).toBe('Rezerváciu BTW-2027-0042 sme prijali – BY THE WAVE')
-    for (const part of ['BTW-2027-0042', 'Mercedes-Benz E 220 d', 'Autosedačka (2 ks)', 'Spolu s DPH', 'DPH 23 %', 'Nastaviť heslo', '72 hodín', 'bankový prevod', 'hotovosť']) {
+    expect(email.subject).toBe('Rezerváciu 20270042 sme prijali – BY THE WAVE')
+    for (const part of ['20270042', 'Mercedes-Benz E 220 d', 'Autosedačka (2 ks)', 'Spolu s DPH', 'DPH 23 %', 'Nastaviť heslo', '72 hodín', 'bankový prevod', 'hotovosť']) {
       expect(email.html.replace(/&nbsp;|\u00a0/g, ' ')).toContain(part)
     }
     expect(email.html).toContain('href="https://rental.btw.sk/nastavit-heslo?token=abc&amp;next=%2Fmoj-ucet"')
@@ -53,7 +53,7 @@ describe('email 1 – booking received', () => {
   it('is written in English for English bookings', async () => {
     const email = await renderBookingReceived({ booking: sampleBookingEmailData('en'), account: setPassword, termsUrl })
     dump('booking-received-en', email.html)
-    expect(email.subject).toBe('We have received your booking BTW-2027-0042 – BY THE WAVE')
+    expect(email.subject).toBe('We have received your booking 20270042 – BY THE WAVE')
     expect(email.html).toContain('Total incl. VAT')
     expect(email.html).toContain('Child seat (2 pcs)')
     expect(email.html).not.toContain('Spolu s DPH')
@@ -61,7 +61,7 @@ describe('email 1 – booking received', () => {
 
   it('announces an individual offer instead of a total for long rentals', async () => {
     const email = await renderBookingReceived({ booking: sampleBookingEmailData('sk', true), account: setPassword, termsUrl })
-    expect(email.subject).toContain('Dopyt BTW-2027-0042')
+    expect(email.subject).toContain('Dopyt 20270042')
     expect(email.html).toContain('Individuálna cena')
     expect(email.html).not.toContain('Základ dane')
   })
@@ -77,7 +77,7 @@ describe('email 2 – staff notification', () => {
       isNewCustomer: true,
     })
     dump('booking-admin', email.html)
-    expect(email.subject).toContain('Nová rezervácia BTW-2027-0042 – Mercedes-Benz E 220 d')
+    expect(email.subject).toContain('Nová rezervácia 20270042 – Mercedes-Benz E 220 d')
     expect(email.html).toContain('href="https://rental.btw.sk/admin/rezervacie/1"')
     expect(email.html).toContain('mailto:anna.novakova@example.com')
     expect(email.html).toContain('tel:+421900123456')
@@ -121,7 +121,7 @@ describe("delivery to the customer's own address", () => {
     const location = { name: { sk: 'Bratislava – Trenčianska 56/A' }, address: 'Trenčianska 56/A, 821 09 Bratislava' }
     return buildBookingEmailData({
       locale: 'sk',
-      number: 'BTW-2027-0043',
+      number: '20270043',
       customer: base.customer,
       vehicleName: base.vehicleName,
       pickupAt,
@@ -195,7 +195,7 @@ describe('email 3 – booking confirmed', () => {
   it('gives transfer details with the booking number as the payment reference', async () => {
     const email = await renderBookingConfirmed(props())
     dump('booking-confirmed', email.html)
-    expect(email.subject).toBe('Rezervácia BTW-2027-0042 je potvrdená – BY THE WAVE')
+    expect(email.subject).toBe('Rezervácia 20270042 je potvrdená – BY THE WAVE')
     const html = email.html.replace(/&nbsp;|\u00a0/g, ' ')
     for (const part of ['SK31 1200 0000 1987 4263 7541', 'TATRSKBX', '20270042', '11. 6. 2027', '460 € bankovým prevodom', '1 000 € v hotovosti pri vyzdvihnutí', 'vodičský preukaz'])
       expect(html).toContain(part)
@@ -219,7 +219,7 @@ describe('email 3 – booking confirmed', () => {
     await sendBookingConfirmed(props(), { bookingId: 'b', profileId: 'p', ics: 'BEGIN:VCALENDAR' })
     const message = vi.mocked(sendEmail).mock.calls[0][0]
     expect(message).toMatchObject({ type: 'booking_confirmed', to: 'anna.novakova@example.com', bookingId: 'b', profileId: 'p' })
-    expect(message.attachments).toEqual([{ filename: 'BTW-2027-0042.ics', content: 'BEGIN:VCALENDAR', contentType: 'text/calendar; charset=utf-8; method=PUBLISH' }])
+    expect(message.attachments).toEqual([{ filename: '20270042.ics', content: 'BEGIN:VCALENDAR', contentType: 'text/calendar; charset=utf-8; method=PUBLISH' }])
   })
 })
 
@@ -227,7 +227,7 @@ describe('email 6 – booking cancelled', () => {
   it('tells the customer who cancelled, why and the fee', async () => {
     const email = await renderBookingCancelled({ booking: sampleBookingEmailData('sk'), audience: 'customer', cancelledBy: 'staff', reason: 'Vozidlo je v servise.', fee: '92 €' })
     dump('booking-cancelled', email.html)
-    expect(email.subject).toBe('Rezervácia BTW-2027-0042 bola zrušená – BY THE WAVE')
+    expect(email.subject).toBe('Rezervácia 20270042 bola zrušená – BY THE WAVE')
     for (const part of ['vašu rezerváciu sme zrušili', 'Vozidlo je v servise.', '92 €']) expect(email.html).toContain(part)
   })
 

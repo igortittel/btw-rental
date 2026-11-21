@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BookingThanksPage({ params, searchParams }: Props) {
   const [{ locale }, { cislo, typ }] = await Promise.all([params, searchParams])
   setRequestLocale(locale)
-  if (!cislo || !/^BTW-\d{4}-\d{4,6}$/.test(cislo)) notFound()
+  // Digits only (20260043); the older BTW-2026-0001 form is still accepted.
+  if (!cislo || !/^(\d{8,10}|BTW-\d{4}-\d{4,6})$/.test(cislo)) notFound()
 
   const [t, catalog] = await Promise.all([getTranslations('booking.thanks'), getCatalog()])
   const individual = typ === 'dopyt'
@@ -51,11 +52,11 @@ export default async function BookingThanksPage({ params, searchParams }: Props)
       {email && emailed ? <p className="mt-8 border-t border-line pt-6 text-sm leading-6 text-muted2">{t('noEmail', { email })}</p> : null}
 
       <div className="mt-8 flex flex-wrap gap-4">
-        <Link href="/" className="inline-flex h-12 items-center justify-center rounded-lg bg-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold-hover">
-          {t('backToCatalog')}
-        </Link>
-        <Link href="/moj-ucet" className="inline-flex h-12 items-center justify-center rounded-lg border border-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold/15">
+        <Link href="/moj-ucet" className="inline-flex h-12 items-center justify-center rounded-lg bg-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold-hover">
           {t('account')}
+        </Link>
+        <Link href="/" className="inline-flex h-12 items-center justify-center rounded-lg border border-gold px-6 text-base font-semibold text-white transition-colors hover:bg-gold/15">
+          {t('backToCatalog')}
         </Link>
       </div>
     </section>

@@ -7,11 +7,11 @@ const none = parseCatalogFilters({}, KNOWN)
 describe('catalogue filters', () => {
   it('ignores unknown and malformed values', () => {
     const f = parseCatalogFilters({ kategoria: 'sedan,admin,van', prevodovka: 'x', palivo: 'coal', miesta: '99', od: '2027-13-99', do: 'x' }, KNOWN)
-    expect(f).toEqual({ categories: ['sedan', 'van'], transmission: null, fuel: null, minSeats: null, from: null, to: null })
+    expect(f).toEqual({ categories: ['sedan', 'van'], transmission: null, fuel: null, seats: null, from: null, to: null })
   })
   it('reads valid values', () => {
     const f = parseCatalogFilters({ prevodovka: 'automatic', palivo: 'diesel', miesta: '7', od: '2027-03-01', do: '2027-03-05' }, KNOWN)
-    expect(f).toMatchObject({ transmission: 'automatic', fuel: 'diesel', minSeats: 7, from: '2027-03-01', to: '2027-03-05' })
+    expect(f).toMatchObject({ transmission: 'automatic', fuel: 'diesel', seats: 7, from: '2027-03-01', to: '2027-03-05' })
   })
   it('drops a date range that ends before it starts', () => {
     expect(parseCatalogFilters({ od: '2027-03-05', do: '2027-03-01' }, KNOWN).from).toBeNull()

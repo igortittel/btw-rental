@@ -8,6 +8,7 @@ import { checkTermAction, createBookingAction, type BookingActionResult } from '
 import { COUNTRY_CODES, PHONE_PREFIXES, countryName } from '@/lib/booking/countries'
 import {
   PHONE_DIGITS,
+  abroadRuleErrors,
   customerRuleErrors,
   customerSchema,
   confirmSchema,
@@ -21,13 +22,14 @@ import {
 } from '@/lib/booking/schema'
 import { formatEuro } from '@/lib/format'
 import { calculatePrice } from '@/lib/pricing'
-import { formatDate, formatDateTime, localDateInHours, utcToZonedLocal } from '@/lib/time'
-import { Card, CheckField, DateInput, Field, RadioCards, SelectInput, TextInput, controlClass, describe } from './fields'
+import { formatDate, formatDateTime, localDateInHours } from '@/lib/time'
+import { Card, CheckField, DateInput, Field, RadioCards, SelectInput, TextInput, TypedDateInput, controlClass, describe } from './fields'
 import { PriceLines, PriceSummary } from './price-summary'
 import { Turnstile } from './turnstile'
 import type { BookingConfig, BookingLocation, BookingVehicle } from './types'
 
-export const BOOKING_DRAFT_KEY = 'btw-booking-draft-v1'
+// v2: the travel-abroad answer starts unanswered – an older draft must not answer it with "no".
+export const BOOKING_DRAFT_KEY = 'btw-booking-draft-v2'
 
 type Props = { vehicles: BookingVehicle[]; locations: BookingLocation[]; config: BookingConfig; initial: BookingFormState }
 type Field_ = keyof BookingFormState
@@ -124,7 +126,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
     (target: number, v: BookingFormState): FieldErrors => {
       if (target === 1) {
         const parsed = termSchema.safeParse(v)
-        if (!parsed.success) return fieldErrors(parsed.error)
+        if (!parsed.success) return { ...abroadRuleErrors(v), ...fieldErrors(parsed.error) }
         return validateTerm(v, rules)
       }
       if (target === 2) {
@@ -256,15 +258,22 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
   const methodOptions = config.paymentMethods.map((method) => ({ value: method, label: t(`methods.${method}`) }))
   const selectedExtras = vehicle ? vehicle.extras.filter((extra) => (values.extras[extra.id] ?? 0) > 0) : []
   const pick = (name: { sk?: string; en?: string }) => (locale === 'en' ? name.en : name.sk) || name.sk || name.en || ''
-  const cancellation = [...config.cancellationTiers].sort((a, b) => b.min_hours - a.min_hours)
 
   const text = (
     field: 'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'companyName' | 'ico' | 'dic' | 'icDph' | 'street' | 'city' | 'zip' | 'abroadCountries' | 'pickupAddress' | 'returnAddress',
     label: string,
     props: React.ComponentProps<'input'> = {},
-    extra: { hint?: string; optional?: boolean; className?: string } = {},
+    extra: { hint?: string; optional?: boolean; required?: boolean; className?: string } = {},
   ) => (
-    <Field id={field} label={label} error={err(field)} hint={extra.hint} optional={extra.optional ? t('optional') : undefined} className={extra.className}>
+    <Field
+      id={field}
+      label={label}
+      error={err(field)}
+      hint={extra.hint}
+      optional={extra.optional ? t('optional') : undefined}
+      required={extra.required ? t('requiredMark') : undefined}
+      className={extra.className}
+    >
       <TextInput id={field} name={field} value={values[field]} onChange={(event) => set(field, event.target.value)} {...describe(field, err(field), extra.hint)} {...props} />
     </Field>
   )
@@ -430,7 +439,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 ) : null}
                 {vehicle ? (
                   <details className="mt-4 border-t border-line pt-3" open={calendarOpen} onToggle={(event) => setCalendarOpen(event.currentTarget.open)}>
-                    <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-gold">{t('showCalendar')}</summary>
+                    <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-gold">{calendarOpen ? t('hideCalendar') : t('showCalendar')}</summary>
                     <div className="pt-3">
                       <AvailabilityCalendar
                         vin={vehicle.vin}
@@ -522,13 +531,22 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                   ))}
                 </div>
                 {deliveryOutside ? <p className="mt-4 rounded-lg border border-gold/60 bg-gold/10 px-4 py-3 text-sm leading-6 text-white">{t('deliveryNote')}</p> : null}
-                <div className="mt-4 border-t border-line pt-3">
-                  <CheckField id="abroadTrip" checked={values.abroadTrip} onChange={(checked) => set('abroadTrip', checked)}>
-                    {t('abroad')}
-                  </CheckField>
-                  <p className="pl-8 text-sm text-muted2">{t('abroadHint')}</p>
+                <div className="mt-4 border-t border-line pt-4">
+                  <RadioCards
+                    name="abroadTrip"
+                    legend={t('abroadQuestion')}
+                    required={t('requiredMark')}
+                    value={values.abroadTrip === null ? '' : values.abroadTrip ? 'yes' : 'no'}
+                    options={[
+                      { value: 'no', label: t('abroadNo') },
+                      { value: 'yes', label: t('abroadYes') },
+                    ]}
+                    onChange={(value) => set('abroadTrip', value === 'yes')}
+                    error={err('abroadTrip')}
+                  />
+                  <p className="mt-2 text-sm text-muted2">{t('abroadHint')}</p>
                   {values.abroadTrip ? (
-                    <div className="mt-3 pl-8">{text('abroadCountries', t('abroadCountries'), { placeholder: t('abroadPlaceholder'), maxLength: 300 }, { optional: true })}</div>
+                    <div className="mt-3">{text('abroadCountries', t('abroadCountries'), { placeholder: t('abroadPlaceholder'), maxLength: 300, 'aria-required': true }, { required: true })}</div>
                   ) : null}
                 </div>
               </Card>
@@ -570,18 +588,30 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
               </Card>
 
               <Card title={t('driver')}>
-                <Field id="dateOfBirth" label={t('dateOfBirth')} error={err('dateOfBirth')} hint={t('dateOfBirthHint', { age: vehicle.minDriverAge })} className="sm:max-w-xs">
-                  <DateInput
+                <Field
+                  id="dateOfBirth"
+                  label={t('dateOfBirth')}
+                  error={err('dateOfBirth')}
+                  hint={`${t('dateOfBirthFormat')} ${t('dateOfBirthHint', { age: vehicle.minDriverAge })}`}
+                  className="sm:max-w-xs"
+                >
+                  <TypedDateInput
                     id="dateOfBirth"
                     autoComplete="bday"
-                    max={utcToZonedLocal(new Date()).slice(0, 10)}
+                    placeholder={t('dateOfBirthPlaceholder')}
                     value={values.dateOfBirth}
-                    onChange={(event) => set('dateOfBirth', event.target.value)}
+                    onValueChange={(value) => set('dateOfBirth', value)}
                     {...describe('dateOfBirth', err('dateOfBirth'), 'hint')}
                   />
                 </Field>
                 <div className="mt-3">
-                  <CheckField id="licenseConfirmed" checked={values.licenseConfirmed} onChange={(checked) => set('licenseConfirmed', checked)} error={err('licenseConfirmed')}>
+                  <CheckField
+                    id="licenseConfirmed"
+                    checked={values.licenseConfirmed}
+                    onChange={(checked) => set('licenseConfirmed', checked)}
+                    error={err('licenseConfirmed')}
+                    required={t('requiredMark')}
+                  >
                     {t('licenseConfirm', { months: vehicle.minLicenseMonths })}
                   </CheckField>
                 </div>
@@ -714,10 +744,10 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
               </Card>
 
               <Card title={t('conditions')}>
-                <CheckField id="depositConsent" checked={values.depositConsent} onChange={(checked) => set('depositConsent', checked)} error={err('depositConsent')}>
+                <CheckField id="depositConsent" checked={values.depositConsent} onChange={(checked) => set('depositConsent', checked)} error={err('depositConsent')} required={t('requiredMark')}>
                   {t('depositConsent', { amount: euro(vehicle.depositCents) })}
                 </CheckField>
-                <CheckField id="kmLimitConsent" checked={values.kmLimitConsent} onChange={(checked) => set('kmLimitConsent', checked)} error={err('kmLimitConsent')}>
+                <CheckField id="kmLimitConsent" checked={values.kmLimitConsent} onChange={(checked) => set('kmLimitConsent', checked)} error={err('kmLimitConsent')} required={t('requiredMark')}>
                   {t('kmLimitConsent', { km: vehicle.kmLimitPerDay, price: euro(vehicle.extraKmCents) })}
                 </CheckField>
               </Card>
@@ -726,15 +756,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 <label htmlFor="note" className="sr-only">
                   {t('note')}
                 </label>
-                <textarea
-                  id="note"
-                  value={values.note}
-                  maxLength={2000}
-                  rows={3}
-                  placeholder={t('notePlaceholder')}
-                  onChange={(event) => set('note', event.target.value)}
-                  className={`${controlClass} h-auto py-2.5`}
-                />
+                <textarea id="note" value={values.note} maxLength={2000} rows={3} onChange={(event) => set('note', event.target.value)} className={`${controlClass} h-auto py-2.5`} />
               </Card>
 
               <div className={actions}>
@@ -784,7 +806,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                     }
                   />
                   <ReviewRow label={t('lengthLabel')} value={t('days', { count: price.days })} />
-                  {values.abroadTrip ? <ReviewRow label={t('reviewAbroad')} value={values.abroadCountries || '✓'} /> : null}
+                  <ReviewRow label={t('reviewAbroad')} value={values.abroadTrip ? values.abroadCountries : t('abroadNo')} />
                 </dl>
               </Card>
 
@@ -834,24 +856,8 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                 {values.rentalPaymentMethod === 'transfer' || values.depositPaymentMethod === 'transfer' ? <p className="mt-3 text-sm leading-6 text-muted2">{t('transferInfo')}</p> : null}
               </Card>
 
-              <Card title={t('cancellation')}>
-                <p className="mb-2 text-sm text-muted2">{t('cancellationLead')}</p>
-                <dl className="space-y-1 text-[15px]">
-                  {cancellation.map((tier, index) => {
-                    const upper = cancellation[index - 1]?.min_hours
-                    const label =
-                      index === 0
-                        ? t('cancelMoreThan', { hours: tier.min_hours })
-                        : tier.min_hours > 0
-                          ? t('cancelBetween', { from: upper, to: tier.min_hours })
-                          : t('cancelLessThan', { hours: upper ?? 0 })
-                    return <ReviewRow key={tier.min_hours} label={label} value={tier.fee_percent === 0 ? t('cancelFree') : `${tier.fee_percent} %`} />
-                  })}
-                </dl>
-              </Card>
-
               <Card title={t('consents')}>
-                <CheckField id="termsConsent" checked={values.termsConsent} onChange={(checked) => set('termsConsent', checked)} error={err('termsConsent')}>
+                <CheckField id="termsConsent" checked={values.termsConsent} onChange={(checked) => set('termsConsent', checked)} error={err('termsConsent')} required={t('requiredMark')}>
                   {t.rich('termsConsent', {
                     link: (chunks) => (
                       <a href={config.termsUrl} target="_blank" rel="noopener" className="text-gold underline underline-offset-4">
@@ -860,7 +866,7 @@ export function BookingForm({ vehicles, locations, config, initial }: Props) {
                     ),
                   })}
                 </CheckField>
-                <CheckField id="gdprConsent" checked={values.gdprConsent} onChange={(checked) => set('gdprConsent', checked)} error={err('gdprConsent')}>
+                <CheckField id="gdprConsent" checked={values.gdprConsent} onChange={(checked) => set('gdprConsent', checked)} error={err('gdprConsent')} required={t('requiredMark')}>
                   {t.rich('gdprConsent', {
                     link: (chunks) => (
                       <a href={config.gdprUrl} target="_blank" rel="noopener" className="text-gold underline underline-offset-4">

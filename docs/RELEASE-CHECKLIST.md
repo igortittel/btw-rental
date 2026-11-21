@@ -55,7 +55,7 @@ Pozn.: vlastná doména **nie je za Vercel prihlásením** (ochrana platí na v�
 
 Robí Claude cez Supabase po potvrdení klienta, **tesne pred spustením**:
 
-- rezervácie BTW-2026-0001 … 0009 a všetky súvisiace záznamy (príplatky rezervácie, protokoly, vyúčtovania, platby, doklady, poznámky, história stavov, súhlasy, e-mail log),
+- rezervácie 20260001 … 20260009 (pôvodne BTW-2026-0001 …) a všetky súvisiace záznamy (príplatky rezervácie, protokoly, vyúčtovania, platby, doklady, poznámky, história stavov, súhlasy, e-mail log),
 - súbory v bucketoch `protocols`, `protocol-media`, `documents`,
 - testovacie účty `e2e-…@btw-rental.test` (zákazníci aj zamestnanci, vrátane TOTP faktorov) a profily,
 - počítadlo čísel rezervácií (`booking_counters`) – keď nezostane žiadna rezervácia, môže začať znova od 0001.

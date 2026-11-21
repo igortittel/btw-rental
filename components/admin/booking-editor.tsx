@@ -115,7 +115,10 @@ export function BookingEditor({ mode, bookingId, vehicles, locations, config, in
       <TextInput id={key} value={values[key]} onChange={(event) => set(key, event.target.value)} {...describe(key, err(key))} {...props} />
     </Field>
   )
-  const methodOptions = config.paymentMethods.map((value) => ({ value, label: PAYMENT_METHOD_LABELS[value] }))
+  // An older booking may use a method that is no longer offered (terminal) – keep it selectable.
+  const methodOptions = [...new Set([...config.paymentMethods, values.rentalPaymentMethod, values.depositPaymentMethod])]
+    .filter((value): value is keyof typeof PAYMENT_METHOD_LABELS => value in PAYMENT_METHOD_LABELS)
+    .map((value) => ({ value, label: PAYMENT_METHOD_LABELS[value] }))
   const needsPrice = mode === 'create' ? status === 'confirmed' : mustHavePrice
 
   return (

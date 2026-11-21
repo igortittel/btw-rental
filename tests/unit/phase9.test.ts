@@ -182,7 +182,7 @@ describe('emails 7, 9, 11, 12', () => {
       assistancePhone: '+421 900 000 000',
       accountUrl: 'https://rental.btw.sk/moj-ucet',
     })
-    expect(email.subject).toBe('Zajtra vyzdvihnutie vozidla – BTW-2027-0042')
+    expect(email.subject).toBe('Zajtra vyzdvihnutie vozidla – 20270042')
     for (const part of ['Pripomienka vyzdvihnutia', 'občiansky preukaz', 'vodičský preukaz', 'Prenájom zatiaľ nemáme uhradený', '+421 900 000 000', 'Zobraziť rezerváciu'])
       expect(nbsp(email.html)).toContain(part)
     expect(email.text).not.toMatch(/<[a-z]/i)
@@ -196,7 +196,7 @@ describe('emails 7, 9, 11, 12', () => {
       assistancePhone: null,
       accountUrl: 'https://rental.btw.sk/en/moj-ucet',
     })
-    expect(email.subject).toBe('Vehicle return tomorrow – BTW-2027-0042')
+    expect(email.subject).toBe('Vehicle return tomorrow – 20270042')
     expect(nbsp(email.html)).toContain('more than 59 minutes')
     expect(nbsp(email.html)).toContain('Mileage limit')
   })
@@ -211,7 +211,7 @@ describe('emails 7, 9, 11, 12', () => {
       accountUrl: 'https://rental.btw.sk/moj-ucet',
     }
     const email = await renderDocumentAvailable(props)
-    expect(email.subject).toBe('Faktúra k rezervácii BTW-2027-0042 – BY THE WAVE')
+    expect(email.subject).toBe('Faktúra k rezervácii 20270042 – BY THE WAVE')
     expect(nbsp(email.html)).toContain('FA2026-0102')
     await sendDocumentAvailable(props, { bookingId: 'b', profileId: 'p', pdf: { filename: 'Faktura-FA2026-0102.pdf', content: Buffer.from('%PDF-') } })
     expect(vi.mocked(sendEmail).mock.lastCall?.[0]).toMatchObject({

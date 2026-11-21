@@ -15,7 +15,7 @@ export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
 export const PAYMENT_METHOD_LABELS: Record<Database['public']['Enums']['payment_method'], string> = {
   transfer: 'Bankový prevod',
   terminal: 'Platobný terminál',
-  cash: 'Hotovosť',
+  cash: 'Na mieste (hotovosť / terminál)',
 }
 
 /**

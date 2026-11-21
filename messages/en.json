@@ -2,7 +2,7 @@
   "site": {
     "name": "BY THE WAVE",
     "tagline": "Car rental",
-    "backToBtw": "btw.sk",
+    "backToBtw": "BTW.sk",
     "login": "Sign in",
     "account": "My account",
     "admin": "Administration",
@@ -16,7 +16,11 @@
     "errorTitle": "Something went wrong",
     "errorText": "The page could not be loaded. Please try again in a moment.",
     "errorRetry": "Try again",
-    "orgDescription": "Premium car rental in Bratislava – Mercedes-Benz sedans, SUVs, limousines and vans."
+    "orgDescription": "Premium car rental in Bratislava – Mercedes-Benz sedans, SUVs, limousines and vans.",
+    "language": "Language",
+    "moreServices": "More services",
+    "transport": "Passenger transport",
+    "transfer": "Transfer to Vienna Schwechat"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -124,7 +128,7 @@
     "methods": {
       "transfer": "bank transfer",
       "terminal": "card terminal",
-      "cash": "cash"
+      "cash": "payment on site (cash or card terminal)"
     },
     "rentalStatus": {
       "unpaid": "unpaid",
@@ -268,7 +272,6 @@
     "transmission": "Transmission",
     "fuel": "Fuel",
     "seats": "Seats",
-    "seatsMin": "{count}+ seats",
     "any": "Any",
     "dateFrom": "Available from",
     "dateTo": "to",
@@ -359,10 +362,8 @@
     "paymentMethods": {
       "transfer": "bank transfer",
       "terminal": "card terminal",
-      "cash": "cash"
+      "cash": "payment on site (cash or card terminal)"
     },
-    "pickup": "Pick-up and return",
-    "pickupValue": "{address}, around the clock",
     "abroad": "Trips abroad",
     "abroadValue": "allowed at no extra charge",
     "cancellation": "Cancellation terms",
@@ -387,7 +388,9 @@
     "drivetrain": "Drivetrain",
     "luggage": "Luggage space",
     "extrasLead": "Optional; you choose them in the booking form.",
-    "cancelFree": "free of charge"
+    "cancelFree": "free of charge",
+    "basePrice": "Base price",
+    "basePriceDetail": "{count, plural, one {# day} other {# days}} × {rate}"
   },
   "booking": {
     "title": "Booking",
@@ -416,8 +419,8 @@
     "returnLocation": "Return location",
     "locationSurcharge": "{name} (+{price})",
     "abroad": "I plan to travel abroad",
-    "abroadHint": "Travelling abroad is allowed at no extra charge. This is for our information only.",
-    "abroadCountries": "Which countries will you visit?",
+    "abroadHint": "Travel abroad is allowed at no extra charge. We need the answer for the vehicle insurance.",
+    "abroadCountries": "Which countries will the vehicle visit?",
     "abroadPlaceholder": "e.g. Austria, Croatia",
     "individualTitle": "Long-term rental – individual price",
     "individualText": "For rentals of {days} days or more we prepare the price individually. You will send the form as a non-binding enquiry and we will email you an offer.",
@@ -464,10 +467,9 @@
     "methods": {
       "transfer": "Bank transfer",
       "terminal": "Card terminal",
-      "cash": "Cash"
+      "cash": "Payment on site (cash or card terminal)"
     },
     "note": "Note",
-    "notePlaceholder": "For example your flight number or special requests",
     "summary": "Summary",
     "summaryEmpty": "Choose a vehicle and dates to see the price.",
     "summaryFrom": "from {price} / day",
@@ -497,18 +499,12 @@
     "reviewPrice": "Price",
     "reviewPayment": "Payment",
     "transferInfo": "We will send the payment details (IBAN and payment reference = booking number) in the confirmation email.",
-    "cancellation": "Cancellation policy",
-    "cancellationLead": "Counted from the pick-up time; the fee is a share of the booking price.",
-    "cancelMoreThan": "more than {hours} h before pick-up",
-    "cancelBetween": "{from} h – {to} h before pick-up",
-    "cancelLessThan": "less than {hours} h before pick-up",
-    "cancelFree": "free of charge",
     "consents": "Consents",
     "termsConsent": "I agree to the <link>General Terms and Conditions</link>.",
     "gdprConsent": "I have read the <link>personal data processing information</link> and agree to it.",
     "marketingConsent": "I agree to receive news and offers by email. I can withdraw this consent at any time.",
     "honeypot": "Leave this field empty",
-    "submit": "Confirm booking",
+    "submit": "Book the vehicle",
     "submitIndividual": "Send enquiry",
     "submitting": "Sending…",
     "submitHint": "The booking becomes binding once we confirm it. You pay nothing now.",
@@ -531,7 +527,10 @@
       "spam": "Sending failed. Please wait a moment and try again.",
       "unknown": "We could not send your booking. Please try again or contact us.",
       "address_required": "Enter the full address (street, number, city).",
-      "phone_length": "The number must have {digits} digits without the dial code and leading zero, e.g. 900 123 456."
+      "phone_length": "The number must have {digits} digits without the dial code and leading zero, e.g. 900 123 456.",
+      "abroad_required": "Please choose whether you plan to travel abroad.",
+      "abroad_countries_required": "Please list the countries the vehicle will visit.",
+      "date_invalid": "Please enter a valid date as DD.MM.YYYY."
     },
     "thanks": {
       "metaTitle": "Thank you for your booking",
@@ -553,8 +552,8 @@
         "At pick-up, please have your ID card or passport, driving licence and the deposit ready."
       ],
       "noEmail": "No email? Check your spam folder or contact us at {email}.",
-      "backToCatalog": "Back to our vehicles",
-      "account": "Customer area",
+      "backToCatalog": "Back to all vehicles",
+      "account": "Go to the customer area",
       "leadNoEmail": "Your booking has been recorded. We will contact you shortly by email or phone."
     },
     "pickupCustom": "Deliver the vehicle to a different address",
@@ -566,6 +565,13 @@
     "addressOutside": "The address is outside Bratislava – arranged individually",
     "deliveryFree": "free of charge",
     "deliveryOutside": "Delivery outside Bratislava",
-    "deliveryIndividual": "individual"
+    "deliveryIndividual": "individual",
+    "abroadQuestion": "Are you planning to travel abroad?",
+    "abroadYes": "Yes",
+    "abroadNo": "No",
+    "hideCalendar": "Hide availability calendar",
+    "requiredMark": "required",
+    "dateOfBirthPlaceholder": "DD.MM.YYYY",
+    "dateOfBirthFormat": "Enter as DD.MM.YYYY, e.g. 24.05.1990."
   }
 }

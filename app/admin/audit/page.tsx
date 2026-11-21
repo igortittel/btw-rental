@@ -139,7 +139,7 @@ export default async function AuditPage({ searchParams }: Props) {
         </label>
         <label className="space-y-1 text-xs text-muted2">
           Číslo rezervácie
-          <input name="rez" defaultValue={bookingNumber} placeholder="BTW-2026-0001" className={input} />
+          <input name="rez" defaultValue={bookingNumber} placeholder="20260001" className={input} />
         </label>
         <div className="flex gap-2">
           <button type="submit" className="h-10 flex-1 rounded-lg bg-gold px-4 text-sm font-semibold text-white hover:bg-gold-hover">

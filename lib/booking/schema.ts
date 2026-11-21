@@ -37,13 +37,25 @@ export const termSchema = z
     returnCustom: z.boolean(),
     returnAddress: text(200),
     returnOutsideCity: z.boolean(),
-    abroadTrip: z.boolean(),
+    /** Must be answered (yes / no) – it matters for the insurance. */
+    abroadTrip: z.boolean({ message: 'abroad_required' }),
     abroadCountries: text(300),
   })
   .superRefine((value, ctx) => {
     if (value.pickupCustom && value.pickupAddress.length < 5) ctx.addIssue({ code: 'custom', path: ['pickupAddress'], message: 'address_required' })
     if (value.returnCustom && value.returnAddress.length < 5) ctx.addIssue({ code: 'custom', path: ['returnAddress'], message: 'address_required' })
+    for (const [path, message] of Object.entries(abroadRuleErrors(value))) ctx.addIssue({ code: 'custom', path: [path], message: message as string })
   })
+
+/**
+ * Travel abroad: the answer is required and, when it is "yes", so are the countries.
+ * Called directly by the forms as well (Zod runs superRefine only once all fields are valid).
+ */
+export function abroadRuleErrors(value: { abroadTrip: boolean | null | undefined; abroadCountries: string }): FieldErrors {
+  if (value.abroadTrip === null || value.abroadTrip === undefined) return { abroadTrip: 'abroad_required' }
+  if (value.abroadTrip && value.abroadCountries.trim().length < 2) return { abroadCountries: 'abroad_countries_required' }
+  return {}
+}
 
 /** National number length (digits, without the leading zero) for dial codes where it is fixed. */
 export const PHONE_DIGITS: Record<string, number> = { '+421': 9, '+420': 9 }
@@ -63,7 +75,7 @@ export const customerSchema = z
       .transform((v) => v.replace(/[\s\-()/.]/g, '').replace(/^0+/, ''))
       .pipe(z.string().regex(/^\d{6,12}$/, { message: 'phone_invalid' })),
     note: text(2000),
-    dateOfBirth: z.string().regex(DATE, { message: 'required' }),
+    dateOfBirth: z.string().regex(DATE, { message: 'date_invalid' }),
     licenseConfirmed: mustAccept,
     isCompany: z.boolean(),
     companyName: text(160),
@@ -111,10 +123,12 @@ export const confirmSchema = z.object({
 export const bookingSchema = z.intersection(z.intersection(termSchema, customerSchema), confirmSchema)
 
 export type TermInput = z.input<typeof termSchema>
+/** The term while it is being filled in: the travel-abroad question may still be unanswered. */
+export type TermFormState = Omit<TermInput, 'abroadTrip'> & { abroadTrip: boolean | null }
 export type BookingData = z.output<typeof bookingSchema>
 
 /** What the form holds while it is being filled in (consents may still be unticked). */
-export type BookingFormState = TermInput & {
+export type BookingFormState = TermFormState & {
   firstName: string
   lastName: string
   email: string
@@ -184,10 +198,29 @@ export function ageOn(dateOfBirth: string, onDate: string): number {
 }
 
 export function validateDriverAge(dateOfBirth: string, pickupDate: string, minAge: number): FieldErrors {
-  if (!DATE.test(dateOfBirth) || Number.isNaN(Date.parse(dateOfBirth))) return { dateOfBirth: 'required' }
+  if (!DATE.test(dateOfBirth) || Number.isNaN(Date.parse(dateOfBirth))) return { dateOfBirth: 'date_invalid' }
   const age = ageOn(dateOfBirth, pickupDate)
-  if (age > 110) return { dateOfBirth: 'required' }
+  if (age > 110) return { dateOfBirth: 'date_invalid' }
   return age < minAge ? { dateOfBirth: 'too_young' } : {}
+}
+
+/**
+ * Date of birth typed as D.M.YYYY (dots, slashes, dashes or spaces) -> YYYY-MM-DD,
+ * or '' when it is incomplete or not a real calendar date.
+ */
+export function parseTypedDate(input: string): string {
+  const match = input.trim().match(/^(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{4})$/)
+  if (!match) return ''
+  const [day, month, year] = [Number(match[1]), Number(match[2]), Number(match[3])]
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return ''
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+/** YYYY-MM-DD -> DD.MM.YYYY for the typed date field. */
+export function formatTypedDate(value: string): string {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return match ? `${match[3]}.${match[2]}.${match[1]}` : ''
 }
 
 /** Full phone number in international format. */

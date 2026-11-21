@@ -1,7 +1,7 @@
 import type { Database } from '@/types/database'
 import { zonedLocalToUtc } from '@/lib/time'
 
-/** Payment reference (variabilný symbol): the numeric part of the booking number, "BTW-2026-0001" -> "20260001". */
+/** Payment reference (variabilný symbol): the booking number itself ("20260001"); only digits, at most 10. */
 export function variableSymbol(bookingNumber: string): string {
   return bookingNumber.replace(/\D/g, '').slice(0, 10)
 }

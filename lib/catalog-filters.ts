@@ -4,7 +4,8 @@ export type CatalogFilters = {
   categories: string[]
   transmission: 'automatic' | 'manual' | null
   fuel: string | null
-  minSeats: number | null
+  /** Exact number of seats (5, 7, 8 …). */
+  seats: number | null
   from: string | null // YYYY-MM-DD
   to: string | null
 }
@@ -19,7 +20,7 @@ export function parseCatalogFilters(params: Params, knownCategories: string[], f
   const requested = fixedCategory ? [fixedCategory] : first(params.kategoria).split(',')
   const transmission = first(params.prevodovka)
   const fuel = first(params.palivo)
-  const seats = Number(first(params.miesta))
+  const seatCount = Number(first(params.miesta))
   const from = first(params.od)
   const to = first(params.do)
   const datesOk = DATE.test(from) && DATE.test(to) && from <= to
@@ -27,7 +28,7 @@ export function parseCatalogFilters(params: Params, knownCategories: string[], f
     categories: knownCategories.filter((slug) => requested.includes(slug)),
     transmission: transmission === 'automatic' || transmission === 'manual' ? transmission : null,
     fuel: FUELS.includes(fuel) ? fuel : null,
-    minSeats: Number.isInteger(seats) && seats >= 2 && seats <= 9 ? seats : null,
+    seats: Number.isInteger(seatCount) && seatCount >= 2 && seatCount <= 9 ? seatCount : null,
     from: datesOk ? from : null,
     to: datesOk ? to : null,
   }
@@ -38,7 +39,7 @@ export function filterQuery(filters: CatalogFilters): URLSearchParams {
   const query = new URLSearchParams()
   if (filters.transmission) query.set('prevodovka', filters.transmission)
   if (filters.fuel) query.set('palivo', filters.fuel)
-  if (filters.minSeats) query.set('miesta', String(filters.minSeats))
+  if (filters.seats) query.set('miesta', String(filters.seats))
   if (filters.from && filters.to) {
     query.set('od', filters.from)
     query.set('do', filters.to)
@@ -74,5 +75,5 @@ export function filterWindow(filters: CatalogFilters): { from: Date; to: Date } 
 }
 
 export function hasActiveFilters(filters: CatalogFilters): boolean {
-  return !!(filters.transmission || filters.fuel || filters.minSeats || (filters.from && filters.to))
+  return !!(filters.transmission || filters.fuel || filters.seats || (filters.from && filters.to))
 }

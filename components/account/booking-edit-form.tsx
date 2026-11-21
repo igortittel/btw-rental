@@ -215,8 +215,15 @@ export function BookingEditForm({ bookingId, confirmed, vehicle, locations, conf
             {b('abroad')}
           </CheckField>
           {values.abroadTrip ? (
-            <Field id="abroadCountries" label={b('abroadCountries')} className="mt-2 pl-8">
-              <TextInput id="abroadCountries" value={values.abroadCountries} maxLength={300} onChange={(event) => set('abroadCountries', event.target.value)} />
+            <Field id="abroadCountries" label={b('abroadCountries')} error={err('abroadCountries')} required={b('requiredMark')} className="mt-2 pl-8">
+              <TextInput
+                id="abroadCountries"
+                value={values.abroadCountries}
+                maxLength={300}
+                aria-required
+                onChange={(event) => set('abroadCountries', event.target.value)}
+                {...describe('abroadCountries', err('abroadCountries'))}
+              />
             </Field>
           ) : null}
         </div>

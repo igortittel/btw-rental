@@ -61,7 +61,7 @@ $$;
 
 create temp table r as select public.create_booking(pg_temp.payload('00000000-0000-0000-0000-00000000000a', '5 days', '8 days', true)) as v;
 
-select pg_temp.expect((select v ->> 'number' ~ '^BTW-\d{4}-\d{4}$' from r), 'booking number is assigned');
+select pg_temp.expect((select v ->> 'number' ~ '^\d{8,10}$' from r), 'booking number is assigned (digits only)');
 select pg_temp.expect((select (v ->> 'pending_overlaps')::int = 0 and (v ->> 'is_blacklisted')::boolean = false from r), 'no overlap, not blacklisted');
 select pg_temp.expect((select status = 'new' and created_by = 'customer' and total_cents = 24900 and abroad_trip and buffer_minutes = 240
                          from public.bookings where id = (select (v ->> 'id')::uuid from r)), 'booking row stored as new with snapshot values');

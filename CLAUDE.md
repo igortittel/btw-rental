@@ -81,6 +81,12 @@ Pri dokončení fázy aktualizuj túto tabuľku a napíš `docs/PHASE-N.md`.
 - **`Intl.DateTimeFormat` nevytváraj v cykle** – je drahý; `lib/time.ts` ho cachuje (kalendár ho predtým vytváral stovky krát a blokoval detail vozidla 2 s).
 - **ESLint pravidlá React Hooks 7:** žiadny `setState` v efekte (uprav stav počas renderu), žiadne `ref.current =` v renderi (`useLayoutEffect`), žiadne `Date.now()` v renderi. Výnimky len s komentárom prečo.
 - **E2E (Playwright)** v GitHub Actions proti lokálnemu Supabase (`supabase/config.toml`) – nikdy proti produkcii (`tests/e2e/support.ts` to stráži). Prihlásenie zamestnanca: TOTP z tajomstva zobrazeného pri registrácii 2FA; odkaz na heslo admin zobrazí, keď nie je e-mailová služba.
+- **Číslo rezervácie = variabilný symbol:** `20260043` (rok + poradie, bez „BTW-“, max. 10 číslic) – migrácia `20261124090000_booking_number_digits.sql` mení `next_booking_number` a prečísluje existujúce. Ďakovná stránka prijíma aj starý tvar `BTW-…`. **Migrácia sa aplikuje na Supabase až pri zlúčení do `main`** (DB zdieľa produkcia aj preview).
+- **Platba na mieste:** verejný formulár ponúka len `transfer` a `cash`; `cash` sa zobrazuje ako „Platba na mieste (hotovosť alebo terminál)“. `terminal` ostáva v enume na zaznamenanie skutočnej úhrady v admine.
+- **Cesta do zahraničia je povinná otázka** (Áno / Nie, kvôli poisteniu), pri „Áno“ sú povinné krajiny (`abroadRuleErrors` v `lib/booking/schema.ts`). Koncept formulára je `btw-booking-draft-v2`.
+- **Dátum narodenia sa píše** (`TypedDateInput`, DD.MM.RRRR), nie vyberá v kalendári.
+- **Filter počtu miest je presná zhoda** (5 / 7 / 8), nie „5+“.
+- **Hlavička:** bez kategórií a bez odkazu na btw.sk (ten je v pätičke s Prepravou osôb a Transferom na Schwechat); na mobile je prihlásenie / Môj účet / jazyk len v hamburgeri.
 - **Admin navigácia:** `components/admin/admin-nav.tsx` – horná lišta + „Viac“, na mobile spodná lišta. Nové sekcie pridávaj do `primary` / `secondary` v `app/admin/layout.tsx`.
 
 ## Čo ešte chýba od klienta
