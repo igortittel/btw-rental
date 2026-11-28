@@ -1,3 +1,4 @@
+import { ADMIN_URL } from '@/lib/admin-url'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
@@ -16,7 +17,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
   setRequestLocale(locale)
 
   const user = await getSessionUser()
-  if (user) redirect(user.role ? '/admin' : localizedPath(locale, '/moj-ucet'))
+  if (user) redirect(user.role ? ADMIN_URL : localizedPath(locale, '/moj-ucet'))
 
   const t = await getTranslations('auth')
   const safeNext = next ? safeNextPath(next, '') : ''

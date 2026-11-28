@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/seo'
 
-const PRIVATE = ['/admin', '/api/', '/moj-ucet', '/rezervacia', '/prihlasenie', '/zabudnute-heslo', '/nastavit-heslo']
+const PRIVATE = ['/api/', '/moj-ucet', '/rezervacia', '/prihlasenie', '/zabudnute-heslo', '/nastavit-heslo']
 
 export default function robots(): MetadataRoute.Robots {
   // Only the production domain is meant to be indexed; previews stay out of search.
@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
     return { rules: { userAgent: '*', disallow: '/' } }
   }
   return {
-    rules: { userAgent: '*', allow: '/', disallow: [...PRIVATE, ...PRIVATE.filter((p) => !p.startsWith('/admin') && !p.startsWith('/api')).map((p) => `/en${p}`)] },
+    rules: { userAgent: '*', allow: '/', disallow: [...PRIVATE, ...PRIVATE.filter((p) => !p.startsWith('/api')).map((p) => `/en${p}`)] },
     sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }

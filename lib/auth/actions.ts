@@ -1,5 +1,6 @@
 'use server'
 
+import { ADMIN_URL } from '@/lib/admin-url'
 import { redirect } from 'next/navigation'
 import { localizedPath } from '@/i18n/routing'
 import { emailSchema, newPasswordSchema } from '@/lib/auth/password'
@@ -22,7 +23,8 @@ function field(formData: FormData, name: string): string {
 async function destinationFor(userId: string, locale: string, next: string | null): Promise<string> {
   const supabase = await createClient()
   const { data: staff } = await supabase.from('staff_roles').select('is_active').eq('user_id', userId).maybeSingle()
-  if (staff?.is_active) return safeNextPath(next?.startsWith('/admin') ? next : null, '/admin')
+  // Staff work on admin.btw.sk (separate sign-in with 2FA there).
+  if (staff?.is_active) return ADMIN_URL
   // Customers never land in /admin, whatever `next` says.
   const target = safeNextPath(next, localizedPath(locale, '/moj-ucet'))
   return target.startsWith('/admin') ? localizedPath(locale, '/moj-ucet') : target

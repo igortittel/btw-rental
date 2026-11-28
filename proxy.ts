@@ -10,7 +10,6 @@ const PROTECTED = /^\/(?:en\/)?moj-ucet(?:\/|$)/
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
-  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/')
 
   // Per-request nonce for the Content-Security-Policy: passed to Next.js in the request headers
   // (it marks its scripts with it) and sent to the browser in the response.
@@ -21,9 +20,9 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set('content-security-policy', csp)
   const forwarded = new NextRequest(request, { headers: requestHeaders })
 
-  // Admin is Slovak only and lives outside the locale routing. next-intl copies the request
-  // headers into its rewrite, so the nonce reaches the page in both cases.
-  const response = isAdmin ? NextResponse.next({ request: { headers: requestHeaders } }) : handleI18nRouting(forwarded)
+  // next-intl copies the request headers into its rewrite, so the nonce reaches the page.
+  // (/admin is a 301 to admin.btw.sk in next.config.mjs and never reaches this proxy.)
+  const response = handleI18nRouting(forwarded)
   response.headers.set('Content-Security-Policy', csp)
 
   // Refresh the Supabase session cookie. Authorisation itself (roles) is checked in
@@ -43,7 +42,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && (isAdmin || PROTECTED.test(pathname))) {
+  if (!user && PROTECTED.test(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = pathname.startsWith('/en/') ? '/en/prihlasenie' : '/prihlasenie'
     url.search = `?next=${encodeURIComponent(pathname + search)}`

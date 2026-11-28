@@ -12,7 +12,7 @@ Stack: Next.js na Vercel (projekt btw-rental), Supabase projekt **btw** (zdieľa
 - Admin sa sem nevracia – administrácia je iba na admin.btw.sk.
 
 ## Bezpečnosť
-- Iba publishable/anon kľúč a prihlásený klient. Nikdy `service_role`.
+- Publishable/anon kľúč a prihlásený klient. `service_role` **len** na serveri a len pre toky a súbory z bodu 7 kontraktu (tvorba účtu, odkazy na heslo, rate limit, e-maily). Nové použitie = zmena kontraktu v btw-admin.
 - Heslá a kľúče nikdy do kódu, dokumentácie ani commitu.
 
 ## Pravidlá prenájmu (pre texty a validácie vo formulári)
@@ -33,7 +33,7 @@ Stack: Next.js na Vercel (projekt btw-rental), Supabase projekt **btw** (zdieľa
 
 Pravidlá vyššie sú **cieľový stav**. Kód ešte nie je prepnutý. Kým to btw-admin neurobí, platí:
 
-- Repo ešte obsahuje `app/admin`, `supabase/migrations` a `types/database.ts`. **Nerozširuj ich** – admin a migrácie sa presúvajú do btw-admin (Fáza 1), potom sa tu zmažú a `/admin` → 301 na admin.btw.sk.
+- Admin, migrácie, seed skripty, denný cron a E2E testy sú od Fázy 1 v **btw-admin**. `/admin/*` je tu 301 na `admin.btw.sk/*` (`next.config.mjs`), odkazy pre zamestnancov idú cez `lib/admin-url.ts` (`NEXT_PUBLIC_ADMIN_URL`). `types/database.ts` je dočasná kópia typov, kým btw-admin nevydá `types/supabase.ts` (Fáza 2).
 - Verejná časť dnes číta pohľady `public_vehicles`, `public_categories`, `public_locations`, `public_settings`, `public_price_tiers`, RPC `vehicle_availability` / `is_vehicle_available` a rezervácia ide cez `create_booking` so **service role** (`lib/supabase/admin.ts`). Toto sa vo Fáze 2 nahradí kontraktovými objektmi – nové miesta so service role nepridávaj.
 - Pri rozpore medzi týmto oddielom a `docs/DATA-CONTRACT.md` vyhráva kontrakt; čo sa hneď nedá splniť, napíš ako úlohu pre btw-admin.
 
@@ -76,7 +76,7 @@ Pravidlá vyššie sú **cieľový stav**. Kód ešte nie je prepnutý. Kým to 
 - **Peniaze** v centoch (integer, s DPH), vstup a výstup cez `lib/format.ts` (`parseEuroToCents`, `formatEuro`).
 - **Čas** ako `timestamptz`, zobrazenie a vstupy v `Europe/Bratislava` cez `lib/time.ts` (`zonedLocalToUtc`, `formatDateTime`).
 - **Na verejné endpointy nesmie ísť** ŠPZ, interné poznámky ani blacklist.
-- `npm run build` je čistý build; `npm run vercel-build` navyše spúšťa idempotentné seed skripty (owner, fotky) – po presune adminu sa presúvajú do btw-admin.
+- `npm run build` a `npm run vercel-build` sú rovnaké (seed skripty sú v btw-admin).
 - **Next 16:** `middleware.ts` je `proxy.ts`, konfigurácia `next.config.mjs`, build `next build --webpack`. V server akciách `updateTag`, nie `revalidateTag`. Pri chybe „obnova po akcii nedobehne“ najprv over verziu Reactu v `node_modules/next/dist/compiled/react-dom`.
 - **CSP s nonce** (`lib/csp.ts`, `proxy.ts`): skripty len s nonce + `'strict-dynamic'`. Nový externý zdroj (skript, iframe, fetch z prehliadača, obrázky) treba pridať do `buildCsp`. `<script type="application/ld+json">` nonce nepotrebuje.
 - **Metadáta v `<head>`** (`htmlLimitedBots: /.*/` v `next.config.mjs`) – inak by Google ignoroval canonical a hreflang.
@@ -93,7 +93,7 @@ Pravidlá vyššie sú **cieľový stav**. Kód ešte nie je prepnutý. Kým to 
 - **Cloudflare Turnstile** sa zapne sám po nastavení `NEXT_PUBLIC_TURNSTILE_SITE_KEY` a `TURNSTILE_SECRET_KEY`; dovtedy honeypot, minimálny čas vyplnenia a rate limit.
 
 ## Overovanie
-- Unit testy (Vitest) a E2E (Playwright) v GitHub Actions proti lokálnemu Supabase – **nikdy proti produkcii** (`tests/e2e/support.ts` to stráži).
+- Unit testy (Vitest) v GitHub Actions (`Kvalita`). E2E (Playwright) bežia v **btw-admin** – spúšťajú tento web z rovnomennej vetvy (inak `main`) na :3001 proti lokálnemu Supabase, **nikdy proti produkcii**.
 - Lokálne: `.env.local` s `NEXT_PUBLIC_SUPABASE_URL` a publishable kľúčom, `npm run build`, `next start`. V cloud prostredí spusti build aj server s `NODE_USE_ENV_PROXY=1` a `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`; pred novým štartom zabi aj `next-server`.
 - Preview nasadenia sú za Vercel prihlásením, Playwrightom sa na ne nedostaneš.
 - Databázu zdieľa produkcia aj preview – testovacie dáta po teste zmaž a povedz o nich klientovi. Čísla rezervácií pri mazaní nevracaj späť.
@@ -104,7 +104,7 @@ Pravidlá vyššie sú **cieľový stav**. Kód ešte nie je prepnutý. Kým to 
 | Supabase | projekt `btw`, ref `wlkdhdkflbswjjdobsfs`, eu-west-1 |
 | Vercel | tím `igortittels-projects`, projekt `btw-rental` |
 | Doména | `rental.btw.sk` (DNS btw.sk vo Websupporte, prístup má klient) |
-| CI | GitHub Actions: `Kvalita` (lint, typy, formát, unit testy), `E2E` |
+| CI | GitHub Actions: `Kvalita` (lint, typy, formát, unit testy); E2E v btw-admin |
 
 ## Príkazy
 

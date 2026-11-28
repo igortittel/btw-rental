@@ -1,3 +1,4 @@
+import { adminUrl } from '@/lib/admin-url'
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { localizedPath } from '@/i18n/routing'
@@ -78,7 +79,7 @@ export async function notifyBookingCancelled(supabase: Client, bookingId: string
   try {
     const loaded = await load(supabase, bookingId)
     if (!loaded) return false
-    const { booking, settings, origin, vehicleName } = loaded
+    const { booking, settings, vehicleName } = loaded
     const data = bookingEmailDataFromRow(booking, vehicleName, settings.company)
     const fee = booking.cancellation_fee_cents ? formatEuro(booking.cancellation_fee_cents, data.locale) : null
     const results = await sendBookingCancelled(
@@ -88,7 +89,7 @@ export async function notifyBookingCancelled(supabase: Client, bookingId: string
         cancelledBy,
         reason: booking.cancellation_reason,
         fee,
-        adminUrl: `${origin}/admin/rezervacie/${bookingId}`,
+        adminUrl: adminUrl(`/rezervacie/${bookingId}`),
       },
       settings.admin_notification_emails,
       { bookingId, profileId: booking.customer_id },
@@ -111,7 +112,7 @@ export async function notifyBookingChangeRequested(supabase: Client, bookingId: 
   try {
     const loaded = await load(supabase, bookingId)
     if (!loaded) return false
-    const { booking, settings, origin, vehicleName } = loaded
+    const { booking, settings, vehicleName } = loaded
     const pending = booking.pending_change as { booking?: ChangeableBooking; extras?: ExtraRow[] } | null
     const { data: currentExtras } = await supabase.from('booking_extras').select('name_snapshot, quantity').eq('booking_id', bookingId)
     const after = pending?.booking ?? booking
@@ -122,7 +123,7 @@ export async function notifyBookingChangeRequested(supabase: Client, bookingId: 
         changes: describeBookingChange(before.booking, before.extras, after, afterExtras, 'sk'),
         needsApproval: booking.status === 'modified',
         collision,
-        adminUrl: `${origin}/admin/rezervacie/${bookingId}`,
+        adminUrl: adminUrl(`/rezervacie/${bookingId}`),
       },
       settings.admin_notification_emails,
       { bookingId },

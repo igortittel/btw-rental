@@ -1,3 +1,4 @@
+import { ADMIN_URL } from '@/lib/admin-url'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
@@ -52,8 +53,8 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
         </Link>
         {user.role ? (
           // The admin lives outside the locale routing and needs a full page load.
-          // eslint-disable-next-line @next/next/no-html-link-for-pages
-          <a href="/admin" className={outline}>
+
+          <a href={ADMIN_URL} className={outline}>
             {t('goToAdmin')}
           </a>
         ) : null}

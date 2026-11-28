@@ -5,8 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 /**
  * Security headers for every response. The CSP deliberately does not restrict scripts
  * (that would need nonces and force every page to render dynamically); it blocks framing
- * by other sites (clickjacking of the admin), plugins, <base> hijacking and forms posting
- * elsewhere. Same-origin framing stays allowed for the email preview in /admin/emaily.
+ * by other sites (clickjacking), plugins, <base> hijacking and forms posting elsewhere.
  */
 const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
@@ -26,18 +25,15 @@ const nextConfig = {
   // streaming it into <body>: search engines ignore canonical/hreflang outside <head>.
   htmlLimitedBots: /.*/,
   async headers() {
-    return [
-      { source: '/:path*', headers: securityHeaders },
-      // Internal pages never belong in search results.
-      { source: '/admin', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
-      { source: '/admin/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
-    ]
+    return [{ source: '/:path*', headers: securityHeaders }]
   },
-  // pdfkit (protocol PDFs) loads its standard fonts and data through package "imports"
-  // (#standard-fonts/…) that file tracing does not follow; ship them with the functions.
-  outputFileTracingIncludes: {
-    '/admin/**': ['./node_modules/pdfkit/js/standard-fonts/**', './node_modules/pdfkit/js/data/**'],
-    '/api/protocols/**': ['./node_modules/pdfkit/js/standard-fonts/**', './node_modules/pdfkit/js/data/**'],
+  // The administration moved to admin.btw.sk (repo btw-admin): old /admin links keep working.
+  async redirects() {
+    const admin = (process.env.NEXT_PUBLIC_ADMIN_URL?.startsWith('http') ? process.env.NEXT_PUBLIC_ADMIN_URL : 'https://admin.btw.sk').replace(/\/$/, '')
+    return [
+      { source: '/admin', destination: admin, statusCode: 301 },
+      { source: '/admin/:path*', destination: `${admin}/:path*`, statusCode: 301 },
+    ]
   },
   webpack(config) {
     // next-intl's plugin loads a message extractor through a dynamic import() that webpack's persistent

@@ -1,5 +1,6 @@
 'use server'
 
+import { adminUrl } from '@/lib/admin-url'
 import { after } from 'next/server'
 import { headers } from 'next/headers'
 import { localizedPath } from '@/i18n/routing'
@@ -255,7 +256,7 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         sendBookingAdminNotification(
           {
             booking: buildBookingEmailData(emailInput, 'sk'),
-            adminUrl: `${origin}/admin/rezervacie/${result.id}`,
+            adminUrl: adminUrl(`/rezervacie/${result.id}`),
             pendingOverlaps: result.pending_overlaps,
             isBlacklisted: blacklisted,
             isNewCustomer: createdAccount,

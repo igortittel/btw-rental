@@ -1,3 +1,4 @@
+import { ADMIN_URL } from '@/lib/admin-url'
 import Image from 'next/image'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { LocaleSwitch } from '@/components/site/locale-switch'
@@ -20,8 +21,7 @@ export async function SiteHeader() {
   // The admin lives outside the locale routing and needs a full page load.
   const adminLink = (className: string) =>
     user?.role ? (
-      // eslint-disable-next-line @next/next/no-html-link-for-pages
-      <a href="/admin" className={className}>
+      <a href={ADMIN_URL} className={className}>
         {t('admin')}
       </a>
     ) : null
